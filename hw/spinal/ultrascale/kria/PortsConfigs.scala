@@ -4,17 +4,35 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.bus.amba4.axi._
 
+import interface.debug._
+
+
 object KriaPorts {
 
   def generateFieldAttribute(encoding: String, interface: String, channel: String, field: String): String = {
     return encoding+" "+interface+" "+channel.toUpperCase()+field.toUpperCase()
   }
 
+  def generateCrossTiggerFieldAttribute(interface: String, channel: String): String = {
+    return this.generateFieldAttribute("xilinx.com:interface:trigger:1.0", interface, channel, "")
+  }
+
+  def setCrossTriggerInterfaceAttributes(port: CrossTrigger): Unit = {
+    if (port.isMasterInterface) {
+      port.pl_ps_trigger.addAttribute("X_INTERFACE_INFO", this.generateCrossTiggerFieldAttribute(port.getPartialName(), "ACK"))
+      port.ps_pl_trigger.addAttribute("X_INTERFACE_INFO", this.generateCrossTiggerFieldAttribute(port.getPartialName(), "TRIG"))
+    }
+    else {
+      port.pl_ps_trigger.addAttribute("X_INTERFACE_INFO", this.generateCrossTiggerFieldAttribute(port.getPartialName(), "TRIG"))
+      port.ps_pl_trigger.addAttribute("X_INTERFACE_INFO", this.generateCrossTiggerFieldAttribute(port.getPartialName(), "ACK"))
+    }
+  }
+
   def generateAceFieldAttribute(interface: String, channel: String, field: String): String = {
     return this.generateFieldAttribute("xilinx.com:interface:acemm:1.0", interface, channel, field)
   }
 
-  val FPD_ACE_Config = AceConfig(
+/*  val FPD_ACE_Config = AceConfig(
     addressWidth =   44,
     dataWidth    =  128,
     useProt      = true,
@@ -45,7 +63,7 @@ object KriaPorts {
       combinedIssuingCapability = -1,
       readDataReorderingDepth   = -1
     )
-  )
+  )*/
 
   def generateAxi4FieldAttribute(interface: String, channel: String, field: String): String = {
     return this.generateFieldAttribute("xilinx.com:interface:aximm:1.0", interface, channel, field)
