@@ -1,4 +1,4 @@
-package ultrascale.kria
+package kria
 
 import spinal.core._
 import spinal.lib._
@@ -32,7 +32,7 @@ case class Interfaces(
 //  val fpd_ace  = (withFPD_ACE                   ) generate (     slave(Axi4(KriaPorts.FPD_ACE_Config ))                             )
   val dbg_cti  = (withCross_Trigger_Input > 0   ) generate (Vec( slave(CrossTrigger()                 ), withCross_Trigger_Input)   )
   val dbg_cto  = (withCross_Trigger_Output > 0  ) generate (Vec(master(CrossTrigger()                 ), withCross_Trigger_Output)  )
-  val pmod     = (withPMOD > 0                  ) generate (       out(PMOD(withPMOD)                 )                             )
+  val pmod     = (withPMOD > 0                  ) generate (       out(PMOD(withPMOD, "pmod")         )                             )
 }
 
 

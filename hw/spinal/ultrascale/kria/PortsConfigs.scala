@@ -1,4 +1,4 @@
-package ultrascale.kria
+package kria
 
 import spinal.core._
 import spinal.lib._
@@ -12,6 +12,19 @@ object KriaPorts {
   def generateFieldAttribute(encoding: String, interface: String, channel: String, field: String): String = {
     return encoding+" "+interface+" "+channel.toUpperCase()+field.toUpperCase()
   }
+
+  /*
+   * Note: The position of the pin names in the list matters! The position is the number of the pin in the pmod interface.
+   * H12 -> 0 upper part
+   * E10 -> 2 upper part
+   * D10 -> 4 upper part
+   * C11 -> 6 upper part
+   * B10 -> 1 lower part
+   * E12 -> 3 lower part
+   * D11 -> 5 lower part
+   * B11 -> 7 lower part
+   */
+  val pmod_pins = Array("H12", "B10", "E10", "E12", "D10", "D11", "C11", "B11")
 
   def generateCrossTiggerFieldAttribute(interface: String, channel: String): String = {
     return this.generateFieldAttribute("xilinx.com:interface:trigger:1.0", interface, channel, "")
