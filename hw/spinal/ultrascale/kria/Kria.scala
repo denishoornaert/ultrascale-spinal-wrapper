@@ -7,6 +7,7 @@ import spinal.lib.bus.amba4.axi._
 //import bus.amba4.ace._
 import interface.debug._
 import interface.io._
+import scripts._
 
 
 case class Interfaces(
@@ -82,6 +83,8 @@ case class Kria(
 
   io.pmod.makeInput(5)
   io.pmod.setAllInputs()
+
+  BlockDiagram.draw(this)
 }
 
 object KriaVerilog extends App {
