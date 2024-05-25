@@ -1,11 +1,10 @@
-package interface.debug
+package generic.interface.crosstrigger
 
 import spinal.core._
 import spinal.lib._
 
-
 case class CrossTrigger() extends Bundle with IMasterSlave {
-  
+
   val pl_ps_trigger =  in(Bool())
   val ps_pl_trigger = out(Bool())
 
@@ -14,7 +13,9 @@ case class CrossTrigger() extends Bundle with IMasterSlave {
     in(ps_pl_trigger)
   }
 
-  def <<(that: CrossTrigger): Unit = that >> this
+  def <<(that: CrossTrigger): Unit = {
+    that >> this
+  }
 
   def >>(that: CrossTrigger): Unit = {
     that.pl_ps_trigger := this.pl_ps_trigger

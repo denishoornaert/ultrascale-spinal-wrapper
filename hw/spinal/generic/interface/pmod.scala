@@ -1,28 +1,26 @@
-package interface.io
+package generic.interface.pmod
 
 import spinal.core._
 import spinal.lib._
 
-import kria._
-import scripts._
 
+case class PMOD() extends Bundle with IMasterSlave {
 
-case class PMOD(amount: Int = 8, interface_name: String = "undefined") extends Bundle {
- 
-  assert(this.amount <= 8)
+  val amount: Int = 8
 
-  for (pin <- 0 until this.amount)
-    Constraints.add("set_property PACKAGE_PIN "+KriaPorts.pmod_pins(pin)+" [get_ports "+this.interface_name+"["+pin+"]];")
+  val pins: Vec[Bool] = Vec(out(Bool()), this.amount)
 
-  val pins = Vec(out(Bool()), this.amount)
+  override def asMaster(): Unit = {
+    in(pins)
+  }
 
-  def setAllInputs(): Unit = {
+  def setAllOutputs(): Unit = {
     for (p <- 0 until pins.size)
       if (pins(p).isOutput)
         pins(p).set()
   }
 
-  def clearAllInputs(): Unit = {
+  def clearAllOutputs(): Unit = {
     for (p <- 0 until pins.size)
       if (pins(p).isOutput)
         pins(p).clear()
@@ -43,4 +41,5 @@ case class PMOD(amount: Int = 8, interface_name: String = "undefined") extends B
   def makeOutput(index: Int): Unit = {
     out(pins(index))
   }
+
 }
