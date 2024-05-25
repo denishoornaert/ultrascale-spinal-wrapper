@@ -1,4 +1,4 @@
-package kria.interface.axi
+package kv260.interface.axi
 
 import spinal.core._
 import spinal.lib._

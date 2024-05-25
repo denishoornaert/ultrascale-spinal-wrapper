@@ -1,4 +1,4 @@
-package kria.interface.pmod
+package kv260.interface.pmod
 
 import spinal.core._
 import spinal.lib._

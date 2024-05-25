@@ -1,4 +1,4 @@
-package kria.interface.crosstrigger
+package kv260.interface.crosstrigger
 
 import spinal.core._
 import spinal.lib._

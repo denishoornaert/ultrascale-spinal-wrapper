@@ -1,4 +1,4 @@
-package kria
+package kv260
 
 import spinal.core._
 import spinal.lib._
@@ -54,7 +54,7 @@ case class Interfaces(
 }
 
 
-case class Kria(
+case class KV260(
   withLPD_HPM0               : Boolean = false,
   withFPD_HPM0               : Boolean = false,
   withFPD_HPM1               : Boolean = false,
@@ -91,10 +91,10 @@ case class Kria(
   BlockDiagram.draw(this)
 }
 
-object KriaVerilog extends App {
-  Config.spinal.generateVerilog(Kria(withFPD_HPM0=true, withFPD_HP0=true, withDBG_CTO0=true, withDBG_CTI0=true, withDBG_CTO1=true, withDBG_CTI1=true, withIO_PMOD0=true))
+object KV260Verilog extends App {
+  Config.spinal.generateVerilog(KV260(withFPD_HPM0=true, withFPD_HP0=true, withDBG_CTO0=true, withDBG_CTI0=true, withDBG_CTO1=true, withDBG_CTI1=true, withIO_PMOD0=true))
 }
 
-object KriaVhdl extends App {
-  Config.spinal.generateVhdl(Kria())
+object KV260Vhdl extends App {
+  Config.spinal.generateVhdl(KV260())
 }
