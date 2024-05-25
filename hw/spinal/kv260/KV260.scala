@@ -5,6 +5,7 @@ import spinal.lib._
 import spinal.lib.bus.amba4.axi._
 
 //import bus.amba4.ace._
+import ultrascaleplus.configport._
 import ultrascaleplus.interface.crosstrigger._
 import ultrascaleplus.interface.axi._
 import ultrascaleplus.interface.pmod._
@@ -80,6 +81,9 @@ case class KV260(
 //    KriaPorts.setAceInterfaceAttributes(io.fpd_ace)
 
 //  io.fpd_hpm0 <> io.fpd_hp0
+
+  val config = new ConfigPort(LPD_HPM0.port)
+
   FPD_HPM0.port <> FPD_HP0.port
 
   io.dbg_cti0 <> io.dbg_cto0
@@ -92,7 +96,7 @@ case class KV260(
 }
 
 object KV260Verilog extends App {
-  Config.spinal.generateVerilog(KV260(withFPD_HPM0=true, withFPD_HP0=true, withDBG_CTO0=true, withDBG_CTI0=true, withDBG_CTO1=true, withDBG_CTI1=true, withIO_PMOD0=true))
+  Config.spinal.generateVerilog(KV260(withLPD_HPM0=true, withFPD_HPM0=true, withFPD_HP0=true, withDBG_CTO0=true, withDBG_CTI0=true, withDBG_CTO1=true, withDBG_CTI1=true, withIO_PMOD0=true))
 }
 
 object KV260Vhdl extends App {
