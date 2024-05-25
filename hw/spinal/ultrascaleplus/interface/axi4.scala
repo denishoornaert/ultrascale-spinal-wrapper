@@ -44,16 +44,16 @@ abstract class AbstractAxi4() {
 
 
 abstract class AbstractPrimaryAxi4 extends AbstractAxi4() {
-  
-  override val direction: String = "Master"
 
-  val aperture: SizeMapping
+  override val direction: String = "Master"
 
 }
 
 
 abstract class AbstractSecondaryAxi4 extends AbstractAxi4() {
-
+  
   override val direction: String = "Slave"
+
+  val aperture: SizeMapping
 
 }

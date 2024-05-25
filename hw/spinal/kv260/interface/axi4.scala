@@ -9,11 +9,12 @@ import ultrascaleplus.parameters._
 import ultrascaleplus.interface.axi._
 
 
-object LPD_HPM0 extends AbstractPrimaryAxi4() {
+object LPD_HPM0 extends AbstractSecondaryAxi4() {
 
   override val aperture = AddressMap.LPD_HPM0
 
-  override val port = master(
+  // Primary port from the pov of the PS but a secondary port from the pov of the PL
+  override val port = slave(
     Axi4(
       Axi4Config(
         addressWidth              =   40,
@@ -49,11 +50,12 @@ object LPD_HPM0 extends AbstractPrimaryAxi4() {
   this.setInterfaceAttributes(this.port)
 }
 
-object FPD_HPM0 extends AbstractPrimaryAxi4() {
+object FPD_HPM0 extends AbstractSecondaryAxi4() {
 
   override val aperture = AddressMap.FPD_HPM0
 
-  override val port = master(
+  // Primary port from the pov of the PS but a secondary port from the pov of the PL
+  override val port = slave(
     Axi4(
       Axi4Config(
         addressWidth              =   40,
@@ -89,11 +91,12 @@ object FPD_HPM0 extends AbstractPrimaryAxi4() {
   this.setInterfaceAttributes(this.port)
 }
 
-object FPD_HPM1 extends AbstractPrimaryAxi4() {
+object FPD_HPM1 extends AbstractSecondaryAxi4() {
 
   override val aperture = AddressMap.FPD_HPM1
 
-  override val port = master(
+  // Primary port from the pov of the PS but a secondary port from the pov of the PL
+  override val port = slave(
     Axi4(
       Axi4Config(
         addressWidth              =   40,
@@ -129,9 +132,10 @@ object FPD_HPM1 extends AbstractPrimaryAxi4() {
   this.setInterfaceAttributes(this.port)
 }
 
-object FPD_HP0 extends AbstractSecondaryAxi4() {
+object FPD_HP0 extends AbstractPrimaryAxi4() {
 
-  override val port = slave(
+  // Secondary port from the pov of the PS but a primary port from the pov of the PL
+  override val port = master(
     Axi4(
       Axi4Config(
         addressWidth              =   40,
@@ -167,9 +171,10 @@ object FPD_HP0 extends AbstractSecondaryAxi4() {
   this.setInterfaceAttributes(this.port)
 }
 
-object FPD_HP1 extends AbstractSecondaryAxi4() {
+object FPD_HP1 extends AbstractPrimaryAxi4() {
 
-  override val port = slave(
+  // Secondary port from the pov of the PS but a primary port from the pov of the PL
+  override val port = master(
     Axi4(
       Axi4Config(
         addressWidth              =   40,
@@ -205,9 +210,10 @@ object FPD_HP1 extends AbstractSecondaryAxi4() {
   this.setInterfaceAttributes(this.port)
 }
 
-object FPD_HP2 extends AbstractSecondaryAxi4() {
+object FPD_HP2 extends AbstractPrimaryAxi4() {
 
-  override val port = slave(
+  // Secondary port from the pov of the PS but a primary port from the pov of the PL
+  override val port = master(
     Axi4(
       Axi4Config(
         addressWidth              =   40,
@@ -243,9 +249,10 @@ object FPD_HP2 extends AbstractSecondaryAxi4() {
   this.setInterfaceAttributes(this.port)
 }
 
-object FPD_HP3 extends AbstractSecondaryAxi4() {
+object FPD_HP3 extends AbstractPrimaryAxi4() {
 
-  override val port = slave(
+  // Secondary port from the pov of the PS but a primary port from the pov of the PL
+  override val port = master(
     Axi4(
       Axi4Config(
         addressWidth              =   40,
