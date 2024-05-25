@@ -9,7 +9,7 @@ import spinal.lib.bus.amba4.axi._
 import scripts._
 
 
-class ConfigPort(config: Axi4Config) extends Component {
+class ConfigPort(config: Axi4Config) extends Area {
   setPartialName("Configuration port")
 
   val array = ArrayBuffer[Data]()
