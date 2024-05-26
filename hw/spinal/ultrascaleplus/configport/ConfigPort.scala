@@ -12,7 +12,12 @@ import scripts._
 class ConfigPort(axi: Axi4) extends Area {
   setPartialName("Configuration_port")
 
-  val array = ArrayBuffer[Data]()
+  // Buffer size in bits
+  val buffer_size = 512
+  val buffer_rows = buffer_size/axi.config.dataWidth
+
+  // Buffer
+  val buffer: Array[Array[Bits]] = Array.fill(buffer_rows)(Array.fill(axi.config.dataWidth/8)(Bits(8 bits)))
 
   // AXI logic
   val in_flight_read = Reg(Bool) init(False)
@@ -74,14 +79,26 @@ class ConfigPort(axi: Axi4) extends Area {
   }
 
   // on-demand register mapping
-  
+  val top = new Bundle()
+  var row_pointer = 0
+  var in_row_pointer = 0
+
   def addElement(element: Data): Unit = {
-    array.append(element)
+    val element_size = element.getBitsWidth/8
+    // Check if padding is required
+    if (in_row_pointer+element_size > axi.config.dataWidth/8) {
+      in_row_pointer = 0
+      row_pointer += 1
+    }
+    // Add element to bundle for c struct generation
+    top.elements.append((element.name, element))
+    // Connect part of the buffer to the element
+    element.assignFromBits(Cat((List.tabulate(element_size)(x => buffer(row_pointer)(in_row_pointer+x))).reverse))
+    // Maintain pointers
+    in_row_pointer += element_size
   }
 
-  val target_address = UInt(64 bits)
-
-  addElement(target_address)
-
-  println(CStructFactory.process(target_address, 0))
+  def generateCStruct(): Unit = {
+    println(CStructFactory(top, 0))
+  }
 }
