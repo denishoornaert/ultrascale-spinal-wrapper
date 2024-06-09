@@ -82,7 +82,7 @@ case class KV260(
 
 //  io.fpd_hpm0 <> io.fpd_hp0
 
-  val config = new ConfigPort(LPD_HPM0.port)
+  val config = new ConfigPort(LPD_HPM0.port, LPD_HPM0.aperture.base)
 
   val addr  = UInt(64 bits)
   config.addElement(addr)
@@ -92,6 +92,12 @@ case class KV260(
   config.addElement(errno)
   val vector = Vec.fill(4)(UInt(32 bits))
   config.addElement(vector)
+  val cmplx = Vec.fill(2)(new Bundle {
+      val r = SInt(32 bits)
+      val i = SInt(32 bits)
+    }
+  )
+  config.addElement(cmplx)
 
   FPD_HPM0.port <> FPD_HP0.port
 
@@ -101,7 +107,7 @@ case class KV260(
   IO_PMOD0.port.makeInput(5)
   IO_PMOD0.port.setAllOutputs()
 
-  config.generateCStruct()
+  config.generateCHeader()
   BlockDiagram.draw(this)
 }
 
