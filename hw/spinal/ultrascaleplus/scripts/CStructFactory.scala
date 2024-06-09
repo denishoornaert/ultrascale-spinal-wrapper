@@ -6,14 +6,28 @@ import spinal.lib._
 
 object CStructFactory {
 
+  // implicit topmodule
+  def apply(element: Bundle): String = {
+    val name = element.getPartialName()
+
+    var result = ""
+    result += "struct configuration_s {\n"
+    for ((name, elem) <- element.elements)
+      result += CStructFactory(elem, 1)
+    result += "};\n"
+
+    return result
+  }
+
   def apply(element: Data, level: Int): String = {
-    println(element.getClass.getName)
     val result = element.getClass.getName match {
       case "spinal.core.UInt" => CStructFactory(element.asInstanceOf[UInt], level)
       case "spinal.core.SInt" => CStructFactory(element.asInstanceOf[SInt], level)
-      case "spinal.core.Bundle" => CStructFactory(element.asInstanceOf[Bundle], level)
+      case "spinal.core.Bits" => CStructFactory(element.asInstanceOf[Bits], level)
+      case "spinal.core.Bool" => CStructFactory(element.asInstanceOf[Bool], level)
       case "spinal.core.Vec" => CStructFactory(element.asInstanceOf[Vec[Data]], level)
-      case _ => "lol"
+      // Default catches Bundle definitions
+      case _ => CStructFactory(element.asInstanceOf[Bundle], level)
     }
     return result
   }
@@ -23,10 +37,10 @@ object CStructFactory {
     val name = element.getPartialName()
 
     var result = ""
-    result += s"${padding}struct ${name} {\n"
+    result += s"${padding}struct {\n"
     for ((name, elem) <- element.elements)
       result += CStructFactory(elem, level+1)
-    result += "};\n"
+    result += s"${padding}} ${name};\n"
 
     return result
   }
@@ -36,7 +50,7 @@ object CStructFactory {
     val name = element.getPartialName()
     
     var result = CStructFactory(element(0), level)
-    // '-3' is because 1 (';'), 1 ('0' or hte first element of the array), and 1 because...
+    // '-3' is because 1 (';'), 1 ('0' or the first element of the array), and 1 because...
     result = result.patch(result.size-3, s"${name}[${element.size}]", 1)
 
     return result
@@ -57,7 +71,7 @@ object CStructFactory {
   def apply(element: SInt, level: Int): String = {
     assert(List(8, 16, 32, 64).contains(element.getWidth), "SInt should be either 8, 16, 32, or 64.")
 
-    val ctype = s"sint${element.getWidth}_t"
+    val ctype = s"int${element.getWidth}_t"
     val padding = "\t"*level
     val name = element.getPartialName()
 
