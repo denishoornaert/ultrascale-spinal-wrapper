@@ -1,6 +1,8 @@
 package ultrascaleplus.configport
 
 import scala.collection.mutable.ArrayBuffer
+import scala.io.Source
+import java.io._
 
 import spinal.core._
 import spinal.lib._
@@ -9,7 +11,7 @@ import spinal.lib.bus.amba4.axi._
 import scripts._
 
 
-class ConfigPort(axi: Axi4) extends Area {
+class ConfigPort(axi: Axi4, aperture: BigInt) extends Area {
   setPartialName("Configuration_port")
 
   // Buffer size in bits
@@ -99,6 +101,26 @@ class ConfigPort(axi: Axi4) extends Area {
   }
 
   def generateCStruct(): Unit = {
-    println(CStructFactory(top, 0))
+    println(CStructFactory(top))
+  }
+
+  def generateCHeader(template: String = "hw/ext/configuration_port.h.template", destination: String = "hw/gen/configuration_port.h"): Unit = {
+    // Open buffer for read
+    val br = Source.fromFile(template)
+    // Make string out of buffer read
+    var header = br.mkString
+    // Close read buffer
+    br.close
+    // Generate c struct for configuration port
+    val struct = CStructFactory(top)
+    // Insert generate strings in the template
+    header = header.replace("${insert_struct}", struct)
+    header = header.replace("${insert_addr}", aperture.toString())
+    // Open buffer for writing
+    val bw = new BufferedWriter(new FileWriter(new File(destination)))
+    // Write header in target file
+    bw.write(header+"\n")
+    // Close FD.
+    bw.close
   }
 }
