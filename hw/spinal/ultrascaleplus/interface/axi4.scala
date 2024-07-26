@@ -38,7 +38,9 @@ abstract class AbstractAxi4() {
 
   val direction: String
 
-  val port: Axi4
+  val config: Axi4Config
+
+  def init(port: Axi4): Unit
 
 }
 

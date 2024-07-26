@@ -1,0 +1,48 @@
+#ifndef CONFIGURATION_PORT_H
+#define CONFIGURATION_PORT_H
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+
+
+${insert_struct}
+
+static struct configuration_s* config = NULL;
+
+
+int open_fd() {
+    int fd = open("/dev/mem", O_RDWR | O_SYNC);
+    if (fd == -1) {
+        printf("Can't open /dev/mem.\n");
+        exit(0);
+    }
+    return fd;
+}
+
+
+int unmap(void* target, unsigned size) {
+    int res = 0;
+    int unmap_result = munmap(target, size);
+    if (unmap_result != 0) {
+        perror("Could not munmap");
+        res = 1;
+    }
+    return res;
+}
+
+
+int config_init() {
+    int port_fd = open_fd();
+    config = (struct configuration_s*)mmap((void*)0, 4096, PROT_EXEC|PROT_READ|PROT_WRITE, MAP_SHARED, port_fd, ${insert_addr});
+    return port_fd;
+}
+
+int config_done() {
+    return unmap((void*)config, 4096);
+}
+
+#endif /* CONFIGURATION_PORT_H */

@@ -12,8 +12,8 @@ object AddressMap {
   val FPD_HPM1 = SizeMapping(BigInt("4800000000", 16), 224 GiB)
 
   // PS DRAM
-  val LOW_DDR  = SizeMapping(BigInt("1000000000", 16),   2 GiB)
-  val HIGH_DDR = SizeMapping(BigInt("8000000000", 16),   2 GiB)
+  val LOW_DDR  = SizeMapping(BigInt("0000000000", 16),   2 GiB)
+  val HIGH_DDR = SizeMapping(BigInt("0800000000", 16),   2 GiB)
 
   // On-chip Memory
   val OCM      = SizeMapping(BigInt("00FFFC0000", 16), 256 KiB)
