@@ -35,13 +35,13 @@ case class Interfaces(
   withDBG_CTO3               : Boolean = false,
   withIO_PMOD0               : Boolean = false
 ) extends Bundle {
-  val lpd_hpm0 = (withLPD_HPM0                  ) generate (LPD_HPM0.port)
-  val fpd_hpm0 = (withFPD_HPM0                  ) generate (FPD_HPM0.port)
-  val fpd_hpm1 = (withFPD_HPM1                  ) generate (FPD_HPM1.port)
-  val fpd_hp0  = (withFPD_HP0                   ) generate (FPD_HP0.port )
-  val fpd_hp1  = (withFPD_HP1                   ) generate (FPD_HP1.port )
-  val fpd_hp2  = (withFPD_HP2                   ) generate (FPD_HP2.port )
-  val fpd_hp3  = (withFPD_HP3                   ) generate (FPD_HP3.port )
+  val lpd_hpm0 = (withLPD_HPM0                  ) generate ( slave(Axi4(LPD_HPM0.config)))
+  val fpd_hpm0 = (withFPD_HPM0                  ) generate ( slave(Axi4(FPD_HPM0.config)))
+  val fpd_hpm1 = (withFPD_HPM1                  ) generate ( slave(Axi4(FPD_HPM1.config)))
+  val fpd_hp0  = (withFPD_HP0                   ) generate (master(Axi4(FPD_HP0.config )))
+  val fpd_hp1  = (withFPD_HP1                   ) generate (master(Axi4(FPD_HP1.config )))
+  val fpd_hp2  = (withFPD_HP2                   ) generate (master(Axi4(FPD_HP2.config )))
+  val fpd_hp3  = (withFPD_HP3                   ) generate (master(Axi4(FPD_HP3.config )))
 //  val fpd_ace  = (withFPD_ACE                   ) generate (     slave(Axi4(KriaPorts.FPD_ACE_Config ))                             )
   val dbg_cti0 = (withDBG_CTI0                  ) generate (DBG_CTI0.port)
   val dbg_cti1 = (withDBG_CTI1                  ) generate (DBG_CTI1.port)
@@ -55,7 +55,7 @@ case class Interfaces(
 }
 
 
-case class KV260(
+class KV260(
   withLPD_HPM0               : Boolean = false,
   withFPD_HPM0               : Boolean = false,
   withFPD_HPM1               : Boolean = false,
@@ -77,11 +77,28 @@ case class KV260(
 
   val io = new Interfaces(withLPD_HPM0, withFPD_HPM0, withFPD_HPM1, withFPD_HP0, withFPD_HP1, withFPD_HP2, withFPD_HP3, withFPD_ACE, withDBG_CTI0, withDBG_CTI1, withDBG_CTI2, withDBG_CTI3, withDBG_CTO0, withDBG_CTO1, withDBG_CTO2, withDBG_CTO3, withIO_PMOD0)
   
-//  if (withFPD_ACE)
-//    KriaPorts.setAceInterfaceAttributes(io.fpd_ace)
-
-//  io.fpd_hpm0 <> io.fpd_hp0
-
+  if (withLPD_HPM0)
+    LPD_HPM0.init(io.lpd_hpm0)
+  
+  if (withFPD_HPM0)
+    FPD_HPM0.init(io.fpd_hpm0)
+  
+  if (withFPD_HPM1)
+    FPD_HPM1.init(io.fpd_hpm1)
+  
+  if (withFPD_HP0)
+    FPD_HP0.init(io.fpd_hp0)
+  
+  if (withFPD_HP1)
+    FPD_HP1.init(io.fpd_hp1)
+  
+  if (withFPD_HP2)
+    FPD_HP2.init(io.fpd_hp2)
+  
+  if (withFPD_HP3)
+    FPD_HP3.init(io.fpd_hp3)
+  
+/*
   val config = new ConfigPort(LPD_HPM0.port, LPD_HPM0.aperture.base)
 
   val addr  = UInt(64 bits)
@@ -99,22 +116,8 @@ case class KV260(
   )
   config.addElement(cmplx)
 
-  FPD_HPM0.port <> FPD_HP0.port
-
-  io.dbg_cti0 <> io.dbg_cto0
-  io.dbg_cti1 <> io.dbg_cto1
-
-  IO_PMOD0.port.makeInput(5)
-  IO_PMOD0.port.setAllOutputs()
-
   config.generateCHeader()
+*/
   BlockDiagram.draw(this)
-}
 
-object KV260Verilog extends App {
-  Config.spinal.generateVerilog(KV260(withLPD_HPM0=true, withFPD_HPM0=true, withFPD_HP0=true, withDBG_CTO0=true, withDBG_CTI0=true, withDBG_CTO1=true, withDBG_CTI1=true, withIO_PMOD0=true))
-}
-
-object KV260Vhdl extends App {
-  Config.spinal.generateVhdl(KV260())
 }
