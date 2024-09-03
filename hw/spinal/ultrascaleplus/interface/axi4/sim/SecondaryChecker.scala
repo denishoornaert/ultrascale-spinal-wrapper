@@ -27,6 +27,9 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   axi.b.id     #= 0
   axi.b.resp   #= 0
 
+  // Maintaining clock count
+  var clock_count: BigInt = 0
+
   // AR
   val maxReads = 8
   var readCount = 0
@@ -133,6 +136,9 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   }
 
   def check(): Unit = {
+    // Maintain clock count
+    clock_count += clock_count
+    // Check channels
     if (axi.ar.valid.toBoolean & axi.ar.ready.toBoolean)
       onARHandshake()
     updateAR()

@@ -41,6 +41,9 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
   axi.w.strb    #= 0
   axi.w.last    #= false
 
+  // Maintaining clock count
+  var clock_count: BigInt = 0
+
   // AR
   val ARQueue = mutable.Queue[Axi4RJob]()
   // R
@@ -198,6 +201,9 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
   }
 
   def check(): Unit = {
+    // Maintain 
+    clock_count += clock_count
+    // Check channels
     if (ARQueue.nonEmpty & axi.ar.valid.toBoolean & axi.ar.ready.toBoolean)
       onARHandshake()
     updateAR()
