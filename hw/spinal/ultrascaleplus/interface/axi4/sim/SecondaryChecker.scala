@@ -12,17 +12,27 @@ import spinal.lib.bus.amba4.axi._
 
 class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
 
+  // Simulated memory
   val memory = SparseMemory()
   memory.loadDebugSequence(BigInt("0800000000", 16), 8*64, 1)
 
+  // Self defined driver
+  clockDomain.onRisingEdges({this.check()})
+
+  // Define default values for signals
+  // Read - Address phase
   axi.ar.ready #= false
+  // Read - Data phase
   axi.r.valid  #= false
   axi.r.data   #= 0
   axi.r.id     #= 0
   axi.r.resp   #= 0
   axi.r.last   #= false
+  // Write - Address phase
   axi.aw.ready #= false
+  // Write - Data phase
   axi.w.ready  #= false
+  // Write - response phase
   axi.b.valid  #= false
   axi.b.id     #= 0
   axi.b.resp   #= 0
