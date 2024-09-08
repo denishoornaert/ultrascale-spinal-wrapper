@@ -264,11 +264,13 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
       // Expectation: there should be a pending transaction for that id
       assert(
         assertion = RMonitor(axi.r.id.toInt) > 0,
-        message   = f"No read response expcted for ${axi.r.id.toInt}"
+        message   = f"No read response expcted for 0x${axi.r.id.toInt.toHexString}"
       )
       RMonitor(axi.r.id.toInt) -= 1
       // Call data check function on reversed list
       readDataAssertionFunction(axi.r.id.toInt, RespData)
+      // Clear resp data
+      RespData = List[BigInt]() 
       // Maintain tracking variable
       readTransactionsCompleted += 1
     }
@@ -302,8 +304,10 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
   def check(): Unit = {
     // Maintain 
     clockCount += 1
-    genReadCmd()
-    genWriteCmd()
+    if (readInProgress)
+      genReadCmd()
+    if(writeInProgress)
+      genWriteCmd()
     // Check channels
     if (ARQueue.nonEmpty & axi.ar.valid.toBoolean & axi.ar.ready.toBoolean)
       onARHandshake()
