@@ -224,11 +224,9 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
       axi.w.strb  #= pow(2, (axi.config.dataWidth/8)).toInt-1
       if (wBeatCount == context.len) {
         axi.w.last #= true
-        wBeatCount = 0
       }
       else {
         axi.w.last #= false
-        wBeatCount += 1
       }
       // Maintain statistics variables
       writeByteCount += axi.config.bytePerWord
@@ -286,8 +284,13 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
   }
 
   def onWHandshake(): Unit = {
-    if (axi.w.last.toBoolean)
+    if (axi.w.last.toBoolean) {
       WQueue.dequeue()
+      wBeatCount = 0
+    }
+    else {
+      wBeatCount += 1
+    }
   }
 
   def onBHandshake(): Unit = {

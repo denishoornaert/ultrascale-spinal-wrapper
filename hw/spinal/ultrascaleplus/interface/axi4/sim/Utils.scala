@@ -24,6 +24,10 @@ class Axi4Resp(_id: Int) {
 
 class AxiJob(ax: Axi4Ax, _addr: BigInt, _id: Int, _len: Int) {
 
+  // Keep track of the job age
+  var age: Int = 0
+
+  // Typical AXI info
   val addr   = _addr
   val id     = _id
   val len    = _len
@@ -38,7 +42,11 @@ class AxiJob(ax: Axi4Ax, _addr: BigInt, _id: Int, _len: Int) {
   val dataTransactionSize : Int  = (1 + len) << size
   val lowerWrapBoundary   : BigInt = (addr / dataTransactionSize) * dataTransactionSize 
   val upperWrapBoundary   : BigInt = lowerWrapBoundary + dataTransactionSize
-  
+ 
+  def older(): Unit = {
+    age += 1
+  }
+
   def incrAddress(i : Int): BigInt = {
     return ((addr >> size) + i) << size
   }

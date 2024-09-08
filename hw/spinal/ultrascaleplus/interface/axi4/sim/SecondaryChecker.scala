@@ -12,6 +12,10 @@ import spinal.lib.bus.amba4.axi._
 
 class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
 
+  // Defined response time for each transactions
+  val readAgeThreshold = 16
+  val writeAgeThreshold = 16
+
   // Simulated memory
   val memory = SparseMemory()
   memory.loadDebugSequence(BigInt("0800000000", 16), 8*64, 1)
@@ -44,23 +48,31 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   val maxReads = 8
   var readCount = 0
   // R
-  val RQueue = mutable.Queue[AxiJob]()
+  var RQueue = mutable.Queue[AxiJob]()
   var rBeatCount = 0
   // AW
-  val maxWrites = 1
+  val maxWrites = 8
   var writeCount = 0
   // W
   val WQueue = new mutable.Queue[AxiJob]()
   var wBeatCount = 0
   // B
-  val BQueue = new mutable.Queue[Int]()
+  val BQueue = new mutable.Queue[AxiJob]()
+
+  def ageRQueue(): Unit = {
+    RQueue.foreach({p => p.age += 1})
+  }
+
+  def ageBQueue(): Unit = {
+    BQueue.foreach({p => p.age += 1})
+  }
 
   def updateAR(): Unit = {
     axi.ar.ready #= (if (axi.ar.valid.toBoolean & axi.ar.ready.toBoolean) false else (readCount < maxReads))
   }
 
   def updateR(): Unit = {
-    if (RQueue.nonEmpty) {
+    if (RQueue.nonEmpty && (RQueue.front.age >= readAgeThreshold)) {
       val context = RQueue.front
       axi.r.valid #= true
       axi.r.data  #= memory.readBigInt(context.alignedBurstAddress(rBeatCount, log2Up(axi.config.dataWidth/8)), axi.config.dataWidth/8)
@@ -86,8 +98,9 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   }
 
   def updateB(): Unit = {
-    axi.b.valid #= (if (axi.b.valid.toBoolean & axi.b.ready.toBoolean) false else BQueue.nonEmpty)
-    axi.b.id    #= (if (BQueue.nonEmpty) BQueue.front else 0)
+    val validFront = BQueue.nonEmpty && (BQueue.front.age >= writeAgeThreshold)
+    axi.b.valid #= (if (axi.b.valid.toBoolean & axi.b.ready.toBoolean) false else validFront)
+    axi.b.id    #= (if (validFront) BQueue.front.id else 0)
     axi.b.resp  #= 0 // OKAY // TODO: should depend on access done in onWHandshake()
   }
 
@@ -130,8 +143,8 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
         message   = f"axi.w.last asserted before due: ${wBeatCount}/${context.len}"
       )
       wBeatCount = 0
-      BQueue += context.id
-      WQueue.dequeue()
+      // Transfer
+      BQueue += WQueue.dequeue()
     }
     else {
       wBeatCount += 1
@@ -140,7 +153,6 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
 
   def onBHandshake(): Unit = {
     val context = BQueue.front
-    //println("Sending ack (B)")
     BQueue.dequeue()
     writeCount -= 1
   }
@@ -148,6 +160,9 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   def check(): Unit = {
     // Maintain clock count
     clock_count += clock_count
+    // Update age of all transactions stored in response queues (R and B)
+    ageRQueue()
+    ageBQueue()
     // Check channels
     if (axi.ar.valid.toBoolean & axi.ar.ready.toBoolean)
       onARHandshake()
