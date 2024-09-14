@@ -13,8 +13,8 @@ import spinal.lib.bus.amba4.axi._
 class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
 
   // Defined response time for each transactions
-  val readAgeThreshold = 16
-  val writeAgeThreshold = 16
+  val readAgeThreshold = 26
+  val writeAgeThreshold = 26
 
   // Simulated memory
   val memory = SparseMemory()
@@ -45,13 +45,13 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   var clock_count: BigInt = 0
 
   // AR
-  val maxReads = 8
+  val maxReads = 4
   var readCount = 0
   // R
   var RQueue = mutable.Queue[AxiJob]()
   var rBeatCount = 0
   // AW
-  val maxWrites = 8
+  val maxWrites = 4
   var writeCount = 0
   // W
   val WQueue = new mutable.Queue[AxiJob]()

@@ -228,8 +228,6 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
       else {
         axi.w.last #= false
       }
-      // Maintain statistics variables
-      writeByteCount += axi.config.bytePerWord
     }
     else {
       axi.w.valid #= false
@@ -291,10 +289,11 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
     else {
       wBeatCount += 1
     }
+    // Maintain statistics variables
+    writeByteCount += axi.config.bytePerWord
   }
 
   def onBHandshake(): Unit = {
-    //println(BMonitor, axi.b.id.toInt)
     assert(
       assertion = BMonitor(axi.b.id.toInt) > 0,
       message   = f"No write response expected for ${axi.b.id.toInt}"
