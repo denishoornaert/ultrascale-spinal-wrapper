@@ -40,6 +40,8 @@ abstract class AbstractAxi4() {
 
   val config: Axi4Config
 
+  var bus: Axi4
+
   def init(port: Axi4): Unit
 
 }

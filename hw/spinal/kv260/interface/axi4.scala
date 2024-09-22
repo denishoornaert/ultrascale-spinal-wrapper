@@ -41,9 +41,12 @@ object LPD_HPM0 extends AbstractSecondaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
+  override var bus = Axi4(config)
+
   override def init(port: Axi4): Unit = {
     port.setPartialName("lpd_hpm0")
     this.setInterfaceAttributes(port)
+    bus = port
   }
 }
 
@@ -80,9 +83,12 @@ object FPD_HPM0 extends AbstractSecondaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
+  override var bus = Axi4(config)
+
   override def init(port: Axi4): Unit = {
     port.setPartialName("fpd_hpm0")
     this.setInterfaceAttributes(port)
+    bus = port
   }
 }
 
@@ -119,9 +125,12 @@ object FPD_HPM1 extends AbstractSecondaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
+  override var bus = Axi4(config)
+
   override def init(port: Axi4): Unit = {
     port.setPartialName("fpd_hpm1")
     this.setInterfaceAttributes(port)
+    bus = port
   }
 }
 
@@ -156,9 +165,12 @@ object FPD_HP0 extends AbstractPrimaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
+  override var bus = Axi4(config)
+
   override def init(port: Axi4): Unit = {
     port.setPartialName("fpd_hp0")
     this.setInterfaceAttributes(port)
+    bus = port
   }
 }
 
@@ -193,9 +205,12 @@ object FPD_HP1 extends AbstractPrimaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
+  override var bus = Axi4(config)
+
   override def init(port: Axi4): Unit = {
     port.setPartialName("fpd_hp1")
     this.setInterfaceAttributes(port)
+    bus = port
   }
 }
 
@@ -230,9 +245,12 @@ object FPD_HP2 extends AbstractPrimaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
+  override var bus = Axi4(config)
+
   override def init(port: Axi4): Unit = {
     port.setPartialName("fpd_hp2")
     this.setInterfaceAttributes(port)
+    bus = port
   }
 }
 
@@ -267,8 +285,11 @@ object FPD_HP3 extends AbstractPrimaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
+  override var bus = Axi4(config)
+
   override def init(port: Axi4): Unit = {
     port.setPartialName("fpd_hp3")
     this.setInterfaceAttributes(port)
+    bus = port
   }
 }
