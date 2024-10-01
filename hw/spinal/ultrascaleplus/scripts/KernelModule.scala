@@ -53,8 +53,8 @@ object KernelModule {
     |   return PTR_ERR(class);
     | }
     |
+    | int ret = 0;
     |${inits}
-    |
     | pr_info("[PL-ports] Devices created.\\n");
     | return 0;
     |}
@@ -71,12 +71,11 @@ object KernelModule {
 
   def variables(port_name: String): String = s"""
     |// ${port_name} variables
-    |static struct cedv ${port_name}_cdev;
+    |static struct cdev ${port_name}_cdev;
     |static dev_t ${port_name}_dev_t = 0;
-    |
-    |""".stripMargin('|')
+    """.stripMargin('|')
 
-  def functions(port_name: String, port_prot: String, port_addr: String): String = s"""
+  def functions(port_name: String, port_remap: String, port_addr: String): String = s"""
     |static int ${port_name}_open(struct inode* inode, struct file* file) {
     | PR_INFO("[PL-ports] Device for ${port_name} opened.\\n");
     | return 0;
@@ -93,7 +92,7 @@ object KernelModule {
     | size = (long unsigned int)(vma->vm_end-vma->vm_start);
     | pfn = 0x${port_addr}UL >> PAGE_SHIFT;
     | PR_INFO("[PL-ports] ${port_name} mapped at PFN = 0x%lx.\\n", pfn);
-    | ret = remap_pfn_range(vma, vma->vm_start, pfn, size, ${port_prot});
+    | ret = ${port_remap}
     | if (ret == -1) {
     |   pr_alert("[PL-ports] Function remap_pfn_range failed for 0x%lx to 0x%lx (PFN).\\n", vma->vm_start, pfn);
     |   return ret;
@@ -106,9 +105,8 @@ object KernelModule {
     | .release = ${port_name}_release,
     | .mmap    = ${port_name}_mmap,
     | .owner   = THIS_MODULE,
-    |}
-    |
-    |""".stripMargin('|')
+    |};
+    """.stripMargin('|')
 
   def inits(port_name: String): String = s"""
     | ret = alloc_chrdev_region(&${port_name}_dev_t, 0, 1, "${port_name}");
@@ -127,23 +125,30 @@ object KernelModule {
     |   pr_alert("[PL-ports] Failed to create device for ${port_name}.\\n");
     |   ret = -EINVAL;
     | }
-    |
-    |""".stripMargin('|')
+    """.stripMargin('|')
 
   def destroys(port_name: String): String = s"""
     | device_destroy(class, ${port_name}_dev_t);
     | cdev_del(&${port_name}_cdev);
-    |""".stripMargin('|')
+    """.stripMargin('|')
 
   var ports = List[AbstractSecondaryAxi4]()
+  var io_ports = List[AbstractSecondaryAxi4]()
 
   def add(port: AbstractSecondaryAxi4): Unit = {
     ports = port +: ports
   }
 
+  def addIO(port: AbstractSecondaryAxi4): Unit = {
+    io_ports = port +: io_ports
+  }
+
   def generateVariablesSection(): String = {
     var res: String = ""
     for (port <- ports) {
+      res = res+variables(port.bus.getPartialName())
+    }
+    for (port <- io_ports) {
       res = res+variables(port.bus.getPartialName())
     }
     return res
@@ -152,8 +157,12 @@ object KernelModule {
   def generateFunctionsSection(): String = {
     var res: String = ""
     for (port <- ports) {
-      val prot = "vm->vma_prot"
-      res = res+functions(port.bus.getPartialName(), prot, port.aperture.base.toString(16))
+      val remap = "remap_pfn_range(vma, vma->vm_start, pfn, size, vma->vm_page_prot);"
+      res = res+functions(port.bus.getPartialName(), remap, port.aperture.base.toString(16))
+    }
+    for (port <- io_ports) {
+      val remap = "io_remap_pfn_range(vma, vma->vm_start, pfn, size, pgprot_noncached(vma->vm_page_prot));"
+      res = res+functions(port.bus.getPartialName(), remap, port.aperture.base.toString(16))
     }
     return res
   }
@@ -161,6 +170,9 @@ object KernelModule {
   def generateInitsSection(): String = {
     var res: String = ""
     for (port <- ports) {
+      res = res+inits(port.bus.getPartialName())
+    }
+    for (port <- io_ports) {
       res = res+inits(port.bus.getPartialName())
     }
     return res
@@ -171,22 +183,24 @@ object KernelModule {
     for (port <- ports) {
       res = res+destroys(port.bus.getPartialName())
     }
+    for (port <- io_ports) {
+      res = res+destroys(port.bus.getPartialName())
+    }
     return res
   }
 
   def generateMakefile(): String = """
-    |obj-m += pl_ports.o
-    |
-    |PWD := $(CURDIR)
-    |KDIR := /lib/modules/$(shell uname -r)/build
-    |
-    |pl_ports:
-    | make -C $(KDIR) M=$(PWD) modules
-    |
-    |clean:
-    | make -C $(KDIR) M=$(PWD) clean
-    |
-    """.stripMargin('|')
+obj-m += pl_ports.o
+
+PWD := $(CURDIR)
+KDIR := /lib/modules/$(shell uname -r)/build
+
+pl_ports:
+  make -C $(KDIR) M=$(PWD) modules
+
+clean:
+  make -C $(KDIR) M=$(PWD) clean
+""" //.stripMargin('|')
 
   def generate(): Unit = {
     val kernel_module_dir = "hw/gen/kernel_module/"
