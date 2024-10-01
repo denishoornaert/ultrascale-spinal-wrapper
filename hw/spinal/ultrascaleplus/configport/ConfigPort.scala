@@ -25,6 +25,7 @@ case class ConfigPort(axi: Axi4, aperture: BigInt) extends Area {
   val in_flight_read = Reg(Bool) init(False)
   val r  = Reg(Axi4R (axi.config))
   val in_flight_write = Reg(Bool) init(False)
+  val awaited_write_data_handshakes = Reg(UInt(log2Up(256) bits)) init(0) // 256 is arbitrary
   val aw = Reg(Axi4Aw(axi.config))
   val b  = Reg(Axi4B (axi.config))
 
@@ -60,6 +61,7 @@ case class ConfigPort(axi: Axi4, aperture: BigInt) extends Area {
   // When handshake happens, store all write request metadata
   when (axi.aw.fire) {
     aw := axi.aw
+    awaited_write_data_handshakes := axi.aw.len+1
     in_flight_write := True
   }
   // Not available if a write transaction is in progress
@@ -68,6 +70,8 @@ case class ConfigPort(axi: Axi4, aperture: BigInt) extends Area {
   // When handshake happens, insert the data into the register
   val write_selected_row_index = aw.addr(log2Up(buffer_size/8)-1 downto log2Up(axi.config.bytePerWord))
   when (axi.w.fire & in_flight_write) {
+    // Decrease counter
+    awaited_write_data_handshakes := awaited_write_data_handshakes-1
     for (i <- 0 until buffer_rows) {
       when (i === write_selected_row_index) {
         for (b <- 0 until axi.config.bytePerWord) {
@@ -79,7 +83,7 @@ case class ConfigPort(axi: Axi4, aperture: BigInt) extends Area {
     }
   }
   // Ready to recieve any write transaction handshake when a transaction is in progress
-  axi.w.ready := in_flight_write
+  axi.w.ready := (awaited_write_data_handshakes =/= 0)
 
   // Response phase only occur after the last data handshake
   val b_resp_valid = Reg(Bool()) init(False)
