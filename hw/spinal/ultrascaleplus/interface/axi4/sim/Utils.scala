@@ -22,16 +22,17 @@ class Axi4Resp(_id: Int) {
 }
 
 
-class AxiJob(ax: Axi4Ax, _addr: BigInt, _id: Int, _len: Int) {
+class AxiJob(ax: Axi4Ax, _addr: BigInt, _id: Int, _len: Int, _size: Int) {
 
   // Keep track of the job age
   var age: Int = 0
 
   // Typical AXI info
-  val addr   = _addr
+  val actual_addr = _addr
+  val addr   = (_addr >> log2Up(16)) << log2Up(16)
   val id     = _id
   val len    = _len
-  val size   = log2Up(16) // TODO: make modular from axi.config.dataWidth/8
+  val size   = _size
   val burst  = 1 // INCR
   val cache  = 0
   val lock   = 0
@@ -82,10 +83,10 @@ class AxiJob(ax: Axi4Ax, _addr: BigInt, _id: Int, _len: Int) {
 
 }
 
-
-class Axi4WJob(ax: Axi4Ax, _addr: BigInt, _id: Int, _len: Int, _data: Seq[BigInt]) extends AxiJob(ax, _addr, _id, _len) {
+// size is expressed in bytes and assumed to be a power of two
+class Axi4WJob(ax: Axi4Ax, _addr: BigInt, _id: Int, _len: Int, _data: Seq[BigInt], _size: Int = 4) extends AxiJob(ax, _addr, _id, _len, _size) {
   val data = _data
 }
 
-class Axi4RJob(ax: Axi4Ax, addr: BigInt, id: Int, len: Int) extends AxiJob(ax, addr, id, len) {
+class Axi4RJob(ax: Axi4Ax, addr: BigInt, id: Int, len: Int, size: Int = 4) extends AxiJob(ax, addr, id, len, size) {
 }

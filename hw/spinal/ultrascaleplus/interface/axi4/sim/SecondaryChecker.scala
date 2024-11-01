@@ -106,7 +106,7 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
 
   def onARHandshake(): Unit = {
     readCount += 1
-    RQueue += new AxiJob(axi.ar, axi.ar.payload.addr.toBigInt, axi.ar.payload.id.toInt, axi.ar.payload.len.toInt) // Ugly
+    RQueue += new AxiJob(axi.ar, axi.ar.payload.addr.toBigInt, axi.ar.payload.id.toInt, axi.ar.payload.len.toInt, axi.ar.payload.size.toInt) // Ugly
   }
 
   def onRHandshake(): Unit = {
@@ -122,7 +122,7 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   
   def onAWHandshake(): Unit = {
     writeCount += 1
-    WQueue += new AxiJob(axi.aw, axi.aw.payload.addr.toBigInt, axi.aw.payload.id.toInt, axi.aw.payload.len.toInt) // Ugly
+    WQueue += new AxiJob(axi.aw, axi.aw.payload.addr.toBigInt, axi.aw.payload.id.toInt, axi.aw.payload.len.toInt, axi.aw.payload.size.toInt) // Ugly
   }
 
   def onWHandshake(): Unit = {

@@ -219,9 +219,10 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
   def updateW(): Unit = {
     if (WQueue.nonEmpty) {
       val context = WQueue.front
+      val beatOffset = (context.actual_addr%axi.config.bytePerWord).toInt
       axi.w.valid #= true
-      axi.w.data  #= context.data(wBeatCount)
-      axi.w.strb  #= pow(2, (axi.config.dataWidth/8)).toInt-1
+      axi.w.data  #= context.data(wBeatCount) << (beatOffset*8) // 8 is 1 byte
+      axi.w.strb  #= (pow(2, context.size).toInt) << beatOffset
       if (wBeatCount == context.len) {
         axi.w.last #= true
       }
