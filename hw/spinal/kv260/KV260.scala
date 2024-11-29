@@ -51,7 +51,7 @@ case class Interfaces(
   val dbg_cto1 = (withDBG_CTO1                  ) generate (DBG_CTO1.port)
   val dbg_cto2 = (withDBG_CTO2                  ) generate (DBG_CTO2.port)
   val dbg_cto3 = (withDBG_CTO3                  ) generate (DBG_CTO3.port)
-  val io_pmod0 = (withIO_PMOD0                  ) generate (IO_PMOD0.port)
+  val io_pmod0 = (withIO_PMOD0                  ) generate (master(PMOD()))
 }
 
 
@@ -97,27 +97,7 @@ class KV260(
   
   if (withFPD_HP3)
     FPD_HP3.init(io.fpd_hp3)
-  
-/*
-  val config = new ConfigPort(LPD_HPM0.port, LPD_HPM0.aperture.base)
 
-  val addr  = UInt(64 bits)
-  config.addElement(addr)
-  val mask  = UInt(16 bits)
-  config.addElement(mask)
-  val errno = SInt(32 bits)
-  config.addElement(errno)
-  val vector = Vec.fill(4)(UInt(32 bits))
-  config.addElement(vector)
-  val cmplx = Vec.fill(2)(new Bundle {
-      val r = SInt(32 bits)
-      val i = SInt(32 bits)
-    }
-  )
-  config.addElement(cmplx)
-
-  config.generateCHeader()
-*/
   BlockDiagram.draw(this)
 
 }

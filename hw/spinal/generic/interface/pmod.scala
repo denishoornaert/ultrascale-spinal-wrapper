@@ -11,7 +11,7 @@ case class PMOD() extends Bundle with IMasterSlave {
   val pins: Vec[Bool] = Vec(out(Bool()), this.amount)
 
   override def asMaster(): Unit = {
-    in(pins)
+    out(pins)
   }
 
   def setAllOutputs(): Unit = {
