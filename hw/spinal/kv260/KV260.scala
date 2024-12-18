@@ -54,7 +54,7 @@ case class Interfaces(
   val dbg_cto1 = (withDBG_CTO1   ) generate (DBG_CTO1.port)
   val dbg_cto2 = (withDBG_CTO2   ) generate (DBG_CTO2.port)
   val dbg_cto3 = (withDBG_CTO3   ) generate (DBG_CTO3.port)
-  val io_pmod0 = (withIO_PMOD0   ) generate (master(PMOD()))
+  val pmod0    = (withIO_PMOD0   ) generate (master(PMOD()))
   val pl_to_ps = (withTo_PS_IRQ  ) generate (master(IRQ()))
   val ps_to_pl = (withFrom_PS_IRQ) generate ( slave(IRQ()))
 }
