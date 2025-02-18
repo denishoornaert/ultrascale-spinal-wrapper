@@ -29,12 +29,12 @@ class AxiJob(ax: Axi4Ax, _addr: BigInt, _id: Int, _len: Int, _size: Int) {
 
   // Typical AXI info
   val actual_addr = _addr
-  val addr   = (_addr >> log2Up(16)) << log2Up(16)
+  val addr   = (_addr >> log2Up(ax.config.bytePerWord)) << log2Up(ax.config.bytePerWord)
   val id     = _id
   val len    = _len
   val size   = _size
   val burst  = 1 // INCR
-  val cache  = 0
+  val cache  = 8
   val lock   = 0
   val prot   = 0
   val qos    = 0
@@ -63,7 +63,7 @@ class AxiJob(ax: Axi4Ax, _addr: BigInt, _id: Int, _len: Int, _size: Int) {
   // check for read/write over 4k boundary
   if (burst == 1) {
     assert(
-      assertion = (((len+1) << size) + (addr%4096)) < 4096,
+      assertion = (((len+1) << size) + (addr%4096)) <= 4096,
       message   = s"Read/write request crossing 4KB boundary (addr=${addr.toString(16)}, len=${len}, size=${size})"
     )
   }
