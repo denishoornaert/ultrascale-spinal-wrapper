@@ -293,3 +293,83 @@ object FPD_HP3 extends AbstractPrimaryAxi4() {
     bus = port
   }
 }
+
+object FPD_HPC0 extends AbstractPrimaryAxi4() {
+
+  // Secondary port from the pov of the PS but a primary port from the pov of the PL
+  override val config = Axi4Config(
+    addressWidth              =   49,
+    dataWidth                 =  128,
+    idWidth                   =    6,
+    useId                     = true,
+    useRegion                 = true,
+    useBurst                  = true,
+    useLock                   = true,
+    useCache                  = true,
+    useSize                   = true,
+    useQos                    = true,
+    useLen                    = true,
+    useLast                   = true,
+    useResp                   = true,
+    useProt                   = true,
+    useStrb                   = true,
+    useAllStrb                = false,
+    arUserWidth               = -1,
+    awUserWidth               = -1,
+    rUserWidth                = -1,
+    wUserWidth                = -1,
+    bUserWidth                = -1,
+    readIssuingCapability     = 16,
+    writeIssuingCapability    = 16,
+    combinedIssuingCapability = 32,
+    readDataReorderingDepth   = -1
+  )
+
+  override var bus = Axi4(config)
+
+  override def init(port: Axi4): Unit = {
+    port.setPartialName("fpd_hpc0")
+    this.setInterfaceAttributes(port)
+    bus = port
+  }
+}
+
+object FPD_HPC1 extends AbstractPrimaryAxi4() {
+
+  // Secondary port from the pov of the PS but a primary port from the pov of the PL
+  override val config = Axi4Config(
+    addressWidth              =   49,
+    dataWidth                 =  128,
+    idWidth                   =    6,
+    useId                     = true,
+    useRegion                 = true,
+    useBurst                  = true,
+    useLock                   = true,
+    useCache                  = true,
+    useSize                   = true,
+    useQos                    = true,
+    useLen                    = true,
+    useLast                   = true,
+    useResp                   = true,
+    useProt                   = true,
+    useStrb                   = true,
+    useAllStrb                = false,
+    arUserWidth               = -1,
+    awUserWidth               = -1,
+    rUserWidth                = -1,
+    wUserWidth                = -1,
+    bUserWidth                = -1,
+    readIssuingCapability     = 16,
+    writeIssuingCapability    = 16,
+    combinedIssuingCapability = 32,
+    readDataReorderingDepth   = -1
+  )
+
+  override var bus = Axi4(config)
+
+  override def init(port: Axi4): Unit = {
+    port.setPartialName("fpd_hpc1")
+    this.setInterfaceAttributes(port)
+    bus = port
+  }
+}
