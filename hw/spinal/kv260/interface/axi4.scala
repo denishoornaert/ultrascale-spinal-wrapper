@@ -35,9 +35,9 @@ object LPD_HPM0 extends AbstractSecondaryAxi4() {
     rUserWidth                = -1,
     wUserWidth                = -1,
     bUserWidth                = -1,
-    readIssuingCapability     = -1,
-    writeIssuingCapability    = -1,
-    combinedIssuingCapability = -1,
+    readIssuingCapability     =  8,
+    writeIssuingCapability    =  8,
+    combinedIssuingCapability = 16,
     readDataReorderingDepth   = -1
   )
 
@@ -77,9 +77,9 @@ object FPD_HPM0 extends AbstractSecondaryAxi4() {
     rUserWidth                = -1,
     wUserWidth                = -1,
     bUserWidth                = -1,
-    readIssuingCapability     = -1,
-    writeIssuingCapability    = -1,
-    combinedIssuingCapability = -1,
+    readIssuingCapability     =  8,
+    writeIssuingCapability    =  8,
+    combinedIssuingCapability = 16,
     readDataReorderingDepth   = -1
   )
 
@@ -119,9 +119,9 @@ object FPD_HPM1 extends AbstractSecondaryAxi4() {
     rUserWidth                = -1,
     wUserWidth                = -1,
     bUserWidth                = -1,
-    readIssuingCapability     = -1,
-    writeIssuingCapability    = -1,
-    combinedIssuingCapability = -1,
+    readIssuingCapability     =  8,
+    writeIssuingCapability    =  8,
+    combinedIssuingCapability = 16,
     readDataReorderingDepth   = -1
   )
 
@@ -159,9 +159,9 @@ object FPD_HP0 extends AbstractPrimaryAxi4() {
     rUserWidth                = -1,
     wUserWidth                = -1,
     bUserWidth                = -1,
-    readIssuingCapability     = -1,
-    writeIssuingCapability    = -1,
-    combinedIssuingCapability = -1,
+    readIssuingCapability     = 16,
+    writeIssuingCapability    = 16,
+    combinedIssuingCapability = 32,
     readDataReorderingDepth   = -1
   )
 
@@ -199,9 +199,9 @@ object FPD_HP1 extends AbstractPrimaryAxi4() {
     rUserWidth                = -1,
     wUserWidth                = -1,
     bUserWidth                = -1,
-    readIssuingCapability     = -1,
-    writeIssuingCapability    = -1,
-    combinedIssuingCapability = -1,
+    readIssuingCapability     = 16,
+    writeIssuingCapability    = 16,
+    combinedIssuingCapability = 32,
     readDataReorderingDepth   = -1
   )
 
@@ -239,9 +239,9 @@ object FPD_HP2 extends AbstractPrimaryAxi4() {
     rUserWidth                = -1,
     wUserWidth                = -1,
     bUserWidth                = -1,
-    readIssuingCapability     = -1,
-    writeIssuingCapability    = -1,
-    combinedIssuingCapability = -1,
+    readIssuingCapability     = 16,
+    writeIssuingCapability    = 16,
+    combinedIssuingCapability = 32,
     readDataReorderingDepth   = -1
   )
 
@@ -279,9 +279,9 @@ object FPD_HP3 extends AbstractPrimaryAxi4() {
     rUserWidth                = -1,
     wUserWidth                = -1,
     bUserWidth                = -1,
-    readIssuingCapability     = -1,
-    writeIssuingCapability    = -1,
-    combinedIssuingCapability = -1,
+    readIssuingCapability     = 16,
+    writeIssuingCapability    = 16,
+    combinedIssuingCapability = 32,
     readDataReorderingDepth   = -1
   )
 
