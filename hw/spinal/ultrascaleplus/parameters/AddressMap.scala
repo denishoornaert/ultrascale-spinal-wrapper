@@ -15,6 +15,9 @@ object AddressMap {
   val LOW_DDR  = SizeMapping(BigInt("0000000000", 16),   2 GiB)
   val HIGH_DDR = SizeMapping(BigInt("0800000000", 16),   2 GiB)
 
+  // Non-volatile memory
+  val QSPI     = SizeMapping(BigInt("00C0000000", 16),  16 MiB)
+
   // On-chip Memory
   val OCM      = SizeMapping(BigInt("00FFFC0000", 16), 256 KiB)
 
