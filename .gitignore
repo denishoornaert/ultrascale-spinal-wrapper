@@ -45,3 +45,8 @@ bin/
 simWorkspace/
 tmp/
 null
+
+vivado/
+vivado.log
+vivado.jou
+*.bit
