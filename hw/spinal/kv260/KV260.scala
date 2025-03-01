@@ -26,7 +26,7 @@ case class Interfaces(
   withFPD_HP2                : Boolean = false,
   withFPD_HP3                : Boolean = false,
   withFPD_HPC0               : Boolean = false,
-  withFPD_HCP1               : Boolean = false,
+  withFPD_HPC1               : Boolean = false,
   withFPD_ACE                : Boolean = false,
   withDBG_CTI0               : Boolean = false,
   withDBG_CTI1               : Boolean = false,
@@ -87,6 +87,9 @@ class KV260(
   withTo_PS_IRQ              : Boolean = false,
   withFrom_PS_IRQ            : Boolean = false
 ) extends Component {
+  
+  // Get name of the class (should be the off spring).
+  TCL(this.getClass.getSimpleName)
 
   val io = new Interfaces(
     withLPD_HPM0,
@@ -112,36 +115,53 @@ class KV260(
     withFrom_PS_IRQ
   )
   
-  if (withLPD_HPM0)
+  if (withLPD_HPM0) {
     LPD_HPM0.init(io.lpd_hpm0)
+    TCL.addLPD_HPM0()
+  }
   
-  if (withFPD_HPM0)
+  if (withFPD_HPM0) {
     FPD_HPM0.init(io.fpd_hpm0)
+    TCL.addFPD_HPM0()
+  }
   
-  if (withFPD_HPM1)
+  if (withFPD_HPM1) {
     FPD_HPM1.init(io.fpd_hpm1)
+    TCL.addFPD_HPM1()
+  }
   
-  if (withFPD_HP0)
+  if (withFPD_HP0) {
     FPD_HP0.init(io.fpd_hp0)
+    TCL.addHP0()
+  }
   
-  if (withFPD_HP1)
+  if (withFPD_HP1) {
     FPD_HP1.init(io.fpd_hp1)
+    TCL.addHP1()
+  }
   
-  if (withFPD_HP2)
+  if (withFPD_HP2) {
     FPD_HP2.init(io.fpd_hp2)
+    TCL.addHP2()
+  }
   
-  if (withFPD_HP3)
+  if (withFPD_HP3) {
     FPD_HP3.init(io.fpd_hp3)
+    TCL.addHP3()
+  }
 
-  if (withFPD_HPC0)
+  if (withFPD_HPC0) {
     FPD_HPC0.init(io.fpd_hpc0)
+    TCL.addHPC0()
+  }
   
-  if (withFPD_HPC1)
+  if (withFPD_HPC1) {
     FPD_HPC1.init(io.fpd_hpc1)
+    TCL.addHPC1()
+  }
   
   if (withTo_PS_IRQ)
     io.pl_to_ps.clearAllOutputs()
 
-  BlockDiagram.draw(this)
-
+  TCL.generate()
 }
