@@ -14,6 +14,13 @@ In theory most boards can be supported. However, you can find here a list of boa
 
 Soon to be added!
 
+### Generate bitstream
+
+Must be done from the root folder!
+```bash
+vivado -mode batch -source vivado.Module.tcl
+```
+
 
 ### Example
 
