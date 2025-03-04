@@ -11,15 +11,16 @@ import ultrascaleplus.scripts._
 
 
 case class Shell() extends KV260(
-  withLPD_HPM0=true,
-  withFPD_HPM0=true,
-  withFPD_HPM1=true,
-  withFPD_HP0 =true,
-  withFPD_HP1 =true,
-  withFPD_HP2 =true,
-  withFPD_HP3 =true,
-  withFPD_HPC0=true,
-  withFPD_HPC1=true
+  frequency    = 332 MHz,
+  withLPD_HPM0 = true,
+  withFPD_HPM0 = true,
+  withFPD_HPM1 = true,
+  withFPD_HP0  = true,
+  withFPD_HP1  = true,
+  withFPD_HP2  = true,
+  withFPD_HP3  = true,
+  withFPD_HPC0 = true,
+  withFPD_HPC1 = true
 ) {
 
   io.lpd_hpm0.setBlocked()

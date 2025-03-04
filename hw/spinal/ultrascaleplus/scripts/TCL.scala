@@ -3,26 +3,29 @@ package ultrascaleplus.scripts
 
 import java.io._
 
+import spinal.core._
 import spinal.lib.bus.misc.SizeMapping
 
+import kv260._
 import ultrascaleplus.parameters.AddressMap
 
 
-object TCL {
+object TCLFactory {
 
-  var connections = ""
-  var target = "vivado/untitled.tcl"
-  var moduleName = "untitled"
-  
-  def apply(filename: String): Unit = {
-    this.moduleName = filename
-    this.target = f"vivado/${filename}.tcl"
+  var target    : String = "vivado/untitled.tcl"
+  var moduleName: String = "untitled"
+  var platform  : Option[KV260] = None
+
+  def apply(platform: KV260): Unit = {
+    this.platform = Some(platform)
+    this.moduleName = platform.getClass.getSimpleName
+    this.target = f"vivado/${this.moduleName}.tcl"
   }
 
   // Call from inside
 
   def setProperty(name: String, value: String, obj: String): String = {
-    return "set_property -name \""+name+"\" -value \""+value+"\" -object \""+obj+"\"\n"
+    return "set_property -name \""+name+"\" -value \""+value+"\" -object "+obj+"\n"
   }
   
   def createProject(): String = {
@@ -415,8 +418,8 @@ object TCL {
     tcl += "  CONFIG.PSU__CRL_APB__PCAP_CTRL__ACT_FREQMHZ {199.998001} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__PCAP_CTRL__FREQMHZ {200} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__PCAP_CTRL__SRCSEL {IOPLL} \\\n"
-    tcl += "  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__ACT_FREQMHZ {99.999001} \\\n"
-    tcl += "  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {100} \\\n"
+    tcl +=f"  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__ACT_FREQMHZ {${this.platform.get.actualFrequency.decompose._1}} \\\n"
+    tcl +=f"  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {${this.platform.get.actualFrequency.decompose._1}} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__SRCSEL {IOPLL} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__PL1_REF_CTRL__ACT_FREQMHZ {99.999001} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__QSPI_REF_CTRL__ACT_FREQMHZ {124.998749} \\\n"
@@ -487,9 +490,12 @@ object TCL {
     tcl += "  CONFIG.PSU__IOU_SLCR__TTC3__ACT_FREQMHZ {100.000000} \\\n"
     tcl += "  CONFIG.PSU__IOU_SLCR__WDT0__ACT_FREQMHZ {99.999001} \\\n"
     tcl += "  CONFIG.PSU__LPD_SLCR__CSUPMU__ACT_FREQMHZ {100.000000} \\\n"
-    tcl += "  CONFIG.PSU__MAXIGP0__DATA_WIDTH {128} \\\n"
-    tcl += "  CONFIG.PSU__MAXIGP1__DATA_WIDTH {128} \\\n"
-    tcl += "  CONFIG.PSU__MAXIGP2__DATA_WIDTH {128} \\\n"
+    if (this.platform.get.io.withFPD_HPM0)
+      tcl += "  CONFIG.PSU__MAXIGP0__DATA_WIDTH {128} \\\n"
+    if (this.platform.get.io.withFPD_HPM1)
+      tcl += "  CONFIG.PSU__MAXIGP1__DATA_WIDTH {128} \\\n"
+    if (this.platform.get.io.withLPD_HPM0)
+      tcl += "  CONFIG.PSU__MAXIGP2__DATA_WIDTH {128} \\\n"
     tcl += "  CONFIG.PSU__OVERRIDE__BASIC_CLOCK {0} \\\n"
     tcl += "  CONFIG.PSU__PL_CLK0_BUF {TRUE} \\\n"
     tcl += "  CONFIG.PSU__PMU_COHERENCY {0} \\\n"
@@ -528,12 +534,18 @@ object TCL {
     tcl += "  CONFIG.PSU__QSPI__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__QSPI__PERIPHERAL__IO {MIO 0 .. 5} \\\n"
     tcl += "  CONFIG.PSU__QSPI__PERIPHERAL__MODE {Single} \\\n"
-    tcl += "  CONFIG.PSU__SAXIGP0__DATA_WIDTH {128} \\\n"
-    tcl += "  CONFIG.PSU__SAXIGP1__DATA_WIDTH {128} \\\n"
-    tcl += "  CONFIG.PSU__SAXIGP2__DATA_WIDTH {128} \\\n"
-    tcl += "  CONFIG.PSU__SAXIGP3__DATA_WIDTH {128} \\\n"
-    tcl += "  CONFIG.PSU__SAXIGP4__DATA_WIDTH {128} \\\n"
-    tcl += "  CONFIG.PSU__SAXIGP5__DATA_WIDTH {128} \\\n"
+    if (this.platform.get.io.withFPD_HPC0)
+      tcl += "  CONFIG.PSU__SAXIGP0__DATA_WIDTH {128} \\\n"
+    if (this.platform.get.io.withFPD_HPC1)
+      tcl += "  CONFIG.PSU__SAXIGP1__DATA_WIDTH {128} \\\n"
+    if (this.platform.get.io.withFPD_HP0)
+      tcl += "  CONFIG.PSU__SAXIGP2__DATA_WIDTH {128} \\\n"
+    if (this.platform.get.io.withFPD_HP1)
+      tcl += "  CONFIG.PSU__SAXIGP3__DATA_WIDTH {128} \\\n"
+    if (this.platform.get.io.withFPD_HP2)
+      tcl += "  CONFIG.PSU__SAXIGP4__DATA_WIDTH {128} \\\n"
+    if (this.platform.get.io.withFPD_HP3)
+      tcl += "  CONFIG.PSU__SAXIGP5__DATA_WIDTH {128} \\\n"
     tcl += "  CONFIG.PSU__SPI1__GRP_SS0__IO {MIO 9} \\\n"
     tcl += "  CONFIG.PSU__SPI1__GRP_SS1__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__SPI1__GRP_SS2__ENABLE {0} \\\n"
@@ -558,15 +570,15 @@ object TCL {
     tcl += "  CONFIG.PSU__TTC3__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__TTC3__WAVEOUT__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__USE__IRQ0 {0} \\\n"
-    tcl += "  CONFIG.PSU__USE__M_AXI_GP0 {1} \\\n"
-    tcl += "  CONFIG.PSU__USE__M_AXI_GP1 {1} \\\n"
-    tcl += "  CONFIG.PSU__USE__M_AXI_GP2 {1} \\\n"
-    tcl += "  CONFIG.PSU__USE__S_AXI_GP0 {1} \\\n"
-    tcl += "  CONFIG.PSU__USE__S_AXI_GP1 {1} \\\n"
-    tcl += "  CONFIG.PSU__USE__S_AXI_GP2 {1} \\\n"
-    tcl += "  CONFIG.PSU__USE__S_AXI_GP3 {1} \\\n"
-    tcl += "  CONFIG.PSU__USE__S_AXI_GP4 {1} \\\n"
-    tcl += "  CONFIG.PSU__USE__S_AXI_GP5 {1} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__M_AXI_GP0 {${this.platform.get.io.withFPD_HPM0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__M_AXI_GP1 {${this.platform.get.io.withFPD_HPM1.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__M_AXI_GP2 {${this.platform.get.io.withLPD_HPM0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP0 {${this.platform.get.io.withFPD_HPC0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP1 {${this.platform.get.io.withFPD_HPC1.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP2 {${this.platform.get.io.withFPD_HP0.toInt }} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP3 {${this.platform.get.io.withFPD_HP1.toInt }} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP4 {${this.platform.get.io.withFPD_HP2.toInt }} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP5 {${this.platform.get.io.withFPD_HP3.toInt }} \\\n"
     tcl += "] $processing_system\n"
     tcl += "\n"
     return tcl
@@ -943,7 +955,7 @@ object TCL {
 
   def setTopModule(fileset: String): String = {
     var tcl = ""
-    tcl +=  "set_property top top [current_fileset]\n"
+    tcl +=  "set_property top design_1_wrapper [current_fileset]\n"
     tcl += f"update_compile_order -fileset ${fileset}\n"
     tcl +=  "\n"
     return tcl
@@ -967,44 +979,6 @@ object TCL {
 
   def getBitstream(fileset: String): String = {
     return f"file copy -force ./vivado/${this.moduleName}/${this.moduleName}.runs/${fileset}/design_1_wrapper.bit ./${this.moduleName}.bit\n"
-  }
-
-  // Call from outside
-
-  def addHP0(): Unit = {
-    connections += this.addSecondaryPort("HP0", "pl_clk0")
-  }
-
-  def addHP1(): Unit = {
-    connections += this.addSecondaryPort("HP1", "pl_clk0")
-  }
-
-  def addHP2(): Unit = {
-    connections += this.addSecondaryPort("HP2", "pl_clk0")
-  }
-
-  def addHP3(): Unit = {
-    connections += this.addSecondaryPort("HP3", "pl_clk0")
-  }
-
-  def addHPC0(): Unit = {
-    connections += this.addSecondaryPort("HPC0", "pl_clk0")
-  }
-
-  def addHPC1(): Unit = {
-    connections += this.addSecondaryPort("HPC1", "pl_clk0")
-  }
-
-  def addFPD_HPM0(): Unit = {
-    connections += this.addPrimaryPort("HPM0", "FPD", "pl_clk0", AddressMap.FPD_HPM0)
-  }
-
-  def addFPD_HPM1(): Unit = {
-    connections += this.addPrimaryPort("HPM1", "FPD", "pl_clk0", AddressMap.FPD_HPM1)
-  }
-
-  def addLPD_HPM0(): Unit = {
-    connections += this.addPrimaryPort("HPM0", "LPD", "pl_clk0", AddressMap.LPD_HPM0)
   }
 
   def script(): String = {
@@ -1050,7 +1024,24 @@ object TCL {
     tcl += this.netConnection("pl_resetn", Seq("processing_system/pl_resetn0", "reset_system/ext_reset_in"))
     tcl += "\n"
     ////// Buses
-    tcl += this.connections
+    if (this.platform.get.io.withFPD_HP0)
+      tcl += this.addSecondaryPort("HP0", "pl_clk0")
+    if (this.platform.get.io.withFPD_HP1)
+      tcl += this.addSecondaryPort("HP1", "pl_clk0")
+    if (this.platform.get.io.withFPD_HP2)
+      tcl += this.addSecondaryPort("HP2", "pl_clk0")
+    if (this.platform.get.io.withFPD_HP3)
+      tcl += this.addSecondaryPort("HP3", "pl_clk0")
+    if (this.platform.get.io.withFPD_HPC0)
+      tcl += this.addSecondaryPort("HPC0", "pl_clk0")
+    if (this.platform.get.io.withFPD_HPC1)
+      tcl += this.addSecondaryPort("HPC1", "pl_clk0")
+    if (this.platform.get.io.withFPD_HPM0)
+      tcl += this.addPrimaryPort("HPM0", "FPD", "pl_clk0", AddressMap.FPD_HPM0)
+    if (this.platform.get.io.withFPD_HPM1)
+      tcl += this.addPrimaryPort("HPM1", "FPD", "pl_clk0", AddressMap.FPD_HPM1)
+    if (this.platform.get.io.withLPD_HPM0)
+      tcl += this.addPrimaryPort("HPM0", "LPD", "pl_clk0", AddressMap.LPD_HPM0)
     //// Save, validate, and wrap
     tcl += this.saveAndValidate()
     tcl += this.wrapDesign("sources_1")

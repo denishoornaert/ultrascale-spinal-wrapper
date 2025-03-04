@@ -146,10 +146,10 @@ object KernelModule {
   def generateVariablesSection(): String = {
     var res: String = ""
     for (port <- ports) {
-      res = res+variables(port.bus.getPartialName())
+      res = res+variables(port.name)
     }
     for (port <- io_ports) {
-      res = res+variables(port.bus.getPartialName())
+      res = res+variables(port.name)
     }
     return res
   }
@@ -158,11 +158,11 @@ object KernelModule {
     var res: String = ""
     for (port <- ports) {
       val remap = "remap_pfn_range(vma, vma->vm_start, pfn, size, vma->vm_page_prot);"
-      res = res+functions(port.bus.getPartialName(), remap, port.aperture.base.toString(16))
+      res = res+functions(port.name, remap, port.aperture.base.toString(16))
     }
     for (port <- io_ports) {
       val remap = "io_remap_pfn_range(vma, vma->vm_start, pfn, size, pgprot_noncached(vma->vm_page_prot));"
-      res = res+functions(port.bus.getPartialName(), remap, port.aperture.base.toString(16))
+      res = res+functions(port.name, remap, port.aperture.base.toString(16))
     }
     return res
   }
@@ -170,10 +170,10 @@ object KernelModule {
   def generateInitsSection(): String = {
     var res: String = ""
     for (port <- ports) {
-      res = res+inits(port.bus.getPartialName())
+      res = res+inits(port.name)
     }
     for (port <- io_ports) {
-      res = res+inits(port.bus.getPartialName())
+      res = res+inits(port.name)
     }
     return res
   }
@@ -181,10 +181,10 @@ object KernelModule {
   def generateDestroysSection(): String = {
     var res: String = ""
     for (port <- ports) {
-      res = res+destroys(port.bus.getPartialName())
+      res = res+destroys(port.name)
     }
     for (port <- io_ports) {
-      res = res+destroys(port.bus.getPartialName())
+      res = res+destroys(port.name)
     }
     return res
   }

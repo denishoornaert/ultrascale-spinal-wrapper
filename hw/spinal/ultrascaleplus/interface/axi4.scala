@@ -40,9 +40,12 @@ abstract class AbstractAxi4() {
 
   val config: Axi4Config
 
-  var bus: Axi4
+  val name: String
 
-  def init(port: Axi4): Unit
+  def init(port: Axi4): Unit = {
+    port.setPartialName(this.name)
+    this.setInterfaceAttributes(port)
+  }
 
 }
 

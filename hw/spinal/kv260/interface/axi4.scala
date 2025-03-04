@@ -41,10 +41,8 @@ object LPD_HPM0 extends AbstractSecondaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
-  override def init(port: Axi4): Unit = {
-    port.setPartialName("lpd_hpm0")
-    this.setInterfaceAttributes(port)
-  }
+  override val name = "lpd_hpm0"
+
 }
 
 object FPD_HPM0 extends AbstractSecondaryAxi4() {
@@ -80,10 +78,8 @@ object FPD_HPM0 extends AbstractSecondaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
-  override def init(port: Axi4): Unit = {
-    port.setPartialName("fpd_hpm0")
-    this.setInterfaceAttributes(port)
-  }
+  override val name = "fpd_hpm0"
+
 }
 
 object FPD_HPM1 extends AbstractSecondaryAxi4() {
@@ -119,10 +115,8 @@ object FPD_HPM1 extends AbstractSecondaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
-  override def init(port: Axi4): Unit = {
-    port.setPartialName("fpd_hpm1")
-    this.setInterfaceAttributes(port)
-  }
+  override val name = "fpd_hpm1"
+
 }
 
 object FPD_HP0 extends AbstractPrimaryAxi4() {
@@ -156,10 +150,8 @@ object FPD_HP0 extends AbstractPrimaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
-  override def init(port: Axi4): Unit = {
-    port.setPartialName("fpd_hp0")
-    this.setInterfaceAttributes(port)
-  }
+  override val name = "fpd_hp0"
+
 }
 
 object FPD_HP1 extends AbstractPrimaryAxi4() {
@@ -193,10 +185,8 @@ object FPD_HP1 extends AbstractPrimaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
-  override def init(port: Axi4): Unit = {
-    port.setPartialName("fpd_hp1")
-    this.setInterfaceAttributes(port)
-  }
+  override val name = "fpd_hp1"
+
 }
 
 object FPD_HP2 extends AbstractPrimaryAxi4() {
@@ -230,10 +220,8 @@ object FPD_HP2 extends AbstractPrimaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
-  override def init(port: Axi4): Unit = {
-    port.setPartialName("fpd_hp2")
-    this.setInterfaceAttributes(port)
-  }
+  override val name = "fpd_hp2"
+
 }
 
 object FPD_HP3 extends AbstractPrimaryAxi4() {
@@ -267,10 +255,8 @@ object FPD_HP3 extends AbstractPrimaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
-  override def init(port: Axi4): Unit = {
-    port.setPartialName("fpd_hp3")
-    this.setInterfaceAttributes(port)
-  }
+  override val name = "fpd_hp3"
+
 }
 
 object FPD_HPC0 extends AbstractPrimaryAxi4() {
@@ -304,10 +290,8 @@ object FPD_HPC0 extends AbstractPrimaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
-  override def init(port: Axi4): Unit = {
-    port.setPartialName("fpd_hpc0")
-    this.setInterfaceAttributes(port)
-  }
+  override val name = "fpd_hpc0"
+
 }
 
 object FPD_HPC1 extends AbstractPrimaryAxi4() {
@@ -341,8 +325,6 @@ object FPD_HPC1 extends AbstractPrimaryAxi4() {
     readDataReorderingDepth   = -1
   )
 
-  override def init(port: Axi4): Unit = {
-    port.setPartialName("fpd_hpc1")
-    this.setInterfaceAttributes(port)
-  }
+  override val name = "fpd_hpc1"
+
 }

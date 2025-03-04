@@ -1,5 +1,8 @@
 package kv260
 
+
+import Console.{RESET, YELLOW}
+
 import spinal.core._
 import spinal.lib._
 import spinal.lib.bus.amba4.axi._
@@ -65,31 +68,40 @@ case class Interfaces(
 
 
 class KV260(
-  withLPD_HPM0               : Boolean = false,
-  withFPD_HPM0               : Boolean = false,
-  withFPD_HPM1               : Boolean = false,
-  withFPD_HP0                : Boolean = false,
-  withFPD_HP1                : Boolean = false,
-  withFPD_HP2                : Boolean = false,
-  withFPD_HP3                : Boolean = false,
-  withFPD_HPC0               : Boolean = false,
-  withFPD_HPC1               : Boolean = false,
-  withFPD_ACE                : Boolean = false,
-  withDBG_CTI0               : Boolean = false,
-  withDBG_CTI1               : Boolean = false,
-  withDBG_CTI2               : Boolean = false,
-  withDBG_CTI3               : Boolean = false,
-  withDBG_CTO0               : Boolean = false,
-  withDBG_CTO1               : Boolean = false,
-  withDBG_CTO2               : Boolean = false,
-  withDBG_CTO3               : Boolean = false,
-  withIO_PMOD0               : Boolean = false,
-  withTo_PS_IRQ              : Boolean = false,
-  withFrom_PS_IRQ            : Boolean = false
+  frequency       : HertzNumber = 99.999001 MHz,
+  withLPD_HPM0    : Boolean     = false,
+  withFPD_HPM0    : Boolean     = false,
+  withFPD_HPM1    : Boolean     = false,
+  withFPD_HP0     : Boolean     = false,
+  withFPD_HP1     : Boolean     = false,
+  withFPD_HP2     : Boolean     = false,
+  withFPD_HP3     : Boolean     = false,
+  withFPD_HPC0    : Boolean     = false,
+  withFPD_HPC1    : Boolean     = false,
+  withFPD_ACE     : Boolean     = false,
+  withDBG_CTI0    : Boolean     = false,
+  withDBG_CTI1    : Boolean     = false,
+  withDBG_CTI2    : Boolean     = false,
+  withDBG_CTI3    : Boolean     = false,
+  withDBG_CTO0    : Boolean     = false,
+  withDBG_CTO1    : Boolean     = false,
+  withDBG_CTO2    : Boolean     = false,
+  withDBG_CTO3    : Boolean     = false,
+  withIO_PMOD0    : Boolean     = false,
+  withTo_PS_IRQ   : Boolean     = false,
+  withFrom_PS_IRQ : Boolean     = false
 ) extends Component {
-  
+
+  // List of IOPLL clocks available for KV260
+  val availableFrequencies = Seq(333.329987 MHz, 299.997009 MHz, 249.997498 MHz, 199.998001 MHz, 142.855713 MHz, 99.999001 MHz, 49.999500 MHz)
+  // Looks for the available clock that is the closest to the requested one but not higher
+  val differences          = availableFrequencies.map(x => (x-frequency).toDouble).map(x => if (x > 0) -1.0/0 else x)
+  val index                = differences.indexOf(differences.max)
+  val actualFrequency      = availableFrequencies(index)
+  println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Frequency requested ${frequency}, but actual frequency is ${actualFrequency}.${RESET}")
+
   // Get name of the class (should be the off spring).
-  TCL(this.getClass.getSimpleName)
+  TCLFactory(this)
 
   val io = new Interfaces(
     withLPD_HPM0,
@@ -117,51 +129,42 @@ class KV260(
   
   if (withLPD_HPM0) {
     LPD_HPM0.init(io.lpd_hpm0)
-    TCL.addLPD_HPM0()
   }
   
   if (withFPD_HPM0) {
     FPD_HPM0.init(io.fpd_hpm0)
-    TCL.addFPD_HPM0()
   }
   
   if (withFPD_HPM1) {
     FPD_HPM1.init(io.fpd_hpm1)
-    TCL.addFPD_HPM1()
   }
   
   if (withFPD_HP0) {
     FPD_HP0.init(io.fpd_hp0)
-    TCL.addHP0()
   }
   
   if (withFPD_HP1) {
     FPD_HP1.init(io.fpd_hp1)
-    TCL.addHP1()
   }
   
   if (withFPD_HP2) {
     FPD_HP2.init(io.fpd_hp2)
-    TCL.addHP2()
   }
   
   if (withFPD_HP3) {
     FPD_HP3.init(io.fpd_hp3)
-    TCL.addHP3()
   }
 
   if (withFPD_HPC0) {
     FPD_HPC0.init(io.fpd_hpc0)
-    TCL.addHPC0()
   }
   
   if (withFPD_HPC1) {
     FPD_HPC1.init(io.fpd_hpc1)
-    TCL.addHPC1()
   }
   
   if (withTo_PS_IRQ)
     io.pl_to_ps.clearAllOutputs()
 
-  TCL.generate()
+  TCLFactory.generate()
 }
