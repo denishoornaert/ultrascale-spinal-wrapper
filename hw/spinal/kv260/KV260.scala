@@ -15,6 +15,7 @@ import ultrascaleplus.interface.pmod._
 import ultrascaleplus.scripts._
 
 import interface.axi._
+import interface.pmod._
 import generic.interface.pmod._
 import generic.interface.irq._
 import interface.crosstrigger._
@@ -92,6 +93,12 @@ class KV260(
   withFrom_PS_IRQ : Boolean     = false
 ) extends Component {
 
+  def generate(): Unit = {
+    if (withIO_PMOD0)
+      Constraints.add(PMOD0.getConstraints())
+    TCLFactory.generate()
+  }
+
   // List of IOPLL clocks available for KV260
   val availableFrequencies = Seq(333.329987 MHz, 299.997009 MHz, 249.997498 MHz, 199.998001 MHz, 142.855713 MHz, 99.999001 MHz, 49.999500 MHz)
   // Looks for the available clock that is the closest to the requested one but not higher
@@ -102,6 +109,7 @@ class KV260(
 
   // Get name of the class (should be the off spring).
   TCLFactory(this)
+  Constraints(this.getClass.getSimpleName)
 
   val io = new Interfaces(
     withLPD_HPM0,
@@ -162,9 +170,13 @@ class KV260(
   if (withFPD_HPC1) {
     FPD_HPC1.init(io.fpd_hpc1)
   }
-  
-  if (withTo_PS_IRQ)
-    io.pl_to_ps.clearAllOutputs()
 
-  TCLFactory.generate()
+  if (withIO_PMOD0) {
+    PMOD0.init(io.pmod0)
+  }
+  
+  if (withTo_PS_IRQ) {
+    io.pl_to_ps.clearAllOutputs()
+  }
+
 }
