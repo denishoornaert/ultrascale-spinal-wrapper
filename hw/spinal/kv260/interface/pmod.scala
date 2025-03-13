@@ -7,10 +7,8 @@ import generic.interface.pmod._
 import ultrascaleplus.interface.pmod._
 
 
-object IO_PMOD0 extends AbstractPMOD() {
+object PMOD0 extends AbstractPMOD() {
 
-  override val port = slave(PMOD())
- 
   /*
    * Note: The position of the pin names in the list matters! The position is the number of the pin in the pmod interface.
    * H12 -> 0 upper part
@@ -24,7 +22,9 @@ object IO_PMOD0 extends AbstractPMOD() {
    */
   override val names = Array("H12", "B10", "E10", "E12", "D10", "D11", "C11", "B11")
 
-  this.port.setPartialName("pmod0")
-  this.addToConstraints()
+  override def init(port: PMOD): Unit = {
+    super.init(port)
+    port.setPartialName("pmod0")
+  }
 
 }
