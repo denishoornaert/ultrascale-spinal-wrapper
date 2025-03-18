@@ -6,128 +6,79 @@ import java.io._
 
 import spinal.core._
 import spinal.lib._
+import spinal.lib.bus.misc.{SingleMapping, BusSlaveFactoryRead, BusSlaveFactoryWrite}
 import spinal.lib.bus.amba4.axi._
 
 import scripts._
 
 
-case class ConfigPort(axi: Axi4, aperture: BigInt) extends Area {
-  setPartialName("Configuration_port")
-
-  // Buffer size in bits
-  val buffer_size = 512
-  val buffer_rows = buffer_size/axi.config.dataWidth
-
-  // Buffer; Wired to zero by default.
-  val buffer: Array[Array[Bits]] = Array.fill(buffer_rows)(Array.fill(axi.config.dataWidth/8)(Reg(B(0, 8 bits))))
-
-  // AXI logic
-  val in_flight_read = Reg(Bool) init(False)
-  val r  = Reg(Axi4R (axi.config))
-  val in_flight_write = Reg(Bool) init(False)
-  val awaited_write_data_handshakes = Reg(UInt(log2Up(256) bits)) init(0) // 256 is arbitrary
-  val aw = Reg(Axi4Aw(axi.config))
-  val b  = Reg(Axi4B (axi.config))
-
-  // AXI Read
-
-  // When handshake happens, store all metadata
-  when (axi.ar.fire) {
-    in_flight_read := True
-  }
-  .elsewhen (axi.r.fire & axi.r.last) {
-    in_flight_read := False
+case class ConfigPort(axi: Axi4, portName: String = null) extends Axi4SlaveFactory(axi) {
+  
+  if (portName != null) {
+    setPartialName(portName)
   }
 
-  // Not available if a transaction is already being handled
-  axi.ar.ready := ~in_flight_read
+  val pageSize    =  12
+  val template    =  "hw/ext/configuration_port.h.template"
+  val destination = f"hw/gen/${portName}.h"
+  val items       = new ArrayBuffer[(BigInt, Data)]()
 
-  // targeted data
-  val selected_row_index = axi.ar.addr(log2Up(buffer_size/8)-1 downto log2Up(axi.config.bytePerWord))
-  val selected_row = (Cat(Seq.tabulate(buffer_rows)(b => Cat(buffer(b))))).subdivideIn(axi.config.dataWidth bits)(selected_row_index)
-
-  // When handshake happens, provide register content
-  // Assumes the transaction requested a one beat read
-  when (axi.ar.fire) {
-    r.id           := axi.ar.id
-    r.data         := selected_row
-    r.last         := True
-    r.resp         := 0 // TODO: 0 for success, right?
+  override def read[T <: Data](that: T, address: BigInt, bitOffset: Int = 0, documentation: String = null): T = {
+    val roundedAddress = (address >> log2Up(axi.config.bytePerWord)) << log2Up(axi.config.bytePerWord)
+    val offset: Int = (address%axi.config.bytePerWord).toInt*8
+    super.read(that, roundedAddress, offset, documentation)
+    items.append((address, that))
+    return that
   }
-  // Reads can be provided as soon as the 'in_flight_read' is asserted
-  axi.r.valid   := in_flight_read
-  axi.r.payload := r
 
-  // When handshake happens, store all write request metadata
-  when (axi.aw.fire) {
-    aw := axi.aw
-    awaited_write_data_handshakes := axi.aw.len+1
-    in_flight_write := True
+  override def write[T <: Data](that: T, address: BigInt, bitOffset: Int = 0, documentation: String = null): T = {
+    val roundedAddress = (address >> log2Up(axi.config.bytePerWord)) << log2Up(axi.config.bytePerWord)
+    val offset: Int = (address%axi.config.bytePerWord).toInt*8
+    super.write(that, roundedAddress, offset, documentation)
+    items.append((address, that))
+    return that
   }
-  // Not available if a write transaction is in progress
-  axi.aw.ready := ~in_flight_write
 
-  // When handshake happens, insert the data into the register
-  val write_selected_row_index = aw.addr(log2Up(buffer_size/8)-1 downto log2Up(axi.config.bytePerWord))
-  when (axi.w.fire & in_flight_write) {
-    // Decrease counter
-    awaited_write_data_handshakes := awaited_write_data_handshakes-1
-    for (i <- 0 until buffer_rows) {
-      when (i === write_selected_row_index) {
-        for (b <- 0 until axi.config.bytePerWord) {
-          when (axi.w.strb(b)) {
-            buffer(i)(b) := axi.w.payload.data(b*8, 8 bits)
-          }
-        }
+  override def readAndWrite(that: Data, address: BigInt, bitOffset: Int = 0, documentation: String = null): Unit = {
+    val roundedAddress = (address >> log2Up(axi.config.bytePerWord)) << log2Up(axi.config.bytePerWord)
+    val offset: Int = (address%axi.config.bytePerWord).toInt*8
+    super.read(that, roundedAddress, offset, documentation)
+    super.write(that, roundedAddress, offset, documentation)
+    items.append((address, that))
+  }
+
+  def generateBundle(): Bundle = {
+    val top = new Bundle()
+    // Sort elements by address
+    val sortedMapping = items.sortBy(_._1)
+    // Previous address to compare against is page aligned
+    var previous: BigInt = (sortedMapping(0)._1 >> pageSize) << pageSize
+    for ((e, i) <- sortedMapping.zipWithIndex) {
+      // Inserts reserved area whn needed
+      val distance = (e._1-previous).toInt
+      if (distance > 0) {
+        val reserved = Vec.fill(distance)(UInt(8 bits))
+        top.elements.append((f"reserved_${i}", reserved))
       }
+      // Inserts actual element
+      top.elements.append((e._2.name, e._2))
+      // Sets new "previous address" as previous plus the element's size
+      previous = previous+(widthOf(e._2)/8) // divide by 8 to convert to byte(s)
     }
-  }
-  // Ready to recieve any write transaction handshake when a transaction is in progress
-  axi.w.ready := (awaited_write_data_handshakes =/= 0)
-
-  // Response phase only occur after the last data handshake
-  val b_resp_valid = Reg(Bool()) init(False)
-  when (axi.b.fire) {
-    b_resp_valid := False
-  }
-  .otherwise {
-    b_resp_valid := (axi.w.fire & axi.w.last & in_flight_write)
+    return top
   }
 
-  axi.b.valid := b_resp_valid
-  axi.b.resp  := 0 // TODO: 0 for success, right?
-  axi.b.id    := aw.id
-
-  // When the write response handshake happens, no transaction is being processed anymore
-  when (axi.b.fire & in_flight_write) {
-    in_flight_write := False
+  def generateCStruct(bundle: Bundle): Unit = {
+    println(CStructFactory(bundle))
   }
 
-  // on-demand register mapping
-  val top = new Bundle()
-  var row_pointer = 0
-  var in_row_pointer = 0
-
-  def addElement(element: Data): Unit = {
-    val element_size = element.getBitsWidth/8
-    // Check if padding is required
-    if (in_row_pointer+element_size > axi.config.bytePerWord) {
-      in_row_pointer = 0
-      row_pointer += 1
-    }
-    // Add element to bundle for c struct generation
-    top.elements.append((element.name, element))
-    // Connect part of the buffer to the element
-    element.assignFromBits(Cat(List.tabulate(element_size)(x => buffer(row_pointer)(in_row_pointer+x))))
-    // Maintain pointers
-    in_row_pointer += element_size
-  }
-
-  def generateCStruct(): Unit = {
-    println(CStructFactory(top))
-  }
-
-  def generateCHeader(template: String = "hw/ext/configuration_port.h.template", destination: String = "hw/gen/configuration_port.h"): Unit = {
+  def generateCHeader(bundle: Bundle): Unit = {
+    // TODO: temporary
+    // Sort elements by address
+    val sortedMapping = items.sortBy(_._1)
+    // Previous address to compare against is page aligned
+    val aperture: BigInt = (sortedMapping(0)._1 >> pageSize) << pageSize
+    
     // Open buffer for read
     val br = Source.fromFile(template)
     // Make string out of buffer read
@@ -135,8 +86,9 @@ case class ConfigPort(axi: Axi4, aperture: BigInt) extends Area {
     // Close read buffer
     br.close
     // Generate c struct for configuration port
-    val struct = CStructFactory(top)
+    val struct = CStructFactory(bundle)
     // Insert generate strings in the template
+    header = header.replace("${insert_name}", portName)
     header = header.replace("${insert_struct}", struct)
     header = header.replace("${insert_addr}", aperture.toString())
     // Open buffer for writing
@@ -146,4 +98,12 @@ case class ConfigPort(axi: Axi4, aperture: BigInt) extends Area {
     // Close FD.
     bw.close
   }
+  
+  override def build(): Unit = {
+    super.build()
+    val bundle = generateBundle()
+    generateCStruct(bundle)
+    generateCHeader(bundle)
+  }
+
 }
