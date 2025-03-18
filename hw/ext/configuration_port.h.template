@@ -11,7 +11,7 @@
 
 ${insert_struct}
 
-static struct configuration_s* config = NULL;
+static struct configuration_${insert_name}_s* config = NULL;
 
 
 int open_fd() {
@@ -37,7 +37,7 @@ int unmap(void* target, unsigned size) {
 
 int config_init() {
     int port_fd = open_fd();
-    config = (struct configuration_s*)mmap((void*)0, 4096, PROT_EXEC|PROT_READ|PROT_WRITE, MAP_SHARED, port_fd, ${insert_addr});
+    config = (struct configuration_${insert_name}_s*)mmap((void*)0, 4096, PROT_EXEC|PROT_READ|PROT_WRITE, MAP_SHARED, port_fd, ${insert_addr});
     return port_fd;
 }
 
