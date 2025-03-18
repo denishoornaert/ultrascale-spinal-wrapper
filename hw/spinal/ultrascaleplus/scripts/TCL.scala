@@ -66,6 +66,14 @@ object TCLFactory {
     return f"set obj [get_filesets ${fileset}]\n\n"
   }
 
+  def importConstraints(fileset: String): String = {
+    var tcl = ""
+    tcl +=  "add_files -fileset constrs_1 -norecurse ./hw/gen/"+this.moduleName+".xdc\n"
+    tcl +=  "import_files -fileset constrs_1 ./hw/gen/"+this.moduleName+".xdc\n"
+    tcl +=  "\n"
+    return tcl
+  }
+
   def addFileset(fileset: String): String = {
     var tcl = ""
     tcl += f"set obj [get_filesets ${fileset}]\n"
@@ -633,6 +641,14 @@ object TCLFactory {
     return tcl
   }
 
+  def addPMOD(port: String, pins: Int): String = {
+    var tcl = ""
+    for (pin <- 0 until pins) {
+      tcl += f"make_bd_pins_external  [get_bd_pins ${this.moduleName}/io_${port}_pins_${pin}]\n"
+    }
+    return tcl
+  }
+
   def saveAndValidate(): String = {
     var tcl = ""
     tcl += "current_bd_instance $oldCurInst\n"
@@ -995,6 +1011,8 @@ object TCLFactory {
     //// Constraint
     tcl += this.checkAndCreateFileset("constrs_1", "constrset")
     tcl += this.setObject("constrs_1")
+    if (this.platform.get.io.withIO_PMOD0)
+      tcl += this.importConstraints("constrs_1")
     tcl += this.setObject("constrs_1")
     //// Sim
     tcl += this.checkAndCreateFileset("sim_1", "simset")
@@ -1042,6 +1060,9 @@ object TCLFactory {
       tcl += this.addPrimaryPort("HPM1", "FPD", "pl_clk0", AddressMap.FPD_HPM1)
     if (this.platform.get.io.withLPD_HPM0)
       tcl += this.addPrimaryPort("HPM0", "LPD", "pl_clk0", AddressMap.LPD_HPM0)
+    //// I/O PMOD
+    if (this.platform.get.io.withIO_PMOD0)
+      tcl += this.addPMOD("pmod0", this.platform.get.io.pmod0.amount)
     //// Save, validate, and wrap
     tcl += this.saveAndValidate()
     tcl += this.wrapDesign("sources_1")

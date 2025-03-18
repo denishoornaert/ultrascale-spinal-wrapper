@@ -1,4 +1,4 @@
-package test
+package example
 
 
 import spinal.core._
@@ -20,7 +20,8 @@ case class Shell() extends KV260(
   withFPD_HP2  = true,
   withFPD_HP3  = true,
   withFPD_HPC0 = true,
-  withFPD_HPC1 = true
+  withFPD_HPC1 = true,
+  withIO_PMOD0 = true
 ) {
 
   io.lpd_hpm0.setBlocked()
@@ -34,10 +35,14 @@ case class Shell() extends KV260(
   io.fpd_hpc0.setIdle()
   io.fpd_hpc1.setIdle()
 
+  io.pmod0.makeAllOutput()
+  io.pmod0.setAllOutputs()
+
   // Create dummy register to force instantiation of cock and reset I/O
   val clock_count = Reg(UInt(64 bits)) init(0)
   clock_count := clock_count+1
 
+  this.generate()
 }
 
 

@@ -1,4 +1,4 @@
-package scripts
+package ultrascaleplus.scripts
 
 import java.io._
 
@@ -8,8 +8,12 @@ import spinal.core.sim._
 
 object Constraints {
 
-  val target = "hw/gen/constraints.xdc"
+  var target = "hw/gen/constraints.xdc"
   var alreadyOpened = false
+
+  def apply(moduleName: String): Unit = {
+    this.target = f"hw/gen/${moduleName}.xdc"
+  }
 
   def add(line: String): Unit = {
     // If already opened before, append to file. Otherwise, overwrite content.
