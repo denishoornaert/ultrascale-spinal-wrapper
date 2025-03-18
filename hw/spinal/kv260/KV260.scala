@@ -94,8 +94,9 @@ class KV260(
 ) extends Component {
 
   def generate(): Unit = {
-    if (withIO_PMOD0)
+    if (withIO_PMOD0) {
       Constraints.add(PMOD0.getConstraints())
+    }
     TCLFactory.generate()
   }
 
@@ -178,5 +179,9 @@ class KV260(
   if (withTo_PS_IRQ) {
     io.pl_to_ps.clearAllOutputs()
   }
+
+  // Generate dummy register to infer a clock and reset IO
+  val dummyRegForClockInUltraScalePlusPlatforms = Reg(Bool())
+  dummyRegForClockInUltraScalePlusPlatforms := !dummyRegForClockInUltraScalePlusPlatforms
 
 }
