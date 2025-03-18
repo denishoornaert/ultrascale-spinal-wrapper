@@ -1011,7 +1011,8 @@ object TCLFactory {
     //// Constraint
     tcl += this.checkAndCreateFileset("constrs_1", "constrset")
     tcl += this.setObject("constrs_1")
-    tcl += this.importConstraints("constrs_1")
+    if (this.platform.get.io.withIO_PMOD0)
+      tcl += this.importConstraints("constrs_1")
     tcl += this.setObject("constrs_1")
     //// Sim
     tcl += this.checkAndCreateFileset("sim_1", "simset")
