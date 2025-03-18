@@ -1,4 +1,4 @@
-package test
+package example
 
 
 import spinal.core._
@@ -41,7 +41,6 @@ case class Shell() extends KV260(
   // Create dummy register to force instantiation of cock and reset I/O
   val clock_count = Reg(UInt(64 bits)) init(0)
   clock_count := clock_count+1
-
 
   this.generate()
 }
