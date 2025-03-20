@@ -39,7 +39,7 @@ case class Bleacher() extends KV260(withFPD_HPM0=true, withFPD_HP0=true) with Pl
 
   connect(io.fpd_hpm0, io.fpd_hp0)
 
-  KernelModule.add(FPD_HPM0)
+  KernelModule.add(io.fpd_hpm0)
   KernelModule.generate()
   this.generate()
 }
