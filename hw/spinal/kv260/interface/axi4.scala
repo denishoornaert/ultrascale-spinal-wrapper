@@ -13,6 +13,9 @@ object LPD {
 
   object HPM0 {
 
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "lpd_hpm0"
+
     val apertures = Seq(
       AddressMap.LPD_HPM0
     )
@@ -51,6 +54,9 @@ object FPD {
 
   object HPM0 {
 
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "fpd_hpm0"
+
     val apertures = Seq(
       AddressMap.FPD_HPM0
     )
@@ -88,6 +94,9 @@ object FPD {
 
   object HPM1 {
 
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "fpd_hpm1"
+
     val apertures = Seq(
       AddressMap.FPD_HPM1
     )
@@ -124,6 +133,9 @@ object FPD {
   }
 
   object HP0 {
+
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "fpd_hp0"
 
     val apertures = Seq(
       AddressMap.HIGH_DDR,
@@ -165,6 +177,9 @@ object FPD {
 
   object HP1 {
 
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "fpd_hp1"
+
     val apertures = Seq(
       AddressMap.HIGH_DDR,
       AddressMap.LOW_DDR,
@@ -204,6 +219,9 @@ object FPD {
   }
 
   object HP2 {
+
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "fpd_hp2"
 
     val apertures = Seq(
       AddressMap.HIGH_DDR,
@@ -245,6 +263,9 @@ object FPD {
 
   object HP3 {
 
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "fpd_hp3"
+
     val apertures = Seq(
       AddressMap.HIGH_DDR,
       AddressMap.LOW_DDR,
@@ -285,6 +306,9 @@ object FPD {
 
   object HPC0 {
 
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "fpd_hpc0"
+
     val apertures = Seq(
       AddressMap.HIGH_DDR,
       AddressMap.LOW_DDR,
@@ -324,6 +348,9 @@ object FPD {
   }
 
   object HPC1 {
+
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "fpd_hpc1"
 
     val apertures = Seq(
       AddressMap.HIGH_DDR,

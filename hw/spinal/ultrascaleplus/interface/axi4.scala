@@ -8,16 +8,18 @@ import spinal.lib.bus.amba4.axi._
 
 object Axi4Mapped {
 
-  def apply(config: Axi4Config, apertures: Seq[SizeMapping]): Axi4Mapped = {
-    return new Axi4Mapped(config, apertures)
+  def apply(config: Axi4Config, name: String, apertures: Seq[SizeMapping]): Axi4Mapped = {
+    return new Axi4Mapped(config, name, apertures)
   }
 
 }
 
 
-class Axi4Mapped(config: Axi4Config, mappings: Seq[SizeMapping]) extends Axi4(config) {
+class Axi4Mapped(config: Axi4Config, name: String, mappings: Seq[SizeMapping]) extends Axi4(config) {
 
   val apertures = mappings
+
+  this.setName(name)
 
   def generateFieldAttribute(interface: String, channel: String, field: String): String = {
     return "xilinx.com:interface:aximm:1.0 "+interface+" "+channel.toUpperCase()+field.toUpperCase()
@@ -25,6 +27,7 @@ class Axi4Mapped(config: Axi4Config, mappings: Seq[SizeMapping]) extends Axi4(co
   
   def setInterfaceAttributes(): Unit = {
     for (channel <- Seq(this.ar, this.r, this.aw, this.w, this.b)) {
+      println(f"${this.getName()} ${channel.getPartialName()}")
       channel.valid.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.getName(), channel.getPartialName(), channel.valid.getPartialName()))
       channel.ready.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.getName(), channel.getPartialName(), channel.ready.getPartialName()))
       channel.payload.elements.map{e => e._2.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.getName(), channel.getPartialName(), e._1))}

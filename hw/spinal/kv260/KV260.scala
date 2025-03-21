@@ -44,15 +44,19 @@ case class Interfaces(
   withTo_PS_IRQ              : Boolean = false,
   withFrom_PS_IRQ            : Boolean = false
 ) extends Bundle {
-  val lpd_hpm0 = (withLPD_HPM0   ) generate ( slave(Axi4Mapped(LPD.HPM0.config, LPD.HPM0.apertures)))
-  val fpd_hpm0 = (withFPD_HPM0   ) generate ( slave(Axi4Mapped(FPD.HPM0.config, FPD.HPM0.apertures)))
-  val fpd_hpm1 = (withFPD_HPM1   ) generate ( slave(Axi4Mapped(FPD.HPM1.config, FPD.HPM1.apertures)))
-  val fpd_hp0  = (withFPD_HP0    ) generate (master(Axi4Mapped(FPD.HP0.config , FPD.HP0.apertures )))
-  val fpd_hp1  = (withFPD_HP1    ) generate (master(Axi4Mapped(FPD.HP1.config , FPD.HP1.apertures )))
-  val fpd_hp2  = (withFPD_HP2    ) generate (master(Axi4Mapped(FPD.HP2.config , FPD.HP2.apertures )))
-  val fpd_hp3  = (withFPD_HP3    ) generate (master(Axi4Mapped(FPD.HP3.config , FPD.HP3.apertures )))
-  val fpd_hpc0 = (withFPD_HPC0   ) generate (master(Axi4Mapped(FPD.HPC0.config, FPD.HPC0.apertures)))
-  val fpd_hpc1 = (withFPD_HPC1   ) generate (master(Axi4Mapped(FPD.HPC1.config, FPD.HPC1.apertures)))
+  val lpd = new Bundle {
+    val hpm0 = (withLPD_HPM0   ) generate ( slave(Axi4Mapped(LPD.HPM0.config, LPD.HPM0.name, LPD.HPM0.apertures)))
+  }
+  val fpd = new Bundle {
+    val hpm0 = (withFPD_HPM0   ) generate ( slave(Axi4Mapped(FPD.HPM0.config, FPD.HPM0.name, FPD.HPM0.apertures)))
+    val hpm1 = (withFPD_HPM1   ) generate ( slave(Axi4Mapped(FPD.HPM1.config, FPD.HPM1.name, FPD.HPM1.apertures)))
+    val hp0  = (withFPD_HP0    ) generate (master(Axi4Mapped(FPD.HP0.config , FPD.HP0.name , FPD.HP0.apertures )))
+    val hp1  = (withFPD_HP1    ) generate (master(Axi4Mapped(FPD.HP1.config , FPD.HP1.name , FPD.HP1.apertures )))
+    val hp2  = (withFPD_HP2    ) generate (master(Axi4Mapped(FPD.HP2.config , FPD.HP2.name , FPD.HP2.apertures )))
+    val hp3  = (withFPD_HP3    ) generate (master(Axi4Mapped(FPD.HP3.config , FPD.HP3.name , FPD.HP3.apertures )))
+    val hpc0 = (withFPD_HPC0   ) generate (master(Axi4Mapped(FPD.HPC0.config, FPD.HPC0.name, FPD.HPC0.apertures)))
+    val hpc1 = (withFPD_HPC1   ) generate (master(Axi4Mapped(FPD.HPC1.config, FPD.HPC1.name, FPD.HPC1.apertures)))
+  }
 //  val fpd_ace  = (withFPD_ACE                  ) generate (     slave(Axi4(KriaPorts.FPD_ACE_Config ))                             )
   val dbg_cti0 = (withDBG_CTI0   ) generate (DBG_CTI0.port)
   val dbg_cti1 = (withDBG_CTI1   ) generate (DBG_CTI1.port)
