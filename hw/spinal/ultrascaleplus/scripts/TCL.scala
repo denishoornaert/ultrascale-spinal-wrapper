@@ -619,11 +619,11 @@ object TCLFactory {
     val index = this.portIndex(upper)
     var tcl = ""
     tcl += netConnection(clock, Seq(f"processing_system/saxi${lower}_fpd_aclk"))
-    tcl += interfaceConnection(f"${this.moduleName}_io_fpd_${lower}", Seq(f"${this.moduleName}/io_fpd_${lower}", f"processing_system/S_AXI_${upper}_FPD"))
-    tcl += addressMap(AddressMap.HIGH_DDR.base, AddressMap.HIGH_DDR.size, f"${this.moduleName}/io_fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_DDR_HIGH")
-    tcl += addressMap(AddressMap.LOW_DDR.base , AddressMap.LOW_DDR.size , f"${this.moduleName}/io_fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_DDR_LOW")
-    tcl += addressMap(AddressMap.OCM.base     , AddressMap.OCM.size     , f"${this.moduleName}/io_fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_LPS_OCM")
-    tcl += addressMap(AddressMap.QSPI.base    , AddressMap.QSPI.size    , f"${this.moduleName}/io_fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_QSPI")
+    tcl += interfaceConnection(f"${this.moduleName}_fpd_${lower}", Seq(f"${this.moduleName}/fpd_${lower}", f"processing_system/S_AXI_${upper}_FPD"))
+    tcl += addressMap(AddressMap.HIGH_DDR.base, AddressMap.HIGH_DDR.size, f"${this.moduleName}/fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_DDR_HIGH")
+    tcl += addressMap(AddressMap.LOW_DDR.base , AddressMap.LOW_DDR.size , f"${this.moduleName}/fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_DDR_LOW")
+    tcl += addressMap(AddressMap.OCM.base     , AddressMap.OCM.size     , f"${this.moduleName}/fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_LPS_OCM")
+    tcl += addressMap(AddressMap.QSPI.base    , AddressMap.QSPI.size    , f"${this.moduleName}/fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_QSPI")
     tcl += "\n"
     return tcl
   }
@@ -635,8 +635,8 @@ object TCLFactory {
     val domainLower = domain.toLowerCase()
     var tcl = ""
     tcl += netConnection(clock, Seq(f"processing_system/maxi${portLower}_${domainLower}_aclk"))
-    tcl += interfaceConnection(f"processing_system_M_AXI_${portUpper}_${domainUpper}", Seq(f"${this.moduleName}/io_${domainLower}_${portLower}", f"processing_system/M_AXI_${portUpper}_${domainUpper}"))
-    tcl += addressMap(range.base, range.size, "processing_system/Data", f"${this.moduleName}/io_${domainLower}_${portLower}/reg0")
+    tcl += interfaceConnection(f"processing_system_M_AXI_${portUpper}_${domainUpper}", Seq(f"${this.moduleName}/${domainLower}_${portLower}", f"processing_system/M_AXI_${portUpper}_${domainUpper}"))
+    tcl += addressMap(range.base, range.size, "processing_system/Data", f"${this.moduleName}/${domainLower}_${portLower}/reg0")
     tcl += "\n"
     return tcl
   }
@@ -645,6 +645,7 @@ object TCLFactory {
     var tcl = ""
     for (pin <- 0 until pins) {
       tcl += f"make_bd_pins_external  [get_bd_pins ${this.moduleName}/io_${port}_pins_${pin}]\n"
+      tcl += f"set_property NAME io_${port}_pins_${pin} [get_bd_ports /io_${port}_pins_${pin}_0]\n"
     }
     return tcl
   }
