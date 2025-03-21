@@ -16,16 +16,16 @@ case class ConfigPortTest() extends KV260(
   withLPD_HPM0 = true
 ) {
 
-  val config_port = ConfigPort(io.lpd_hpm0, io.lpd_hpm0.getPartialName())
+  val config_port = ConfigPort(io.lpd.hpm0, io.lpd.hpm0.getPartialName())
 
   val clock_count = Reg(UInt(64 bits)) init(0)
-  config_port.read(clock_count, io.lpd_hpm0.apertures(0).base)
+  config_port.read(clock_count, io.lpd.hpm0.apertures(0).base)
 
   val soft_reset = Reg(UInt(8 bits)) init(1)
-  config_port.readAndWrite(soft_reset, io.lpd_hpm0.apertures(0).base+(clock_count.getWidth/8))
+  config_port.readAndWrite(soft_reset, io.lpd.hpm0.apertures(0).base+(clock_count.getWidth/8))
 
   val enabled = Reg(UInt(8 bits)) init(0)
-  config_port.readAndWrite(enabled, io.lpd_hpm0.apertures(0).base+(clock_count.getWidth/8)+1)
+  config_port.readAndWrite(enabled, io.lpd.hpm0.apertures(0).base+(clock_count.getWidth/8)+1)
 
   
   when (soft_reset =/= 0) {
@@ -36,7 +36,7 @@ case class ConfigPortTest() extends KV260(
   }
 
   this.generate()
-  KernelModule.addIO(io.lpd_hpm0)
+  KernelModule.addIO(io.lpd.hpm0)
   KernelModule.generate()
 }
 
