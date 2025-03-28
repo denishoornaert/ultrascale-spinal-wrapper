@@ -73,6 +73,7 @@ object KernelModule {
     |// ${port_name} variables
     |static struct cdev ${port_name}_cdev;
     |static dev_t ${port_name}_dev_t = 0;
+    |static struct device* ${pport_name}_device;
     """.stripMargin('|')
 
   def functions(port_name: String, port_remap: String, port_addr: String): String = s"""
@@ -120,8 +121,8 @@ object KernelModule {
     |   pr_alert("[PL-ports] Failed to cdev_add for ${port_name}.\\n");
     | }
     |
-    | ret = device_create(class, NULL, ${port_name}_dev_t, NULL, "${port_name}");
-    | if (ret == -1) {
+    | ${port_name}_device = device_create(class, NULL, ${port_name}_dev_t, NULL, "${port_name}");
+    | if (${port_name}_device == ERR_PTR) {
     |   pr_alert("[PL-ports] Failed to create device for ${port_name}.\\n");
     |   ret = -EINVAL;
     | }
