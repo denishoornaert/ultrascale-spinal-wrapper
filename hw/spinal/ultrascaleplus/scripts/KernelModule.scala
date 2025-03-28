@@ -73,7 +73,7 @@ object KernelModule {
     |// ${port_name} variables
     |static struct cdev ${port_name}_cdev;
     |static dev_t ${port_name}_dev_t = 0;
-    |static struct device* ${pport_name}_device;
+    |static struct device* ${port_name}_device;
     """.stripMargin('|')
 
   def functions(port_name: String, port_remap: String, port_addr: String): String = s"""
