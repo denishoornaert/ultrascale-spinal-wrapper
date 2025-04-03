@@ -13,10 +13,10 @@ import ultrascaleplus.interface.crosstrigger._
 import ultrascaleplus.interface.axi._
 import ultrascaleplus.interface.pmod._
 import ultrascaleplus.scripts._
+import ultrascaleplus.utils._
 
 import interface.axi._
 import interface.pmod._
-import generic.interface.pmod._
 import generic.interface.irq._
 import interface.crosstrigger._
 
@@ -45,17 +45,17 @@ case class Interfaces(
   withFrom_PS_IRQ            : Boolean = false
 ) extends Bundle {
   val lpd = new Bundle {
-    val hpm0 = (withLPD_HPM0   ) generate ( slave(Axi4Mapped(LPD.HPM0.config, LPD.HPM0.name, LPD.HPM0.apertures)))
+    val hpm0 = (withLPD_HPM0   ) generate ( slave(Axi4Mapped(LPD.HPM0)))
   }
   val fpd = new Bundle {
-    val hpm0 = (withFPD_HPM0   ) generate ( slave(Axi4Mapped(FPD.HPM0.config, FPD.HPM0.name, FPD.HPM0.apertures)))
-    val hpm1 = (withFPD_HPM1   ) generate ( slave(Axi4Mapped(FPD.HPM1.config, FPD.HPM1.name, FPD.HPM1.apertures)))
-    val hp0  = (withFPD_HP0    ) generate (master(Axi4Mapped(FPD.HP0.config , FPD.HP0.name , FPD.HP0.apertures )))
-    val hp1  = (withFPD_HP1    ) generate (master(Axi4Mapped(FPD.HP1.config , FPD.HP1.name , FPD.HP1.apertures )))
-    val hp2  = (withFPD_HP2    ) generate (master(Axi4Mapped(FPD.HP2.config , FPD.HP2.name , FPD.HP2.apertures )))
-    val hp3  = (withFPD_HP3    ) generate (master(Axi4Mapped(FPD.HP3.config , FPD.HP3.name , FPD.HP3.apertures )))
-    val hpc0 = (withFPD_HPC0   ) generate (master(Axi4Mapped(FPD.HPC0.config, FPD.HPC0.name, FPD.HPC0.apertures)))
-    val hpc1 = (withFPD_HPC1   ) generate (master(Axi4Mapped(FPD.HPC1.config, FPD.HPC1.name, FPD.HPC1.apertures)))
+    val hpm0 = (withFPD_HPM0   ) generate ( slave(Axi4Mapped(FPD.HPM0)))
+    val hpm1 = (withFPD_HPM1   ) generate ( slave(Axi4Mapped(FPD.HPM1)))
+    val hp0  = (withFPD_HP0    ) generate (master(Axi4Mapped(FPD.HP0 )))
+    val hp1  = (withFPD_HP1    ) generate (master(Axi4Mapped(FPD.HP1 )))
+    val hp2  = (withFPD_HP2    ) generate (master(Axi4Mapped(FPD.HP2 )))
+    val hp3  = (withFPD_HP3    ) generate (master(Axi4Mapped(FPD.HP3 )))
+    val hpc0 = (withFPD_HPC0   ) generate (master(Axi4Mapped(FPD.HPC0)))
+    val hpc1 = (withFPD_HPC1   ) generate (master(Axi4Mapped(FPD.HPC1)))
   }
 //  val fpd_ace  = (withFPD_ACE                  ) generate (     slave(Axi4(KriaPorts.FPD_ACE_Config ))                             )
   val dbg_cti0 = (withDBG_CTI0   ) generate (DBG_CTI0.port)
@@ -66,7 +66,7 @@ case class Interfaces(
   val dbg_cto1 = (withDBG_CTO1   ) generate (DBG_CTO1.port)
   val dbg_cto2 = (withDBG_CTO2   ) generate (DBG_CTO2.port)
   val dbg_cto3 = (withDBG_CTO3   ) generate (DBG_CTO3.port)
-  val pmod0    = (withIO_PMOD0   ) generate (master(PMOD()))
+  val pmod0    = (withIO_PMOD0   ) generate (out(PMOD(PMOD0.names)))
   val pl_to_ps = (withTo_PS_IRQ  ) generate (master(IRQ()))
   val ps_to_pl = (withFrom_PS_IRQ) generate ( slave(IRQ()))
 }
@@ -97,10 +97,21 @@ class KV260(
   withFrom_PS_IRQ : Boolean     = false
 ) extends Component {
 
+  def setAttribute(bundle: Bundle): Unit = {
+    for ((name, element) <- bundle.elements) {
+      // Bundle MUST stay at the last place!
+      element match {
+        case _:PSPLInterface => element.asInstanceOf[PSPLInterface].setAttribute()
+        case _:Bundle        => this.setAttribute(element.asInstanceOf[Bundle])
+      }
+    }
+  }
+
   def generate(): Unit = {
     if (withIO_PMOD0) {
-      Constraints.add(PMOD0.getConstraints())
+      Constraints.add(io.pmod0.getConstraints())
     }
+    this.setAttribute(io)
     TCLFactory.generate()
   }
 
@@ -140,13 +151,9 @@ class KV260(
     withFrom_PS_IRQ
   )
   
-  if (withIO_PMOD0) {
-    PMOD0.init(io.pmod0)
-  }
-  
-  if (withTo_PS_IRQ) {
-    io.pl_to_ps.clearAllOutputs()
-  }
+//  if (withTo_PS_IRQ) {
+//    io.pl_to_ps.clearAllOutputs()
+//  }
 
   // Generate dummy register to infer a clock and reset IO
   val dummyRegForClockInUltraScalePlusPlatforms = Reg(Bool())
