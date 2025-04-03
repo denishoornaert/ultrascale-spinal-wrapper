@@ -35,8 +35,8 @@ case class Shell() extends KV260(
   io.fpd.hpc0.setIdle()
   io.fpd.hpc1.setIdle()
 
-  io.pmod0.makeAllOutput()
-  io.pmod0.setAllOutputs()
+  io.pmod0.asOutput()
+  io.pmod0.clearAll()
 
   // Create dummy register to force instantiation of cock and reset I/O
   val clock_count = Reg(UInt(64 bits)) init(0)
