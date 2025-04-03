@@ -8,6 +8,7 @@ import spinal.lib.bus.misc.SizeMapping
 
 import kv260._
 import ultrascaleplus.parameters.AddressMap
+import ultrascaleplus.utils.PSPLInterface
 
 
 object TCLFactory {
@@ -611,41 +612,14 @@ object TCLFactory {
     return f"assign_bd_address -offset 0x${addressBase.toString(16)} -range 0x${rangeSize.toString(16)} -target_address_space [get_bd_addr_spaces ${port}] [get_bd_addr_segs ${target}] -force\n"
   }
   
-  val portIndex = Map.apply("HPC0" -> 0, "HPC1" -> 1, "HP0" -> 2, "HP1" -> 3, "HP2" -> 4, "HP3" -> 5)
-
-  def addSecondaryPort(port: String, clock: String): String = {
-    val upper = port.toUpperCase()
-    val lower = port.toLowerCase()
-    val index = this.portIndex(upper)
+  def addInterfaces(bundle: Bundle): String = {
     var tcl = ""
-    tcl += netConnection(clock, Seq(f"processing_system/saxi${lower}_fpd_aclk"))
-    tcl += interfaceConnection(f"${this.moduleName}_fpd_${lower}", Seq(f"${this.moduleName}/fpd_${lower}", f"processing_system/S_AXI_${upper}_FPD"))
-    tcl += addressMap(AddressMap.HIGH_DDR.base, AddressMap.HIGH_DDR.size, f"${this.moduleName}/fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_DDR_HIGH")
-    tcl += addressMap(AddressMap.LOW_DDR.base , AddressMap.LOW_DDR.size , f"${this.moduleName}/fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_DDR_LOW")
-    tcl += addressMap(AddressMap.OCM.base     , AddressMap.OCM.size     , f"${this.moduleName}/fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_LPS_OCM")
-    tcl += addressMap(AddressMap.QSPI.base    , AddressMap.QSPI.size    , f"${this.moduleName}/fpd_${lower}", f"processing_system/SAXIGP${index}/${upper}_QSPI")
-    tcl += "\n"
-    return tcl
-  }
-
-  def addPrimaryPort(port: String, domain: String, clock: String, range: SizeMapping): String = {
-    val portUpper = port.toUpperCase()
-    val portLower = port.toLowerCase()
-    val domainUpper = domain.toUpperCase()
-    val domainLower = domain.toLowerCase()
-    var tcl = ""
-    tcl += netConnection(clock, Seq(f"processing_system/maxi${portLower}_${domainLower}_aclk"))
-    tcl += interfaceConnection(f"processing_system_M_AXI_${portUpper}_${domainUpper}", Seq(f"${this.moduleName}/${domainLower}_${portLower}", f"processing_system/M_AXI_${portUpper}_${domainUpper}"))
-    tcl += addressMap(range.base, range.size, "processing_system/Data", f"${this.moduleName}/${domainLower}_${portLower}/reg0")
-    tcl += "\n"
-    return tcl
-  }
-
-  def addPMOD(port: String, pins: Int): String = {
-    var tcl = ""
-    for (pin <- 0 until pins) {
-      tcl += f"make_bd_pins_external  [get_bd_pins ${this.moduleName}/io_${port}_pins_${pin}]\n"
-      tcl += f"set_property NAME io_${port}_pins_${pin} [get_bd_ports /io_${port}_pins_${pin}_0]\n"
+    for ((name, element) <- bundle.elements) {
+      // Bundle MUST stay at the last place!
+      element match {
+        case _:PSPLInterface => tcl += element.asInstanceOf[PSPLInterface].getTCL(this.moduleName, "pl_clk0") // TODO: must be replace with variable
+        case _:Bundle        => tcl += this.addInterfaces(element.asInstanceOf[Bundle])
+      }
     }
     return tcl
   }
@@ -1043,27 +1017,7 @@ object TCLFactory {
     tcl += this.netConnection("pl_resetn", Seq("processing_system/pl_resetn0", "reset_system/ext_reset_in"))
     tcl += "\n"
     ////// Buses
-    if (this.platform.get.io.withFPD_HP0)
-      tcl += this.addSecondaryPort("HP0", "pl_clk0")
-    if (this.platform.get.io.withFPD_HP1)
-      tcl += this.addSecondaryPort("HP1", "pl_clk0")
-    if (this.platform.get.io.withFPD_HP2)
-      tcl += this.addSecondaryPort("HP2", "pl_clk0")
-    if (this.platform.get.io.withFPD_HP3)
-      tcl += this.addSecondaryPort("HP3", "pl_clk0")
-    if (this.platform.get.io.withFPD_HPC0)
-      tcl += this.addSecondaryPort("HPC0", "pl_clk0")
-    if (this.platform.get.io.withFPD_HPC1)
-      tcl += this.addSecondaryPort("HPC1", "pl_clk0")
-    if (this.platform.get.io.withFPD_HPM0)
-      tcl += this.addPrimaryPort("HPM0", "FPD", "pl_clk0", AddressMap.FPD_HPM0)
-    if (this.platform.get.io.withFPD_HPM1)
-      tcl += this.addPrimaryPort("HPM1", "FPD", "pl_clk0", AddressMap.FPD_HPM1)
-    if (this.platform.get.io.withLPD_HPM0)
-      tcl += this.addPrimaryPort("HPM0", "LPD", "pl_clk0", AddressMap.LPD_HPM0)
-    //// I/O PMOD
-    if (this.platform.get.io.withIO_PMOD0)
-      tcl += this.addPMOD("pmod0", this.platform.get.io.pmod0.amount)
+    tcl += this.addInterfaces(this.platform.get.io)
     //// Save, validate, and wrap
     tcl += this.saveAndValidate()
     tcl += this.wrapDesign("sources_1")
