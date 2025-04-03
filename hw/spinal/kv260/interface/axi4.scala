@@ -1,26 +1,32 @@
 package kv260.interface.axi
 
+
 import spinal.core._
 import spinal.lib._
-import spinal.lib.bus.misc.SizeMapping
 import spinal.lib.bus.amba4.axi._
 
+
+import ultrascaleplus.utils.Aperture
 import ultrascaleplus.parameters._
 import ultrascaleplus.interface.axi._
 
 
 object LPD {
 
-  object HPM0 {
+  object HPM0 extends Axi4MappedInstanceTemplate() {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    val name = "lpd_hpm0"
+    override val name = "lpd_hpm0"
 
-    val apertures = Seq(
+    override val domain = "lpd"
+
+    override val apertures = Seq(
       AddressMap.LPD_HPM0
     )
 
-    val config = Axi4Config(
+    override val id = -1
+
+    override val config = Axi4Config(
       addressWidth              =   40,
       dataWidth                 =  128,
       idWidth                   =   16,
@@ -52,15 +58,19 @@ object LPD {
 
 object FPD {
 
-  object HPM0 {
+  object HPM0 extends Axi4MappedInstanceTemplate() {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    val name = "fpd_hpm0"
+    override val name = "fpd_hpm0"
+
+    val domain = "fpd"
 
     val apertures = Seq(
       AddressMap.FPD_HPM0
     )
   
+    val id = -1
+
     // Primary port from the pov of the PS but a secondary port from the pov of the PL
     val config = Axi4Config(
       addressWidth              =   40,
@@ -92,15 +102,19 @@ object FPD {
 
   }
 
-  object HPM1 {
+  object HPM1 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
     val name = "fpd_hpm1"
+
+    val domain = "fpd"
 
     val apertures = Seq(
       AddressMap.FPD_HPM1
     )
 
+    val id = -1
+
     // Primary port from the pov of the PS but a secondary port from the pov of the PL
     val config = Axi4Config(
       addressWidth              =   40,
@@ -132,17 +146,21 @@ object FPD {
 
   }
 
-  object HP0 {
+  object HP0 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
     val name = "fpd_hp0"
 
+    val domain = "fpd"
+
     val apertures = Seq(
       AddressMap.HIGH_DDR,
       AddressMap.LOW_DDR,
       AddressMap.OCM,
       AddressMap.QSPI
     )
+
+    val id = 2
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
@@ -175,17 +193,21 @@ object FPD {
 
   }
 
-  object HP1 {
+  object HP1 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
     val name = "fpd_hp1"
 
+    val domain = "fpd"
+
     val apertures = Seq(
       AddressMap.HIGH_DDR,
       AddressMap.LOW_DDR,
       AddressMap.OCM,
       AddressMap.QSPI
     )
+
+    val id = 3
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
@@ -218,17 +240,21 @@ object FPD {
 
   }
 
-  object HP2 {
+  object HP2 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
     val name = "fpd_hp2"
 
+    val domain = "fpd"
+
     val apertures = Seq(
       AddressMap.HIGH_DDR,
       AddressMap.LOW_DDR,
       AddressMap.OCM,
       AddressMap.QSPI
     )
+
+    val id = 4
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
@@ -261,17 +287,21 @@ object FPD {
 
   }
 
-  object HP3 {
+  object HP3 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
     val name = "fpd_hp3"
 
+    val domain = "fpd"
+
     val apertures = Seq(
       AddressMap.HIGH_DDR,
       AddressMap.LOW_DDR,
       AddressMap.OCM,
       AddressMap.QSPI
     )
+
+    val id = 5
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
@@ -304,10 +334,12 @@ object FPD {
 
   }
 
-  object HPC0 {
+  object HPC0 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
     val name = "fpd_hpc0"
+
+    val domain = "fpd"
 
     val apertures = Seq(
       AddressMap.HIGH_DDR,
@@ -315,6 +347,8 @@ object FPD {
       AddressMap.OCM,
       AddressMap.QSPI
     )
+
+    val id = 0
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
@@ -347,10 +381,12 @@ object FPD {
 
   }
 
-  object HPC1 {
+  object HPC1 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
     val name = "fpd_hpc1"
+
+    val domain = "fpd"
 
     val apertures = Seq(
       AddressMap.HIGH_DDR,
@@ -358,6 +394,8 @@ object FPD {
       AddressMap.OCM,
       AddressMap.QSPI
     )
+
+    val id = 1
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
