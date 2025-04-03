@@ -1,6 +1,6 @@
-ThisBuild / version := "1.0"
+ThisBuild / version := "0.1"
 ThisBuild / scalaVersion := "2.12.18"
-ThisBuild / organization := "org.example"
+ThisBuild / organization := "de.tum"
 
 val spinalVersion = "1.10.2"
 val spinalCore = "com.github.spinalhdl" %% "spinalhdl-core" % spinalVersion
@@ -9,7 +9,9 @@ val spinalIdslPlugin = compilerPlugin("com.github.spinalhdl" %% "spinalhdl-idsl-
 
 lazy val projectname = (project in file("."))
   .settings(
+    name := "ultrascale-spinal-wrapper",
     Compile / scalaSource := baseDirectory.value / "hw" / "spinal",
+    Compile / resourceDirectory := baseDirectory.value / "hw" / "ext",
     libraryDependencies ++= Seq(spinalCore, spinalLib, spinalIdslPlugin)
   )
 
