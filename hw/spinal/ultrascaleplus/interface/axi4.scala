@@ -72,9 +72,9 @@ class Axi4Mapped(override val config: Axi4Config, name: String, val apertures: S
     val direction = if (this.isSlaveInterface) "Master" else "Slave"
     this.addAttribute("X_INTERFACE_INFO", f"XIL_INTERFACENAME ${this.getName()}, PROTOCOL AXI4, MODE ${direction}")
     for (channel <- Seq(this.ar, this.r, this.aw, this.w, this.b)) {
-      channel.valid.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.getName(), channel.getPartialName(), channel.valid.getPartialName()))
-      channel.ready.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.getName(), channel.getPartialName(), channel.ready.getPartialName()))
-      channel.payload.elements.map{e => e._2.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.getName(), channel.getPartialName(), e._1))}
+      channel.valid.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(f"${domain}_${name}", channel.getPartialName(), channel.valid.getPartialName()))
+      channel.ready.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(f"${domain}_${name}", channel.getPartialName(), channel.ready.getPartialName()))
+      channel.payload.elements.map{e => e._2.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(f"${domain}_${name}", channel.getPartialName(), e._1))}
     }
   }
 

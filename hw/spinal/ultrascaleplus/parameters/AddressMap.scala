@@ -13,13 +13,13 @@ object AddressMap {
   val FPD_HPM1 = new Aperture("FPD_HPM1", BigInt("4800000000", 16), 224 GiB)
 
   // PS DRAM
-  val LOW_DDR  = new Aperture("LOW_DDR", BigInt("0000000000", 16),   2 GiB)
-  val HIGH_DDR = new Aperture("HIGH_DDR", BigInt("0800000000", 16),   2 GiB)
+  val LOW_DDR  = new Aperture("DDR_LOW", BigInt("0000000000", 16),   2 GiB)
+  val HIGH_DDR = new Aperture("DDR_HIGH", BigInt("0800000000", 16),   2 GiB)
 
   // Non-volatile memory
   val QSPI     = new Aperture("QSPI", BigInt("00C0000000", 16),  16 MiB)
 
   // On-chip Memory
-  val OCM      = new Aperture("OCM", BigInt("00FFFC0000", 16), 256 KiB)
+  val OCM      = new Aperture("LPS_OCM", BigInt("00FFFC0000", 16), 256 KiB)
 
 }

@@ -16,7 +16,7 @@ object LPD {
   object HPM0 extends Axi4MappedInstanceTemplate() {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    override val name = "lpd_hpm0"
+    override val name = "hpm0"
 
     override val domain = "lpd"
 
@@ -61,7 +61,7 @@ object FPD {
   object HPM0 extends Axi4MappedInstanceTemplate() {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    override val name = "fpd_hpm0"
+    override val name = "hpm0"
 
     val domain = "fpd"
 
@@ -105,7 +105,7 @@ object FPD {
   object HPM1 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    val name = "fpd_hpm1"
+    val name = "hpm1"
 
     val domain = "fpd"
 
@@ -149,7 +149,7 @@ object FPD {
   object HP0 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    val name = "fpd_hp0"
+    val name = "hp0"
 
     val domain = "fpd"
 
@@ -196,7 +196,7 @@ object FPD {
   object HP1 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    val name = "fpd_hp1"
+    val name = "hp1"
 
     val domain = "fpd"
 
@@ -243,7 +243,7 @@ object FPD {
   object HP2 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    val name = "fpd_hp2"
+    val name = "hp2"
 
     val domain = "fpd"
 
@@ -290,7 +290,7 @@ object FPD {
   object HP3 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    val name = "fpd_hp3"
+    val name = "hp3"
 
     val domain = "fpd"
 
@@ -337,7 +337,7 @@ object FPD {
   object HPC0 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    val name = "fpd_hpc0"
+    val name = "hpc0"
 
     val domain = "fpd"
 
@@ -384,7 +384,7 @@ object FPD {
   object HPC1 extends Axi4MappedInstanceTemplate {
 
     // Should ideally be the concatenation of the parent object and the current object in small letters
-    val name = "fpd_hpc1"
+    val name = "hpc1"
 
     val domain = "fpd"
 
