@@ -86,7 +86,8 @@ case class ConfigPort(axi: Axi4, portName: String = null) extends Axi4SlaveFacto
     // Close read buffer
     br.close
     // Generate c struct for configuration port
-    val struct = CStructFactory(bundle)
+    val struct_name = s"configuration_${portName}_s"
+    val struct = CStructFactory(bundle).buildString("", struct_name)
     // Insert generate strings in the template
     header = header.replace("${insert_name}", portName)
     header = header.replace("${insert_struct}", struct)

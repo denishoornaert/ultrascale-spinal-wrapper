@@ -6,88 +6,130 @@ import spinal.lib._
 
 object CStructFactory {
 
-  // implicit topmodule
-  def apply(element: Bundle): String = {
-    val name = element.getPartialName()
+  trait Element {
 
-    var result = ""
-    result += "struct configuration_s {\n"
-    for ((name, elem) <- element.elements)
-      result += CStructFactory(elem, 1)
-    result += "};\n"
+    def ctype(): String
+    
+    def buildString(level: Int, name: String): String
 
-    return result
+    def buildString(name: String): String = buildString(0, name)
   }
 
-  def apply(element: Data, level: Int): String = {
+  trait NamedElement extends Element {
+    def name(): String
+
+    def buildString(level: Int): String = {
+      buildString(level, name)
+    }
+  }
+
+  case class CStructElement(ctype: String) extends Element {
+
+    def buildString(level: Int, name: String): String = {
+      val padding = "\t"*level
+      s"${padding}${ctype} ${name};\n"
+    }
+
+  }
+
+  case class CStructVectorElement(base: Element, count: Int) extends Element {
+
+    def ctype(): String = base.ctype()
+
+    override def buildString(level: Int, name: String): String = {
+      val padding = "\t"*level
+      s"${padding}${base.ctype} ${name}[${count}];\n"
+    }
+  }
+
+  case class CStructNamedElement(base: Element, name: String) extends NamedElement {
+
+    def ctype(): String = base.ctype()
+
+    def buildString(level: Int, name: String): String = base.buildString(level, name)
+
+  }
+  
+  case class CStructBundleElement(content: Array[NamedElement]) extends Element {
+
+    def ctype(): String = "struct"
+
+    def buildString(level: Int, instanceName: String, structName: String) = {
+      val padding = "\t"*level
+
+      val safeLength = (s: String) => if (s == null) 0 else s.length()
+
+      val _structName   = if (safeLength(structName) > 0) structName + ' ' else ""
+      val _instanceName = if (safeLength(instanceName) > 0) ' ' + instanceName else ""
+      
+
+      s"${padding}struct ${_structName}{\n" + 
+          content.map(item => item.buildString(level + 1)).mkString + 
+          s"${padding}}${_instanceName};\n"
+    }
+    
+    def buildString(instanceName: String, structName: String): String = buildString(0, instanceName, structName)
+    
+    override def buildString(level: Int, name: String): String = buildString(level, name, "")
+  } 
+
+  def apply(element: Data): Element = {
+    
     val result = element.getClass.getName match {
-      case "spinal.core.UInt" => CStructFactory(element.asInstanceOf[UInt], level)
-      case "spinal.core.SInt" => CStructFactory(element.asInstanceOf[SInt], level)
-      case "spinal.core.Bits" => CStructFactory(element.asInstanceOf[Bits], level)
-      case "spinal.core.Bool" => CStructFactory(element.asInstanceOf[Bool], level)
-      case "spinal.core.Vec" => CStructFactory(element.asInstanceOf[Vec[Data]], level)
-      // Default catches Bundle definitions
-      case _ => CStructFactory(element.asInstanceOf[Bundle], level)
+      case "spinal.core.UInt" => CStructFactory(element.asInstanceOf[UInt])
+      case "spinal.core.SInt" => CStructFactory(element.asInstanceOf[SInt])
+      case "spinal.core.Bits" => CStructFactory(element.asInstanceOf[Bits])
+      case "spinal.core.Bool" => CStructFactory(element.asInstanceOf[Bool])
+      case "spinal.core.Vec" => CStructFactory(element.asInstanceOf[Vec[Data]])
+      case _ => {
+        CStructFactory(element.asInstanceOf[Bundle])
+      }
     }
     return result
   }
 
-  def apply(element: Bundle, level: Int): String = {
-    val padding = "\t"*level
-    val name = element.getPartialName()
-
-    var result = ""
-    result += s"${padding}struct {\n"
-    for ((name, elem) <- element.elements)
-      result += CStructFactory(elem, level+1)
-    result += s"${padding}} ${name};\n"
-
-    return result
-  }
-
-  def apply(element: Vec[Data], level: Int): String = {
-    val padding = "\t"*level
-    val name = element.getPartialName()
+  def apply(element: Bundle): CStructBundleElement = {
     
-    var result = CStructFactory(element(0), level)
-    // '-3' is because 1 (';'), 1 ('0' or the first element of the array), and 1 because...
-    result = result.patch(result.size-3, s"${name}[${element.size}]", 1)
+    val content: Array[NamedElement] = element.elements.map(entry => {
+      val (name, item) = entry
+      CStructNamedElement(CStructFactory(item), name)
+    }).toArray
 
-    return result
+    return CStructBundleElement(content)
   }
 
-  def apply(element: UInt, level: Int): String = {
+  def apply(element: Vec[Data]): CStructVectorElement = {
+
+    val result = CStructFactory(element(0))
+
+    return CStructVectorElement(result, element.size)
+  }
+
+
+  def apply(element: UInt): CStructElement = {
     assert(List(8, 16, 32, 64).contains(element.getWidth), "UInt should be either 8, 16, 32, or 64.")
 
     val ctype = s"uint${element.getWidth}_t"
-    val padding = "\t"*level
-    val name = element.getPartialName()
 
-    var result = s"${padding}${ctype} ${name};\n"
-
-    return result
+    return new CStructElement(ctype)
   }
 
-  def apply(element: SInt, level: Int): String = {
+  def apply(element: SInt): CStructElement = {
     assert(List(8, 16, 32, 64).contains(element.getWidth), "SInt should be either 8, 16, 32, or 64.")
 
     val ctype = s"int${element.getWidth}_t"
-    val padding = "\t"*level
-    val name = element.getPartialName()
 
-    var result = s"${padding}${ctype} ${name};\n"
-
-    return result
+    return new CStructElement(ctype)
   }
 
-  def apply(element: Bool, level: Int): String = {
+  def apply(element: Bool): CStructElement = {
     assert(false, "Bool datatype not supported in configuration port. Try instead UInt(8 bit).")
-    return ""
+    throw new RuntimeException("Bool datatype not supported in configuration port. Try instead UInt(8 bit).")
   }
 
-  def apply(element: Bits, level: Int): String = {
+  def apply(element: Bits): CStructElement = {
     assert(false, "Bits datatype not supported in configuration port. Think about using UInt() instead.")
-    return ""
+    throw new RuntimeException("Bits datatype not supported in configuration port. Think about using UInt() instead.")
   }
   
 }
