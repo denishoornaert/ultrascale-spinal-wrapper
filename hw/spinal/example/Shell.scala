@@ -24,19 +24,19 @@ case class Shell() extends KV260(
   withIO_PMOD0 = true
 ) {
 
-  io.lpd_hpm0.setBlocked()
-  io.fpd_hpm0.setBlocked()
-  io.fpd_hpm1.setBlocked()
+  io.lpd.hpm0.setBlocked()
+  io.fpd.hpm0.setBlocked()
+  io.fpd.hpm1.setBlocked()
 
-  io.fpd_hp0.setIdle()
-  io.fpd_hp1.setIdle()
-  io.fpd_hp2.setIdle()
-  io.fpd_hp3.setIdle()
-  io.fpd_hpc0.setIdle()
-  io.fpd_hpc1.setIdle()
+  io.fpd.hp0.setIdle()
+  io.fpd.hp1.setIdle()
+  io.fpd.hp2.setIdle()
+  io.fpd.hp3.setIdle()
+  io.fpd.hpc0.setIdle()
+  io.fpd.hpc1.setIdle()
 
-  io.pmod0.makeAllOutput()
-  io.pmod0.setAllOutputs()
+  io.pmod0.asOutput()
+  io.pmod0.clearAll()
 
   // Create dummy register to force instantiation of cock and reset I/O
   val clock_count = Reg(UInt(64 bits)) init(0)

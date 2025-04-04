@@ -1,13 +1,10 @@
 package kv260.interface.pmod
 
-import spinal.core._
-import spinal.lib._
 
-import generic.interface.pmod._
 import ultrascaleplus.interface.pmod._
 
 
-object PMOD0 extends AbstractPMOD() {
+object PMOD0 {
 
   /*
    * Note: The position of the pin names in the list matters! The position is the number of the pin in the pmod interface.
@@ -20,11 +17,6 @@ object PMOD0 extends AbstractPMOD() {
    * D11 -> 5 lower part
    * B11 -> 7 lower part
    */
-  override val names = Array("H12", "B10", "E10", "E12", "D10", "D11", "C11", "B11")
-
-  override def init(port: PMOD): Unit = {
-    super.init(port)
-    port.setPartialName("pmod0")
-  }
+  val names = Seq[String]("H12", "B10", "E10", "E12", "D10", "D11", "C11", "B11")
 
 }

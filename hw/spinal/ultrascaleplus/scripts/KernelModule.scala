@@ -76,6 +76,7 @@ object KernelModule {
     |static struct device* ${port_name}_device;
     """.stripMargin('|')
 
+  // TODO: add checks for size lqrger than the corresponfing port's aperture
   def functions(port_name: String, port_remap: String, port_addr: String): String = s"""
     |static int ${port_name}_open(struct inode* inode, struct file* file) {
     | PR_INFO("[PL-ports] Device for ${port_name} opened.\\n");
@@ -133,14 +134,14 @@ object KernelModule {
     | cdev_del(&${port_name}_cdev);
     """.stripMargin('|')
 
-  var ports = List[AbstractSecondaryAxi4]()
-  var io_ports = List[AbstractSecondaryAxi4]()
+  var ports = List[Axi4Mapped]()
+  var io_ports = List[Axi4Mapped]()
 
-  def add(port: AbstractSecondaryAxi4): Unit = {
+  def add(port: Axi4Mapped): Unit = {
     ports = port +: ports
   }
 
-  def addIO(port: AbstractSecondaryAxi4): Unit = {
+  def addIO(port: Axi4Mapped): Unit = {
     io_ports = port +: io_ports
   }
 
@@ -158,12 +159,16 @@ object KernelModule {
   def generateFunctionsSection(): String = {
     var res: String = ""
     for (port <- ports) {
-      val remap = "remap_pfn_range(vma, vma->vm_start, pfn, size, vma->vm_page_prot);"
-      res = res+functions(port.name, remap, port.aperture.base.toString(16))
+      for (aperture <- port.apertures) {
+        val remap = "remap_pfn_range(vma, vma->vm_start, pfn, size, vma->vm_page_prot);"
+        res = res+functions(port.name, remap, aperture.base.toString(16))
+      }
     }
     for (port <- io_ports) {
-      val remap = "io_remap_pfn_range(vma, vma->vm_start, pfn, size, pgprot_noncached(vma->vm_page_prot));"
-      res = res+functions(port.name, remap, port.aperture.base.toString(16))
+      for (aperture <- port.apertures) {
+        val remap = "io_remap_pfn_range(vma, vma->vm_start, pfn, size, pgprot_noncached(vma->vm_page_prot));"
+        res = res+functions(port.name, remap, aperture.base.toString(16))
+      }
     }
     return res
   }

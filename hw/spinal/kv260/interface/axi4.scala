@@ -1,330 +1,430 @@
 package kv260.interface.axi
 
+
 import spinal.core._
 import spinal.lib._
-import spinal.lib.bus.misc.SizeMapping
 import spinal.lib.bus.amba4.axi._
 
+
+import ultrascaleplus.utils.Aperture
 import ultrascaleplus.parameters._
 import ultrascaleplus.interface.axi._
 
 
-object LPD_HPM0 extends AbstractSecondaryAxi4() {
+object LPD {
 
-  override val aperture = AddressMap.LPD_HPM0
+  object HPM0 extends Axi4MappedInstanceTemplate() {
 
-  override val config = Axi4Config(
-    addressWidth              =   40,
-    dataWidth                 =  128,
-    idWidth                   =   16,
-    useId                     = true,
-    useRegion                 = true,
-    useBurst                  = true,
-    useLock                   = true,
-    useCache                  = true,
-    useSize                   = true,
-    useQos                    = true,
-    useLen                    = true,
-    useLast                   = true,
-    useResp                   = true,
-    useProt                   = true,
-    useStrb                   = true,
-    useAllStrb                = false,
-    arUserWidth               = -1,
-    awUserWidth               = -1,
-    rUserWidth                = -1,
-    wUserWidth                = -1,
-    bUserWidth                = -1,
-    readIssuingCapability     =  8,
-    writeIssuingCapability    =  8,
-    combinedIssuingCapability = 16,
-    readDataReorderingDepth   = -1
-  )
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    override val name = "hpm0"
 
-  override val name = "lpd_hpm0"
+    override val domain = "lpd"
 
+    override val apertures = Seq(
+      AddressMap.LPD_HPM0
+    )
+
+    override val id = -1
+
+    override val config = Axi4Config(
+      addressWidth              =   40,
+      dataWidth                 =  128,
+      idWidth                   =   16,
+      useId                     = true,
+      useRegion                 = true,
+      useBurst                  = true,
+      useLock                   = true,
+      useCache                  = true,
+      useSize                   = true,
+      useQos                    = true,
+      useLen                    = true,
+      useLast                   = true,
+      useResp                   = true,
+      useProt                   = true,
+      useStrb                   = true,
+      useAllStrb                = false,
+      arUserWidth               = -1,
+      awUserWidth               = -1,
+      rUserWidth                = -1,
+      wUserWidth                = -1,
+      bUserWidth                = -1,
+      readIssuingCapability     =  8,
+      writeIssuingCapability    =  8,
+      combinedIssuingCapability = 16,
+      readDataReorderingDepth   = -1
+    )
+  }
 }
 
-object FPD_HPM0 extends AbstractSecondaryAxi4() {
+object FPD {
 
-  override val aperture = AddressMap.FPD_HPM0
+  object HPM0 extends Axi4MappedInstanceTemplate() {
 
-  // Primary port from the pov of the PS but a secondary port from the pov of the PL
-  override val config = Axi4Config(
-    addressWidth              =   40,
-    dataWidth                 =  128,
-    idWidth                   =   16,
-    useId                     = true,
-    useRegion                 = true,
-    useBurst                  = true,
-    useLock                   = true,
-    useCache                  = true,
-    useSize                   = true,
-    useQos                    = true,
-    useLen                    = true,
-    useLast                   = true,
-    useResp                   = true,
-    useProt                   = true,
-    useStrb                   = true,
-    useAllStrb                = false,
-    arUserWidth               = -1,
-    awUserWidth               = -1,
-    rUserWidth                = -1,
-    wUserWidth                = -1,
-    bUserWidth                = -1,
-    readIssuingCapability     =  8,
-    writeIssuingCapability    =  8,
-    combinedIssuingCapability = 16,
-    readDataReorderingDepth   = -1
-  )
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    override val name = "hpm0"
 
-  override val name = "fpd_hpm0"
+    val domain = "fpd"
 
-}
+    val apertures = Seq(
+      AddressMap.FPD_HPM0
+    )
+  
+    val id = -1
 
-object FPD_HPM1 extends AbstractSecondaryAxi4() {
+    // Primary port from the pov of the PS but a secondary port from the pov of the PL
+    val config = Axi4Config(
+      addressWidth              =   40,
+      dataWidth                 =  128,
+      idWidth                   =   16,
+      useId                     = true,
+      useRegion                 = true,
+      useBurst                  = true,
+      useLock                   = true,
+      useCache                  = true,
+      useSize                   = true,
+      useQos                    = true,
+      useLen                    = true,
+      useLast                   = true,
+      useResp                   = true,
+      useProt                   = true,
+      useStrb                   = true,
+      useAllStrb                = false,
+      arUserWidth               = -1,
+      awUserWidth               = -1,
+      rUserWidth                = -1,
+      wUserWidth                = -1,
+      bUserWidth                = -1,
+      readIssuingCapability     =  8,
+      writeIssuingCapability    =  8,
+      combinedIssuingCapability = 16,
+      readDataReorderingDepth   = -1
+    )
 
-  override val aperture = AddressMap.FPD_HPM1
+  }
 
-  // Primary port from the pov of the PS but a secondary port from the pov of the PL
-  override val config = Axi4Config(
-    addressWidth              =   40,
-    dataWidth                 =  128,
-    idWidth                   =   16,
-    useId                     = true,
-    useRegion                 = true,
-    useBurst                  = true,
-    useLock                   = true,
-    useCache                  = true,
-    useSize                   = true,
-    useQos                    = true,
-    useLen                    = true,
-    useLast                   = true,
-    useResp                   = true,
-    useProt                   = true,
-    useStrb                   = true,
-    useAllStrb                = false,
-    arUserWidth               = -1,
-    awUserWidth               = -1,
-    rUserWidth                = -1,
-    wUserWidth                = -1,
-    bUserWidth                = -1,
-    readIssuingCapability     =  8,
-    writeIssuingCapability    =  8,
-    combinedIssuingCapability = 16,
-    readDataReorderingDepth   = -1
-  )
+  object HPM1 extends Axi4MappedInstanceTemplate {
 
-  override val name = "fpd_hpm1"
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "hpm1"
 
-}
+    val domain = "fpd"
 
-object FPD_HP0 extends AbstractPrimaryAxi4() {
+    val apertures = Seq(
+      AddressMap.FPD_HPM1
+    )
 
-  // Secondary port from the pov of the PS but a primary port from the pov of the PL
-  override val config = Axi4Config(
-    addressWidth              =   40,
-    dataWidth                 =  128,
-    idWidth                   =    6,
-    useId                     = true,
-    useRegion                 = true,
-    useBurst                  = true,
-    useLock                   = true,
-    useCache                  = true,
-    useSize                   = true,
-    useQos                    = true,
-    useLen                    = true,
-    useLast                   = true,
-    useResp                   = true,
-    useProt                   = true,
-    useStrb                   = true,
-    useAllStrb                = false,
-    arUserWidth               = -1,
-    awUserWidth               = -1,
-    rUserWidth                = -1,
-    wUserWidth                = -1,
-    bUserWidth                = -1,
-    readIssuingCapability     = 16,
-    writeIssuingCapability    = 16,
-    combinedIssuingCapability = 32,
-    readDataReorderingDepth   = -1
-  )
+    val id = -1
 
-  override val name = "fpd_hp0"
+    // Primary port from the pov of the PS but a secondary port from the pov of the PL
+    val config = Axi4Config(
+      addressWidth              =   40,
+      dataWidth                 =  128,
+      idWidth                   =   16,
+      useId                     = true,
+      useRegion                 = true,
+      useBurst                  = true,
+      useLock                   = true,
+      useCache                  = true,
+      useSize                   = true,
+      useQos                    = true,
+      useLen                    = true,
+      useLast                   = true,
+      useResp                   = true,
+      useProt                   = true,
+      useStrb                   = true,
+      useAllStrb                = false,
+      arUserWidth               = -1,
+      awUserWidth               = -1,
+      rUserWidth                = -1,
+      wUserWidth                = -1,
+      bUserWidth                = -1,
+      readIssuingCapability     =  8,
+      writeIssuingCapability    =  8,
+      combinedIssuingCapability = 16,
+      readDataReorderingDepth   = -1
+    )
 
-}
+  }
 
-object FPD_HP1 extends AbstractPrimaryAxi4() {
+  object HP0 extends Axi4MappedInstanceTemplate {
 
-  // Secondary port from the pov of the PS but a primary port from the pov of the PL
-  override val config = Axi4Config(
-    addressWidth              =   40,
-    dataWidth                 =  128,
-    idWidth                   =    6,
-    useId                     = true,
-    useRegion                 = true,
-    useBurst                  = true,
-    useLock                   = true,
-    useCache                  = true,
-    useSize                   = true,
-    useQos                    = true,
-    useLen                    = true,
-    useLast                   = true,
-    useResp                   = true,
-    useProt                   = true,
-    useStrb                   = true,
-    useAllStrb                = false,
-    arUserWidth               = -1,
-    awUserWidth               = -1,
-    rUserWidth                = -1,
-    wUserWidth                = -1,
-    bUserWidth                = -1,
-    readIssuingCapability     = 16,
-    writeIssuingCapability    = 16,
-    combinedIssuingCapability = 32,
-    readDataReorderingDepth   = -1
-  )
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "hp0"
 
-  override val name = "fpd_hp1"
+    val domain = "fpd"
 
-}
+    val apertures = Seq(
+      AddressMap.HIGH_DDR,
+      AddressMap.LOW_DDR,
+      AddressMap.OCM,
+      AddressMap.QSPI
+    )
 
-object FPD_HP2 extends AbstractPrimaryAxi4() {
+    val id = 2
 
-  // Secondary port from the pov of the PS but a primary port from the pov of the PL
-  override val config = Axi4Config(
-    addressWidth              =   40,
-    dataWidth                 =  128,
-    idWidth                   =    6,
-    useId                     = true,
-    useRegion                 = true,
-    useBurst                  = true,
-    useLock                   = true,
-    useCache                  = true,
-    useSize                   = true,
-    useQos                    = true,
-    useLen                    = true,
-    useLast                   = true,
-    useResp                   = true,
-    useProt                   = true,
-    useStrb                   = true,
-    useAllStrb                = false,
-    arUserWidth               = -1,
-    awUserWidth               = -1,
-    rUserWidth                = -1,
-    wUserWidth                = -1,
-    bUserWidth                = -1,
-    readIssuingCapability     = 16,
-    writeIssuingCapability    = 16,
-    combinedIssuingCapability = 32,
-    readDataReorderingDepth   = -1
-  )
+    // Secondary port from the pov of the PS but a primary port from the pov of the PL
+    val config = Axi4Config(
+      addressWidth              =   40,
+      dataWidth                 =  128,
+      idWidth                   =    6,
+      useId                     = true,
+      useRegion                 = true,
+      useBurst                  = true,
+      useLock                   = true,
+      useCache                  = true,
+      useSize                   = true,
+      useQos                    = true,
+      useLen                    = true,
+      useLast                   = true,
+      useResp                   = true,
+      useProt                   = true,
+      useStrb                   = true,
+      useAllStrb                = false,
+      arUserWidth               = -1,
+      awUserWidth               = -1,
+      rUserWidth                = -1,
+      wUserWidth                = -1,
+      bUserWidth                = -1,
+      readIssuingCapability     = 16,
+      writeIssuingCapability    = 16,
+      combinedIssuingCapability = 32,
+      readDataReorderingDepth   = -1
+    )
 
-  override val name = "fpd_hp2"
+  }
 
-}
+  object HP1 extends Axi4MappedInstanceTemplate {
 
-object FPD_HP3 extends AbstractPrimaryAxi4() {
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "hp1"
 
-  // Secondary port from the pov of the PS but a primary port from the pov of the PL
-  override val config = Axi4Config(
-    addressWidth              =   40,
-    dataWidth                 =  128,
-    idWidth                   =    6,
-    useId                     = true,
-    useRegion                 = true,
-    useBurst                  = true,
-    useLock                   = true,
-    useCache                  = true,
-    useSize                   = true,
-    useQos                    = true,
-    useLen                    = true,
-    useLast                   = true,
-    useResp                   = true,
-    useProt                   = true,
-    useStrb                   = true,
-    useAllStrb                = false,
-    arUserWidth               = -1,
-    awUserWidth               = -1,
-    rUserWidth                = -1,
-    wUserWidth                = -1,
-    bUserWidth                = -1,
-    readIssuingCapability     = 16,
-    writeIssuingCapability    = 16,
-    combinedIssuingCapability = 32,
-    readDataReorderingDepth   = -1
-  )
+    val domain = "fpd"
 
-  override val name = "fpd_hp3"
+    val apertures = Seq(
+      AddressMap.HIGH_DDR,
+      AddressMap.LOW_DDR,
+      AddressMap.OCM,
+      AddressMap.QSPI
+    )
 
-}
+    val id = 3
 
-object FPD_HPC0 extends AbstractPrimaryAxi4() {
+    // Secondary port from the pov of the PS but a primary port from the pov of the PL
+    val config = Axi4Config(
+      addressWidth              =   40,
+      dataWidth                 =  128,
+      idWidth                   =    6,
+      useId                     = true,
+      useRegion                 = true,
+      useBurst                  = true,
+      useLock                   = true,
+      useCache                  = true,
+      useSize                   = true,
+      useQos                    = true,
+      useLen                    = true,
+      useLast                   = true,
+      useResp                   = true,
+      useProt                   = true,
+      useStrb                   = true,
+      useAllStrb                = false,
+      arUserWidth               = -1,
+      awUserWidth               = -1,
+      rUserWidth                = -1,
+      wUserWidth                = -1,
+      bUserWidth                = -1,
+      readIssuingCapability     = 16,
+      writeIssuingCapability    = 16,
+      combinedIssuingCapability = 32,
+      readDataReorderingDepth   = -1
+    )
 
-  // Secondary port from the pov of the PS but a primary port from the pov of the PL
-  override val config = Axi4Config(
-    addressWidth              =   49,
-    dataWidth                 =  128,
-    idWidth                   =    6,
-    useId                     = true,
-    useRegion                 = true,
-    useBurst                  = true,
-    useLock                   = true,
-    useCache                  = true,
-    useSize                   = true,
-    useQos                    = true,
-    useLen                    = true,
-    useLast                   = true,
-    useResp                   = true,
-    useProt                   = true,
-    useStrb                   = true,
-    useAllStrb                = false,
-    arUserWidth               = -1,
-    awUserWidth               = -1,
-    rUserWidth                = -1,
-    wUserWidth                = -1,
-    bUserWidth                = -1,
-    readIssuingCapability     = 16,
-    writeIssuingCapability    = 16,
-    combinedIssuingCapability = 32,
-    readDataReorderingDepth   = -1
-  )
+  }
 
-  override val name = "fpd_hpc0"
+  object HP2 extends Axi4MappedInstanceTemplate {
 
-}
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "hp2"
 
-object FPD_HPC1 extends AbstractPrimaryAxi4() {
+    val domain = "fpd"
 
-  // Secondary port from the pov of the PS but a primary port from the pov of the PL
-  override val config = Axi4Config(
-    addressWidth              =   49,
-    dataWidth                 =  128,
-    idWidth                   =    6,
-    useId                     = true,
-    useRegion                 = true,
-    useBurst                  = true,
-    useLock                   = true,
-    useCache                  = true,
-    useSize                   = true,
-    useQos                    = true,
-    useLen                    = true,
-    useLast                   = true,
-    useResp                   = true,
-    useProt                   = true,
-    useStrb                   = true,
-    useAllStrb                = false,
-    arUserWidth               = -1,
-    awUserWidth               = -1,
-    rUserWidth                = -1,
-    wUserWidth                = -1,
-    bUserWidth                = -1,
-    readIssuingCapability     = 16,
-    writeIssuingCapability    = 16,
-    combinedIssuingCapability = 32,
-    readDataReorderingDepth   = -1
-  )
+    val apertures = Seq(
+      AddressMap.HIGH_DDR,
+      AddressMap.LOW_DDR,
+      AddressMap.OCM,
+      AddressMap.QSPI
+    )
 
-  override val name = "fpd_hpc1"
+    val id = 4
 
+    // Secondary port from the pov of the PS but a primary port from the pov of the PL
+    val config = Axi4Config(
+      addressWidth              =   40,
+      dataWidth                 =  128,
+      idWidth                   =    6,
+      useId                     = true,
+      useRegion                 = true,
+      useBurst                  = true,
+      useLock                   = true,
+      useCache                  = true,
+      useSize                   = true,
+      useQos                    = true,
+      useLen                    = true,
+      useLast                   = true,
+      useResp                   = true,
+      useProt                   = true,
+      useStrb                   = true,
+      useAllStrb                = false,
+      arUserWidth               = -1,
+      awUserWidth               = -1,
+      rUserWidth                = -1,
+      wUserWidth                = -1,
+      bUserWidth                = -1,
+      readIssuingCapability     = 16,
+      writeIssuingCapability    = 16,
+      combinedIssuingCapability = 32,
+      readDataReorderingDepth   = -1
+    )
+
+  }
+
+  object HP3 extends Axi4MappedInstanceTemplate {
+
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "hp3"
+
+    val domain = "fpd"
+
+    val apertures = Seq(
+      AddressMap.HIGH_DDR,
+      AddressMap.LOW_DDR,
+      AddressMap.OCM,
+      AddressMap.QSPI
+    )
+
+    val id = 5
+
+    // Secondary port from the pov of the PS but a primary port from the pov of the PL
+    val config = Axi4Config(
+      addressWidth              =   40,
+      dataWidth                 =  128,
+      idWidth                   =    6,
+      useId                     = true,
+      useRegion                 = true,
+      useBurst                  = true,
+      useLock                   = true,
+      useCache                  = true,
+      useSize                   = true,
+      useQos                    = true,
+      useLen                    = true,
+      useLast                   = true,
+      useResp                   = true,
+      useProt                   = true,
+      useStrb                   = true,
+      useAllStrb                = false,
+      arUserWidth               = -1,
+      awUserWidth               = -1,
+      rUserWidth                = -1,
+      wUserWidth                = -1,
+      bUserWidth                = -1,
+      readIssuingCapability     = 16,
+      writeIssuingCapability    = 16,
+      combinedIssuingCapability = 32,
+      readDataReorderingDepth   = -1
+    )
+
+  }
+
+  object HPC0 extends Axi4MappedInstanceTemplate {
+
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "hpc0"
+
+    val domain = "fpd"
+
+    val apertures = Seq(
+      AddressMap.HIGH_DDR,
+      AddressMap.LOW_DDR,
+      AddressMap.OCM,
+      AddressMap.QSPI
+    )
+
+    val id = 0
+
+    // Secondary port from the pov of the PS but a primary port from the pov of the PL
+    val config = Axi4Config(
+      addressWidth              =   49,
+      dataWidth                 =  128,
+      idWidth                   =    6,
+      useId                     = true,
+      useRegion                 = true,
+      useBurst                  = true,
+      useLock                   = true,
+      useCache                  = true,
+      useSize                   = true,
+      useQos                    = true,
+      useLen                    = true,
+      useLast                   = true,
+      useResp                   = true,
+      useProt                   = true,
+      useStrb                   = true,
+      useAllStrb                = false,
+      arUserWidth               = -1,
+      awUserWidth               = -1,
+      rUserWidth                = -1,
+      wUserWidth                = -1,
+      bUserWidth                = -1,
+      readIssuingCapability     = 16,
+      writeIssuingCapability    = 16,
+      combinedIssuingCapability = 32,
+      readDataReorderingDepth   = -1
+    )
+
+  }
+
+  object HPC1 extends Axi4MappedInstanceTemplate {
+
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "hpc1"
+
+    val domain = "fpd"
+
+    val apertures = Seq(
+      AddressMap.HIGH_DDR,
+      AddressMap.LOW_DDR,
+      AddressMap.OCM,
+      AddressMap.QSPI
+    )
+
+    val id = 1
+
+    // Secondary port from the pov of the PS but a primary port from the pov of the PL
+    val config = Axi4Config(
+      addressWidth              =   49,
+      dataWidth                 =  128,
+      idWidth                   =    6,
+      useId                     = true,
+      useRegion                 = true,
+      useBurst                  = true,
+      useLock                   = true,
+      useCache                  = true,
+      useSize                   = true,
+      useQos                    = true,
+      useLen                    = true,
+      useLast                   = true,
+      useResp                   = true,
+      useProt                   = true,
+      useStrb                   = true,
+      useAllStrb                = false,
+      arUserWidth               = -1,
+      awUserWidth               = -1,
+      rUserWidth                = -1,
+      wUserWidth                = -1,
+      bUserWidth                = -1,
+      readIssuingCapability     = 16,
+      writeIssuingCapability    = 16,
+      combinedIssuingCapability = 32,
+      readDataReorderingDepth   = -1
+    )
+
+  }
 }

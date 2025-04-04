@@ -62,8 +62,8 @@ object BleacherSim extends App {
     }.doSim { dut =>
     dut.clockDomain.forkStimulus(period = 10)
 
-    val primary = new Primary(dut.io.fpd_hpm0, dut.clockDomain)
-    val secondary = new Secondary(dut.io.fpd_hp0, dut.clockDomain)
+    val primary = new Primary(dut.io.fpd.hpm0, dut.clockDomain)
+    val secondary = new Secondary(dut.io.fpd.hp0, dut.clockDomain)
 
     dut.clockDomain.waitSampling(50) // Arbitrary
     

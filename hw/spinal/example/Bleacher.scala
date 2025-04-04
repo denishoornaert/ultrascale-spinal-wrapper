@@ -37,9 +37,9 @@ case class Bleacher() extends KV260(withFPD_HPM0=true, withFPD_HP0=true) with Pl
     primary := Cat(B"01101", secondary, B"00000").asUInt
   }
 
-  connect(io.fpd_hpm0, io.fpd_hp0)
+  connect(io.fpd.hpm0, io.fpd.hp0)
 
-  KernelModule.add(FPD_HPM0)
+  KernelModule.add(io.fpd.hpm0)
   KernelModule.generate()
   this.generate()
 }
