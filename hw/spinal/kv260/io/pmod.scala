@@ -1,7 +1,7 @@
-package kv260.interface.pmod
+package kv260.io.pmod
 
 
-import ultrascaleplus.interface.pmod._
+import ultrascaleplus.io.pmod._
 
 
 object PMOD0 {

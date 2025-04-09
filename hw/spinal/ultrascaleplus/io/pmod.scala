@@ -1,4 +1,4 @@
-package ultrascaleplus.interface.pmod
+package ultrascaleplus.io.pmod
 
 
 import spinal.core._
@@ -17,7 +17,7 @@ object PMOD {
 }
 
 
-class PMOD(pins: Seq[String]) extends Vec[Bool](Bool, Vector.fill(pins.length)(Bool())) with PSPLInterface {
+class PMOD(pins: Seq[String]) extends Vec[Bool](Bool, Vector.fill(pins.length)(Bool())) with TCL with XDC {
 
   assert(
     assertion = (pins.length <= 8),
@@ -35,7 +35,7 @@ class PMOD(pins: Seq[String]) extends Vec[Bool](Bool, Vector.fill(pins.length)(B
     return tcl
   }
 
-  def getConstraints(): String = {
+  override def getXDC(): String = {
     var constraints = ""
     for ((name, pin) <- pinNames.zipWithIndex) {
       constraints += f"set_property PACKAGE_PIN ${name} [get_ports {io_${this.getPartialName()}_${pin}}]\n"
