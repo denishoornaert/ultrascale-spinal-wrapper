@@ -6,22 +6,24 @@ import spinal.lib._
 
 
 import kv260._
-import kv260.interface.axi._
+import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.scripts._
 
 
 case class Shell() extends KV260(
-  frequency    = 332 MHz,
-  withLPD_HPM0 = true,
-  withFPD_HPM0 = true,
-  withFPD_HPM1 = true,
-  withFPD_HP0  = true,
-  withFPD_HP1  = true,
-  withFPD_HP2  = true,
-  withFPD_HP3  = true,
-  withFPD_HPC0 = true,
-  withFPD_HPC1 = true,
-  withIO_PMOD0 = true
+  frequency = 332 MHz,
+  config    = new KV260Config(
+    withLPD_HPM0 = true,
+    withFPD_HPM0 = true,
+    withFPD_HPM1 = true,
+    withFPD_HP0  = true,
+    withFPD_HP1  = true,
+    withFPD_HP2  = true,
+    withFPD_HP3  = true,
+    withFPD_HPC0 = true,
+    withFPD_HPC1 = true,
+    withIO_PMOD0 = true
+  )
 ) {
 
   io.lpd.hpm0.setBlocked()

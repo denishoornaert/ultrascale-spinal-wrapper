@@ -5,13 +5,17 @@ import spinal.lib._
 import spinal.lib.bus.amba4.axi._
 
 import kv260._
-import kv260.interface.axi._
 import ultrascaleplus.scripts._
 
 import example.plim._
 
 
-case class Bleacher() extends KV260(withFPD_HPM0=true, withFPD_HP0=true) with Plim {  
+case class Bleacher() extends KV260(
+  config = new KV260Config(
+    withFPD_HPM0 = true,
+    withFPD_HP0  = true
+  )
+) with Plim {  
   
   override def connectAWAddr(primary: UInt, secondary: UInt): Unit = {
     secondary := Cat(U"8'h08", U"4'h0", primary(31 downto 16), primary(11 downto 0)).asUInt
