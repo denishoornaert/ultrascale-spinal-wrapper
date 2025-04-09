@@ -4,10 +4,12 @@ package ultrascaleplus.scripts
 import java.io.File
 import java.io.FileWriter
 
+
 import spinal.core._
 import spinal.lib._
 
-import ultrascaleplus.interface.axi._
+
+import ultrascaleplus.bus.amba.axi4._
 
 
 object KernelModule {
