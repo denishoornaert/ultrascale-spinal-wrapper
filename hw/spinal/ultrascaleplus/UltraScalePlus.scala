@@ -90,6 +90,7 @@ abstract class UltraScalePlus (
   
   // Components name for TCL
   val board: String
+  val version: String
   val boardPart: String
 
   def getTCL(): String = {

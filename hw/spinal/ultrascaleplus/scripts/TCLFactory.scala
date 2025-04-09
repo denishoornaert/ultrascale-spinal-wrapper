@@ -39,7 +39,7 @@ object TCLFactory {
     tcl +=  "\n"
     tcl +=  "set obj [current_project]\n"
     tcl +=  setProperty("board_part_repo_paths", "[file normalize \"~/.Xilinx/Vivado/2022.2/xhub/board_store/xilinx_board_store\"]" , "$obj")
-    tcl +=  setProperty("board_part", f"xilinx.com:${this.platform.get.board}:part0:1.4", "$obj")
+    tcl +=  setProperty("board_part", f"xilinx.com:${this.platform.get.board}:part0:${this.platform.get.version}", "$obj")
     tcl +=  setProperty("default_lib", "xil_defaultlib", "$obj")
     tcl +=  setProperty("enable_resource_estimation", "0", "$obj")
     tcl +=  setProperty("enable_vhdl_2008", "1", "$obj")
