@@ -76,6 +76,7 @@ class KV260(
 ) {
 
   override val board = "kv260_som"
+  override val version = "1.4"
   override val boardPart = "xck26-sfvc784-2LV-c"
 
   override def generate(): Unit = {
