@@ -5,14 +5,14 @@ import spinal.core._
 import spinal.lib._
 
 
-import kv260._
+import kr260._
 import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.scripts._
 
 
-case class Shell() extends KV260(
+case class Shell() extends KR260(
   frequency = 332 MHz,
-  config    = new KV260Config(
+  config    = new KR260Config(
     withLPD_HPM0 = true,
     withFPD_HPM0 = true,
     withFPD_HPM1 = true,
@@ -21,8 +21,8 @@ case class Shell() extends KV260(
     withFPD_HP2  = true,
     withFPD_HP3  = true,
     withFPD_HPC0 = true,
-    withFPD_HPC1 = true,
-    withIO_PMOD0 = true
+    withFPD_HPC1 = true
+//    withIO_PMOD0 = true
   )
 ) {
 
@@ -37,8 +37,8 @@ case class Shell() extends KV260(
   io.fpd.hpc0.setIdle()
   io.fpd.hpc1.setIdle()
 
-  io.pmod0.asOutput()
-  io.pmod0.clearAll()
+//  io.pmod0.asOutput()
+//  io.pmod0.clearAll()
 
   // Create dummy register to force instantiation of cock and reset I/O
   val clock_count = Reg(UInt(64 bits)) init(0)
