@@ -1,162 +1,90 @@
 package kv260
 
 
-import Console.{RESET, YELLOW}
-
 import spinal.core._
 import spinal.lib._
 import spinal.lib.bus.amba4.axi._
 
-//import bus.amba4.ace._
-import ultrascaleplus.configport._
-import ultrascaleplus.interface.crosstrigger._
-import ultrascaleplus.interface.axi._
-import ultrascaleplus.interface.pmod._
+
+import ultrascaleplus._
+import ultrascaleplus.signal.crosstrigger._
+import ultrascaleplus.bus.amba.axi4._
+import ultrascaleplus.io.pmod._
 import ultrascaleplus.scripts._
-import ultrascaleplus.utils._
-
-import interface.axi._
-import interface.pmod._
+import kv260.io.pmod._
 import generic.interface.irq._
-import interface.crosstrigger._
 
 
-case class Interfaces(
-  withLPD_HPM0               : Boolean = false,
-  withFPD_HPM0               : Boolean = false,
-  withFPD_HPM1               : Boolean = false,
-  withFPD_HP0                : Boolean = false,
-  withFPD_HP1                : Boolean = false,
-  withFPD_HP2                : Boolean = false,
-  withFPD_HP3                : Boolean = false,
-  withFPD_HPC0               : Boolean = false,
-  withFPD_HPC1               : Boolean = false,
-  withFPD_ACE                : Boolean = false,
-  withDBG_CTI0               : Boolean = false,
-  withDBG_CTI1               : Boolean = false,
-  withDBG_CTI2               : Boolean = false,
-  withDBG_CTI3               : Boolean = false,
-  withDBG_CTO0               : Boolean = false,
-  withDBG_CTO1               : Boolean = false,
-  withDBG_CTO2               : Boolean = false,
-  withDBG_CTO3               : Boolean = false,
-  withIO_PMOD0               : Boolean = false,
-  withTo_PS_IRQ              : Boolean = false,
-  withFrom_PS_IRQ            : Boolean = false
-) extends Bundle {
-  val lpd = new Bundle {
-    val hpm0 = (withLPD_HPM0   ) generate ( slave(Axi4Mapped(LPD.HPM0)))
-  }
-  val fpd = new Bundle {
-    val hpm0 = (withFPD_HPM0   ) generate ( slave(Axi4Mapped(FPD.HPM0)))
-    val hpm1 = (withFPD_HPM1   ) generate ( slave(Axi4Mapped(FPD.HPM1)))
-    val hp0  = (withFPD_HP0    ) generate (master(Axi4Mapped(FPD.HP0 )))
-    val hp1  = (withFPD_HP1    ) generate (master(Axi4Mapped(FPD.HP1 )))
-    val hp2  = (withFPD_HP2    ) generate (master(Axi4Mapped(FPD.HP2 )))
-    val hp3  = (withFPD_HP3    ) generate (master(Axi4Mapped(FPD.HP3 )))
-    val hpc0 = (withFPD_HPC0   ) generate (master(Axi4Mapped(FPD.HPC0)))
-    val hpc1 = (withFPD_HPC1   ) generate (master(Axi4Mapped(FPD.HPC1)))
-  }
-//  val fpd_ace  = (withFPD_ACE                  ) generate (     slave(Axi4(KriaPorts.FPD_ACE_Config ))                             )
-  val dbg_cti0 = (withDBG_CTI0   ) generate (DBG_CTI0.port)
-  val dbg_cti1 = (withDBG_CTI1   ) generate (DBG_CTI1.port)
-  val dbg_cti2 = (withDBG_CTI2   ) generate (DBG_CTI2.port)
-  val dbg_cti3 = (withDBG_CTI3   ) generate (DBG_CTI3.port)
-  val dbg_cto0 = (withDBG_CTO0   ) generate (DBG_CTO0.port)
-  val dbg_cto1 = (withDBG_CTO1   ) generate (DBG_CTO1.port)
-  val dbg_cto2 = (withDBG_CTO2   ) generate (DBG_CTO2.port)
-  val dbg_cto3 = (withDBG_CTO3   ) generate (DBG_CTO3.port)
-  val pmod0    = (withIO_PMOD0   ) generate (out(PMOD(PMOD0.names)))
-  val pl_to_ps = (withTo_PS_IRQ  ) generate (master(IRQ()))
-  val ps_to_pl = (withFrom_PS_IRQ) generate ( slave(IRQ()))
+class KV260Config(
+  withLPD_HPM0   : Boolean = false,
+  withFPD_HPM0   : Boolean = false,
+  withFPD_HPM1   : Boolean = false,
+  withFPD_HP0    : Boolean = false,
+  withFPD_HP1    : Boolean = false,
+  withFPD_HP2    : Boolean = false,
+  withFPD_HP3    : Boolean = false,
+  withFPD_HPC0   : Boolean = false,
+  withFPD_HPC1   : Boolean = false,
+  withFPD_ACE    : Boolean = false,
+  withDBG_CTI0   : Boolean = false,
+  withDBG_CTI1   : Boolean = false,
+  withDBG_CTI2   : Boolean = false,
+  withDBG_CTI3   : Boolean = false,
+  withDBG_CTO0   : Boolean = false,
+  withDBG_CTO1   : Boolean = false,
+  withDBG_CTO2   : Boolean = false,
+  withDBG_CTO3   : Boolean = false,
+  withTo_PS_IRQ  : Boolean = false,
+  withFrom_PS_IRQ: Boolean = false,
+  // here
+  val withIO_PMOD0: Boolean = false
+  ) extends UltraScalePlusConfig(
+    withLPD_HPM0    = withLPD_HPM0   ,
+    withFPD_HPM0    = withFPD_HPM0   ,
+    withFPD_HPM1    = withFPD_HPM1   ,
+    withFPD_HP0     = withFPD_HP0    ,
+    withFPD_HP1     = withFPD_HP1    ,
+    withFPD_HP2     = withFPD_HP2    ,
+    withFPD_HP3     = withFPD_HP3    ,
+    withFPD_HPC0    = withFPD_HPC0   ,
+    withFPD_HPC1    = withFPD_HPC1   ,
+    withFPD_ACE     = withFPD_ACE    ,
+    withDBG_CTI0    = withDBG_CTI0   ,
+    withDBG_CTI1    = withDBG_CTI1   ,
+    withDBG_CTI2    = withDBG_CTI2   ,
+    withDBG_CTI3    = withDBG_CTI3   ,
+    withDBG_CTO0    = withDBG_CTO0   ,
+    withDBG_CTO1    = withDBG_CTO1   ,
+    withDBG_CTO2    = withDBG_CTO2   ,
+    withDBG_CTO3    = withDBG_CTO3   ,
+    withTo_PS_IRQ   = withTo_PS_IRQ  ,
+    withFrom_PS_IRQ = withFrom_PS_IRQ
+  ) {
+}
+
+class KV260IO(config: KV260Config) extends UltraScalePlusIO(config) {
+  val pmod0 = (config.withIO_PMOD0) generate (out(PMOD(PMOD0.names)))
 }
 
 
 class KV260(
-  frequency       : HertzNumber = 99.999001 MHz,
-  withLPD_HPM0    : Boolean     = false,
-  withFPD_HPM0    : Boolean     = false,
-  withFPD_HPM1    : Boolean     = false,
-  withFPD_HP0     : Boolean     = false,
-  withFPD_HP1     : Boolean     = false,
-  withFPD_HP2     : Boolean     = false,
-  withFPD_HP3     : Boolean     = false,
-  withFPD_HPC0    : Boolean     = false,
-  withFPD_HPC1    : Boolean     = false,
-  withFPD_ACE     : Boolean     = false,
-  withDBG_CTI0    : Boolean     = false,
-  withDBG_CTI1    : Boolean     = false,
-  withDBG_CTI2    : Boolean     = false,
-  withDBG_CTI3    : Boolean     = false,
-  withDBG_CTO0    : Boolean     = false,
-  withDBG_CTO1    : Boolean     = false,
-  withDBG_CTO2    : Boolean     = false,
-  withDBG_CTO3    : Boolean     = false,
-  withIO_PMOD0    : Boolean     = false,
-  withTo_PS_IRQ   : Boolean     = false,
-  withFrom_PS_IRQ : Boolean     = false
-) extends Component {
+  frequency: HertzNumber = 99.999001 MHz,
+  override val config   : KV260Config = new KV260Config()
+) extends UltraScalePlus(
+  frequency = frequency,
+  config    = config
+) {
 
-  def setAttribute(bundle: Bundle): Unit = {
-    for ((name, element) <- bundle.elements) {
-      // Bundle MUST stay at the last place!
-      element match {
-        case _:PSPLInterface => element.asInstanceOf[PSPLInterface].setAttribute()
-        case _:Bundle        => this.setAttribute(element.asInstanceOf[Bundle])
-      }
+  override val board = "kv260_som"
+  override val boardPart = "xck26-sfvc784-2LV-c"
+
+  override def generate(): Unit = {
+    if (this.config.withIO_PMOD0) {
+      Constraints.add(io.pmod0.getXDC())
     }
+    super.generate()
   }
 
-  def generate(): Unit = {
-    if (withIO_PMOD0) {
-      Constraints.add(io.pmod0.getConstraints())
-    }
-    this.setAttribute(io)
-    TCLFactory.generate()
-  }
-
-  // List of IOPLL clocks available for KV260
-  val availableFrequencies = Seq(333.329987 MHz, 299.997009 MHz, 249.997498 MHz, 199.998001 MHz, 142.855713 MHz, 99.999001 MHz, 49.999500 MHz)
-  // Looks for the available clock that is the closest to the requested one but not higher
-  val differences          = availableFrequencies.map(x => (x-frequency).toDouble).map(x => if (x > 0) -1.0/0 else x)
-  val index                = differences.indexOf(differences.max)
-  val actualFrequency      = availableFrequencies(index)
-  println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Frequency requested ${frequency}, but actual frequency is ${actualFrequency}.${RESET}")
-
-  // Get name of the class (should be the off spring).
-  TCLFactory(this)
-  Constraints(this.getClass.getSimpleName)
-
-  val io = new Interfaces(
-    withLPD_HPM0,
-    withFPD_HPM0,
-    withFPD_HPM1,
-    withFPD_HP0,
-    withFPD_HP1,
-    withFPD_HP2,
-    withFPD_HP3,
-    withFPD_HPC0,
-    withFPD_HPC1,
-    withFPD_ACE,
-    withDBG_CTI0,
-    withDBG_CTI1,
-    withDBG_CTI2,
-    withDBG_CTI3,
-    withDBG_CTO0,
-    withDBG_CTO1,
-    withDBG_CTO2,
-    withDBG_CTO3,
-    withIO_PMOD0,
-    withTo_PS_IRQ,
-    withFrom_PS_IRQ
-  )
-  
-//  if (withTo_PS_IRQ) {
-//    io.pl_to_ps.clearAllOutputs()
-//  }
-
-  // Generate dummy register to infer a clock and reset IO
-  val dummyRegForClockInUltraScalePlusPlatforms = Reg(Bool())
-  dummyRegForClockInUltraScalePlusPlatforms := !dummyRegForClockInUltraScalePlusPlatforms
+  override val io = new KV260IO(config)
 
 }
