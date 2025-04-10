@@ -12,7 +12,7 @@ import spinal.lib.bus.amba4.axi._
 import scripts._
 
 
-case class ConfigPort(axi: Axi4, portName: String = null, destinationParent: String = "hw/gen") extends Axi4SlaveFactory(axi) {
+case class ConfigPort(axi: Axi4, portName: String = null) extends Axi4SlaveFactory(axi) {
   
   if (portName != null) {
     setPartialName(portName)
@@ -20,6 +20,7 @@ case class ConfigPort(axi: Axi4, portName: String = null, destinationParent: Str
 
   val pageSize    =  12
   val template    =  "/configuration_port.h.template"
+  val destinationParent = "hw/gen"
   val destination = f"${destinationParent}/${portName}.h"
   val items       = new ArrayBuffer[(BigInt, Data)]()
 
