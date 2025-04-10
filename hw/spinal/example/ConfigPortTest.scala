@@ -9,6 +9,7 @@ import kv260._
 import kv260.interface.axi._
 import ultrascaleplus.scripts._
 import ultrascaleplus.configport._
+import ultrascaleplus.interface.axi.AbstractSecondaryAxi4
 
 
 case class ConfigPortTest() extends KV260(
@@ -16,17 +17,33 @@ case class ConfigPortTest() extends KV260(
   withLPD_HPM0 = true
 ) {
 
-  val config_port = ConfigPort(io.lpd_hpm0, io.lpd_hpm0.getPartialName())
+  val port: AbstractSecondaryAxi4 = LPD_HPM0
+  val config_port = new ConfigPort(io.lpd_hpm0, portName = io.lpd_hpm0.getPartialName(), LPD_HPM0.aperture.base)
 
   val clock_count = Reg(UInt(64 bits)) init(0)
-  config_port.read(clock_count, LPD_HPM0.aperture.base)
 
   val soft_reset = Reg(UInt(8 bits)) init(1)
-  config_port.readAndWrite(soft_reset, LPD_HPM0.aperture.base+(clock_count.getWidth/8))
 
   val enabled = Reg(UInt(8 bits)) init(0)
-  config_port.readAndWrite(enabled, LPD_HPM0.aperture.base+(clock_count.getWidth/8)+1)
+  val test_byte_reg = Reg(UInt(8 bits)) init(0)
 
+  val test_w_reg = Reg(UInt(64 bits)) init (0)
+  val test_rw_reg = Reg(UInt(64 bits)) init (0)
+
+
+  val test_bundle = Reg(new Bundle {
+    val alfa = UInt(16 bits)
+    val beta = UInt(16 bits)
+  })
+  
+  config_port.addAll[Data](
+    Array((clock_count, R),
+      (soft_reset, RW),
+      (enabled, RW),
+      (test_w_reg, W),
+      (test_byte_reg, RW),
+      (test_rw_reg, RW),
+      (test_bundle, RW)))
   
   when (soft_reset =/= 0) {
     clock_count := 0
