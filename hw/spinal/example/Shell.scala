@@ -6,8 +6,6 @@ import spinal.lib._
 
 
 import kr260._
-import ultrascaleplus.bus.amba.axi4._
-import ultrascaleplus.scripts._
 
 
 case class Shell() extends KR260(
