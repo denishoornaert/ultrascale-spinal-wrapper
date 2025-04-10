@@ -7,7 +7,15 @@ To get started, follow the guidelines provided hereunder and have a look at the 
 
 In theory most boards can be supported. However, you can find here a list of board supported (if listed) and tested (if checked).
 
- - [x] Xilinx Kria KV260
+ - [x] AMD-Xilinx Kria KV260
+ - [x] AMD-Xilinx Kria KR260
+ - [ ] AMD-Xilinx ZCU102
+
+## Vivado version tested
+
+ - [x] Vivado 2022.2.2
+
+**Let us know** if it works for you with another version!
 
 
 ## How to use the library (guidelines)
@@ -18,8 +26,9 @@ Soon to be added!
 
 Must be done from the root folder!
 ```bash
-vivado -mode batch -source vivado.Module.tcl
+vivado -mode batch -source vivado/MyModule.tcl
 ```
+You will end up with `MyModule.bit` in the root folder.
 
 
 ### Example
