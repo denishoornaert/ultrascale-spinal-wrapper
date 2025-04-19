@@ -17,6 +17,7 @@ import generic.interface.irq._
 
 class ZCU102Config(
   withLPD_HPM0   : Boolean = false,
+  withLPD_HP0    : Boolean = false,
   withFPD_HPM0   : Boolean = false,
   withFPD_HPM1   : Boolean = false,
   withFPD_HP0    : Boolean = false,
@@ -25,6 +26,7 @@ class ZCU102Config(
   withFPD_HP3    : Boolean = false,
   withFPD_HPC0   : Boolean = false,
   withFPD_HPC1   : Boolean = false,
+  withFPD_ACP    : Boolean = false,
   withFPD_ACE    : Boolean = false,
   withDBG_CTI0   : Boolean = false,
   withDBG_CTI1   : Boolean = false,
@@ -38,6 +40,7 @@ class ZCU102Config(
   withFrom_PS_IRQ: Boolean = false
   ) extends UltraScalePlusConfig(
     withLPD_HPM0    = withLPD_HPM0   ,
+    withLPD_HP0     = withLPD_HP0    ,
     withFPD_HPM0    = withFPD_HPM0   ,
     withFPD_HPM1    = withFPD_HPM1   ,
     withFPD_HP0     = withFPD_HP0    ,
@@ -46,6 +49,7 @@ class ZCU102Config(
     withFPD_HP3     = withFPD_HP3    ,
     withFPD_HPC0    = withFPD_HPC0   ,
     withFPD_HPC1    = withFPD_HPC1   ,
+    withFPD_ACP     = withFPD_ACP    ,
     withFPD_ACE     = withFPD_ACE    ,
     withDBG_CTI0    = withDBG_CTI0   ,
     withDBG_CTI1    = withDBG_CTI1   ,
