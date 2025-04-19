@@ -52,7 +52,56 @@ object LPD {
       combinedIssuingCapability = 16,
       readDataReorderingDepth   = -1
     )
+  
   }
+  
+  object HP0 extends Axi4MappedInstanceTemplate {
+
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = ""
+
+    val domain = "lpd"
+
+    val apertures = Seq(
+      AddressMap.HIGH_DDR,
+      AddressMap.LOW_DDR,
+      AddressMap.OCM,
+      AddressMap.QSPI
+    )
+
+    val id = null // TODO: to be determined!
+
+    // Secondary port from the pov of the PS but a primary port from the pov of the PL
+    val config = Axi4Config(
+      addressWidth              =    48,
+      dataWidth                 =   128,
+      idWidth                   =     6,
+      useId                     =  true,
+      useRegion                 = false,
+      useBurst                  =  true,
+      useLock                   =  true,
+      useCache                  =  true,
+      useSize                   =  true,
+      useQos                    =  true,
+      useLen                    =  true,
+      useLast                   =  true,
+      useResp                   =  true,
+      useProt                   =  true,
+      useStrb                   =  true,
+      useAllStrb                = false,
+      arUserWidth               =     1,
+      awUserWidth               =     1,
+      rUserWidth                =    -1,
+      wUserWidth                =    -1,
+      bUserWidth                =    -1,
+      readIssuingCapability     =    16,
+      writeIssuingCapability    =    16,
+      combinedIssuingCapability =    32,
+      readDataReorderingDepth   =    -1
+    )
+
+  }
+
 }
 
 object FPD {
@@ -72,31 +121,31 @@ object FPD {
 
     // Primary port from the pov of the PS but a secondary port from the pov of the PL
     val config = Axi4Config(
-      addressWidth              =   40,
-      dataWidth                 =  128,
-      idWidth                   =   16,
-      useId                     = true,
-      useRegion                 = true,
-      useBurst                  = true,
-      useLock                   = true,
-      useCache                  = true,
-      useSize                   = true,
-      useQos                    = true,
-      useLen                    = true,
-      useLast                   = true,
-      useResp                   = true,
-      useProt                   = true,
-      useStrb                   = true,
+      addressWidth              =    40,
+      dataWidth                 =   128,
+      idWidth                   =    16,
+      useId                     =  true,
+      useRegion                 = false,
+      useBurst                  =  true,
+      useLock                   =  true,
+      useCache                  =  true,
+      useSize                   =  true,
+      useQos                    =  true,
+      useLen                    =  true,
+      useLast                   =  true,
+      useResp                   =  true,
+      useProt                   =  true,
+      useStrb                   =  true,
       useAllStrb                = false,
-      arUserWidth               = -1,
-      awUserWidth               = -1,
-      rUserWidth                = -1,
-      wUserWidth                = -1,
-      bUserWidth                = -1,
-      readIssuingCapability     =  8,
-      writeIssuingCapability    =  8,
-      combinedIssuingCapability = 16,
-      readDataReorderingDepth   = -1
+      arUserWidth               =    16,
+      awUserWidth               =    16,
+      rUserWidth                =    -1,
+      wUserWidth                =    -1,
+      bUserWidth                =    -1,
+      readIssuingCapability     =     8,
+      writeIssuingCapability    =     8,
+      combinedIssuingCapability =    16,
+      readDataReorderingDepth   =    -1
     )
 
   }
@@ -116,31 +165,78 @@ object FPD {
 
     // Primary port from the pov of the PS but a secondary port from the pov of the PL
     val config = Axi4Config(
-      addressWidth              =   40,
-      dataWidth                 =  128,
-      idWidth                   =   16,
-      useId                     = true,
-      useRegion                 = true,
-      useBurst                  = true,
-      useLock                   = true,
-      useCache                  = true,
-      useSize                   = true,
-      useQos                    = true,
-      useLen                    = true,
-      useLast                   = true,
-      useResp                   = true,
-      useProt                   = true,
-      useStrb                   = true,
+      addressWidth              =    40,
+      dataWidth                 =   128,
+      idWidth                   =    16,
+      useId                     =  true,
+      useRegion                 = false,
+      useBurst                  =  true,
+      useLock                   =  true,
+      useCache                  =  true,
+      useSize                   =  true,
+      useQos                    =  true,
+      useLen                    =  true,
+      useLast                   =  true,
+      useResp                   =  true,
+      useProt                   =  true,
+      useStrb                   =  true,
       useAllStrb                = false,
-      arUserWidth               = -1,
-      awUserWidth               = -1,
-      rUserWidth                = -1,
-      wUserWidth                = -1,
-      bUserWidth                = -1,
-      readIssuingCapability     =  8,
-      writeIssuingCapability    =  8,
-      combinedIssuingCapability = 16,
-      readDataReorderingDepth   = -1
+      arUserWidth               =    16,
+      awUserWidth               =    16,
+      rUserWidth                =    -1,
+      wUserWidth                =    -1,
+      bUserWidth                =    -1,
+      readIssuingCapability     =     8,
+      writeIssuingCapability    =     8,
+      combinedIssuingCapability =    16,
+      readDataReorderingDepth   =    -1
+    )
+
+  }
+
+  object ACP extends Axi4MappedInstanceTemplate {
+
+    // Should ideally be the concatenation of the parent object and the current object in small letters
+    val name = "acp"
+
+    val domain = "fpd"
+
+    val apertures = Seq(
+      AddressMap.HIGH_DDR,
+      AddressMap.LOW_DDR,
+      AddressMap.OCM,
+      AddressMap.QSPI
+    )
+
+    val id = null // TODO: to be determined!
+
+    // Secondary port from the pov of the PS but a primary port from the pov of the PL
+    val config = Axi4Config(
+      addressWidth              =    40,
+      dataWidth                 =   128,
+      idWidth                   =     5,
+      useId                     =  true,
+      useRegion                 = false,
+      useBurst                  =  true,
+      useLock                   =  true,
+      useCache                  =  true,
+      useSize                   =  true,
+      useQos                    =  true,
+      useLen                    =  true,
+      useLast                   =  true,
+      useResp                   =  true,
+      useProt                   =  true,
+      useStrb                   =  true,
+      useAllStrb                = false,
+      arUserWidth               =     2,
+      awUserWidth               =     2,
+      rUserWidth                =    -1,
+      wUserWidth                =    -1,
+      bUserWidth                =    -1,
+      readIssuingCapability     =    16,
+      writeIssuingCapability    =    16,
+      combinedIssuingCapability =    32,
+      readDataReorderingDepth   =    -1
     )
 
   }
@@ -163,31 +259,31 @@ object FPD {
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
-      addressWidth              =   40,
-      dataWidth                 =  128,
-      idWidth                   =    6,
-      useId                     = true,
-      useRegion                 = true,
-      useBurst                  = true,
-      useLock                   = true,
-      useCache                  = true,
-      useSize                   = true,
-      useQos                    = true,
-      useLen                    = true,
-      useLast                   = true,
-      useResp                   = true,
-      useProt                   = true,
-      useStrb                   = true,
+      addressWidth              =    49,
+      dataWidth                 =   128,
+      idWidth                   =     6,
+      useId                     =  true,
+      useRegion                 = false,
+      useBurst                  =  true,
+      useLock                   =  true,
+      useCache                  =  true,
+      useSize                   =  true,
+      useQos                    =  true,
+      useLen                    =  true,
+      useLast                   =  true,
+      useResp                   =  true,
+      useProt                   =  true,
+      useStrb                   =  true,
       useAllStrb                = false,
-      arUserWidth               = -1,
-      awUserWidth               = -1,
-      rUserWidth                = -1,
-      wUserWidth                = -1,
-      bUserWidth                = -1,
-      readIssuingCapability     = 16,
-      writeIssuingCapability    = 16,
-      combinedIssuingCapability = 32,
-      readDataReorderingDepth   = -1
+      arUserWidth               =     1,
+      awUserWidth               =     1,
+      rUserWidth                =    -1,
+      wUserWidth                =    -1,
+      bUserWidth                =    -1,
+      readIssuingCapability     =    16,
+      writeIssuingCapability    =    16,
+      combinedIssuingCapability =    32,
+      readDataReorderingDepth   =    -1
     )
 
   }
@@ -210,31 +306,31 @@ object FPD {
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
-      addressWidth              =   40,
-      dataWidth                 =  128,
-      idWidth                   =    6,
-      useId                     = true,
-      useRegion                 = true,
-      useBurst                  = true,
-      useLock                   = true,
-      useCache                  = true,
-      useSize                   = true,
-      useQos                    = true,
-      useLen                    = true,
-      useLast                   = true,
-      useResp                   = true,
-      useProt                   = true,
-      useStrb                   = true,
+      addressWidth              =    49,
+      dataWidth                 =   128,
+      idWidth                   =     6,
+      useId                     =  true,
+      useRegion                 = false,
+      useBurst                  =  true,
+      useLock                   =  true,
+      useCache                  =  true,
+      useSize                   =  true,
+      useQos                    =  true,
+      useLen                    =  true,
+      useLast                   =  true,
+      useResp                   =  true,
+      useProt                   =  true,
+      useStrb                   =  true,
       useAllStrb                = false,
-      arUserWidth               = -1,
-      awUserWidth               = -1,
-      rUserWidth                = -1,
-      wUserWidth                = -1,
-      bUserWidth                = -1,
-      readIssuingCapability     = 16,
-      writeIssuingCapability    = 16,
-      combinedIssuingCapability = 32,
-      readDataReorderingDepth   = -1
+      arUserWidth               =     1,
+      awUserWidth               =     1,
+      rUserWidth                =    -1,
+      wUserWidth                =    -1,
+      bUserWidth                =    -1,
+      readIssuingCapability     =    16,
+      writeIssuingCapability    =    16,
+      combinedIssuingCapability =    32,
+      readDataReorderingDepth   =    -1
     )
 
   }
@@ -304,31 +400,31 @@ object FPD {
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
-      addressWidth              =   40,
-      dataWidth                 =  128,
-      idWidth                   =    6,
-      useId                     = true,
-      useRegion                 = true,
-      useBurst                  = true,
-      useLock                   = true,
-      useCache                  = true,
-      useSize                   = true,
-      useQos                    = true,
-      useLen                    = true,
-      useLast                   = true,
-      useResp                   = true,
-      useProt                   = true,
-      useStrb                   = true,
+      addressWidth              =    49,
+      dataWidth                 =   128,
+      idWidth                   =     6,
+      useId                     =  true,
+      useRegion                 = false,
+      useBurst                  =  true,
+      useLock                   =  true,
+      useCache                  =  true,
+      useSize                   =  true,
+      useQos                    =  true,
+      useLen                    =  true,
+      useLast                   =  true,
+      useResp                   =  true,
+      useProt                   =  true,
+      useStrb                   =  true,
       useAllStrb                = false,
-      arUserWidth               = -1,
-      awUserWidth               = -1,
-      rUserWidth                = -1,
-      wUserWidth                = -1,
-      bUserWidth                = -1,
-      readIssuingCapability     = 16,
-      writeIssuingCapability    = 16,
-      combinedIssuingCapability = 32,
-      readDataReorderingDepth   = -1
+      arUserWidth               =     1,
+      awUserWidth               =     1,
+      rUserWidth                =    -1,
+      wUserWidth                =    -1,
+      bUserWidth                =    -1,
+      readIssuingCapability     =    16,
+      writeIssuingCapability    =    16,
+      combinedIssuingCapability =    32,
+      readDataReorderingDepth   =    -1
     )
 
   }
@@ -351,31 +447,31 @@ object FPD {
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
-      addressWidth              =   49,
-      dataWidth                 =  128,
-      idWidth                   =    6,
-      useId                     = true,
-      useRegion                 = true,
-      useBurst                  = true,
-      useLock                   = true,
-      useCache                  = true,
-      useSize                   = true,
-      useQos                    = true,
-      useLen                    = true,
-      useLast                   = true,
-      useResp                   = true,
-      useProt                   = true,
-      useStrb                   = true,
+      addressWidth              =    49,
+      dataWidth                 =   128,
+      idWidth                   =     6,
+      useId                     =  true,
+      useRegion                 = false,
+      useBurst                  =  true,
+      useLock                   =  true,
+      useCache                  =  true,
+      useSize                   =  true,
+      useQos                    =  true,
+      useLen                    =  true,
+      useLast                   =  true,
+      useResp                   =  true,
+      useProt                   =  true,
+      useStrb                   =  true,
       useAllStrb                = false,
-      arUserWidth               = -1,
-      awUserWidth               = -1,
-      rUserWidth                = -1,
-      wUserWidth                = -1,
-      bUserWidth                = -1,
-      readIssuingCapability     = 16,
-      writeIssuingCapability    = 16,
-      combinedIssuingCapability = 32,
-      readDataReorderingDepth   = -1
+      arUserWidth               =     1,
+      awUserWidth               =     1,
+      rUserWidth                =    -1,
+      wUserWidth                =    -1,
+      bUserWidth                =    -1,
+      readIssuingCapability     =    16,
+      writeIssuingCapability    =    16,
+      combinedIssuingCapability =    32,
+      readDataReorderingDepth   =    -1
     )
 
   }
@@ -398,31 +494,31 @@ object FPD {
 
     // Secondary port from the pov of the PS but a primary port from the pov of the PL
     val config = Axi4Config(
-      addressWidth              =   49,
-      dataWidth                 =  128,
-      idWidth                   =    6,
-      useId                     = true,
-      useRegion                 = true,
-      useBurst                  = true,
-      useLock                   = true,
-      useCache                  = true,
-      useSize                   = true,
-      useQos                    = true,
-      useLen                    = true,
-      useLast                   = true,
-      useResp                   = true,
-      useProt                   = true,
-      useStrb                   = true,
+      addressWidth              =    49,
+      dataWidth                 =   128,
+      idWidth                   =     6,
+      useId                     =  true,
+      useRegion                 = false,
+      useBurst                  =  true,
+      useLock                   =  true,
+      useCache                  =  true,
+      useSize                   =  true,
+      useQos                    =  true,
+      useLen                    =  true,
+      useLast                   =  true,
+      useResp                   =  true,
+      useProt                   =  true,
+      useStrb                   =  true,
       useAllStrb                = false,
-      arUserWidth               = -1,
-      awUserWidth               = -1,
-      rUserWidth                = -1,
-      wUserWidth                = -1,
-      bUserWidth                = -1,
-      readIssuingCapability     = 16,
-      writeIssuingCapability    = 16,
-      combinedIssuingCapability = 32,
-      readDataReorderingDepth   = -1
+      arUserWidth               =     1,
+      awUserWidth               =     1,
+      rUserWidth                =    -1,
+      wUserWidth                =    -1,
+      bUserWidth                =    -1,
+      readIssuingCapability     =    16,
+      writeIssuingCapability    =    16,
+      combinedIssuingCapability =    32,
+      readDataReorderingDepth   =    -1
     )
 
   }
