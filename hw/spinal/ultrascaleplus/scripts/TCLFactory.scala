@@ -205,8 +205,9 @@ object TCLFactory {
     for ((name, element) <- bundle.elements) {
       // Bundle MUST stay at the last place!
       element match {
-        case _:TCL    => tcl += element.asInstanceOf[TCL].getTCL(this.moduleName, "pl_clk0") // TODO: must be replace with variable
-        case _:Bundle => tcl += this.addInterfaces(element.asInstanceOf[Bundle])
+        case _:TCL      => tcl += element.asInstanceOf[TCL].getTCL(this.moduleName, "pl_clk0") // TODO: must be replace with variable
+        case _:Bundle   => tcl += this.addInterfaces(element.asInstanceOf[Bundle])
+        case _          => tcl += ""
       }
     }
     return tcl
