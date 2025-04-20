@@ -1,100 +1,42 @@
 package ultrascaleplus.signal.crosstrigger
 
+
 import spinal.core._
 import spinal.lib._
 
-import generic.interface.crosstrigger._
+
+import ultrascaleplus.utils._
+import ultrascaleplus.scripts.TCLFactory
 
 
-abstract class AbstractCrossTrigger() {
+case class CrossTrigger() extends Bundle with IMasterSlave with PSPLInterface with TCL {
 
-  val port: CrossTrigger
+  val pl_ps_trigger =  in(Bool())
+  val ps_pl_trigack = out(Bool())
 
-  def generateFieldAttribute(interface: String, channel: String): String = {
-    return "xilinx.com:interface:trigger:1.0 "+interface+" "+channel.toUpperCase()
+  override def asMaster(): Unit = {
+    out(pl_ps_trigger)
+    in(ps_pl_trigack)
   }
 
-  def setInterfaceAttributes(): Unit = {
-    if (port.isMasterInterface) {
-      port.pl_ps_trigger.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.port.getPartialName(), "ACK"))
-      port.ps_pl_trigger.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.port.getPartialName(), "TRIG"))
+  override def getTCL(moduleName: String, clock: String): String = {
+    val index = this.getPartialName().takeRight(1)
+    var tcl = ""
+    if (this.isMasterInterface)
+      tcl += TCLFactory.interfaceConnection(this.getPartialName(), Seq(f"${moduleName}/${this.getPartialName()}", f"processing_system/PL_PS_TRIGGER_${index}"))
+    else
+      tcl += TCLFactory.interfaceConnection(f"processing_system_PS_PL_TRIGGER_${index}", Seq(f"${moduleName}/${this.getPartialName()}", f"processing_system/PS_PL_TRIGGER_${index}"))
+    return tcl
+  }
+
+  override def setAttribute(): Unit = {
+    if (this.isMasterInterface) {
+      this.addAttribute("X_INTERFACE_INFO", "MODE Master")
     }
     else {
-      port.pl_ps_trigger.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.port.getPartialName(), "TRIG"))
-      port.ps_pl_trigger.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.port.getPartialName(), "ACK"))
+      this.addAttribute("X_INTERFACE_INFO", "MODE Slave")
     }
+    this.pl_ps_trigger.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:trigger:1.0 ${this.getPartialName()} TRIG")
+    this.ps_pl_trigack.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:trigger:1.0 ${this.getPartialName()} ACK")
   }
-}
-
-
-object DBG_CTI0 extends AbstractCrossTrigger() {
-
-  override val port = slave(CrossTrigger())
-
-  this.port.setPartialName("dbg_cti0")
-  this.setInterfaceAttributes()
-
-}
-
-object DBG_CTI1 extends AbstractCrossTrigger() {
-
-  override val port = slave(CrossTrigger())
-
-  this.port.setPartialName("dbg_cti1")
-  this.setInterfaceAttributes()
-
-}
-
-object DBG_CTI2 extends AbstractCrossTrigger() {
-
-  override val port = slave(CrossTrigger())
-
-  this.port.setPartialName("dbg_cti2")
-  this.setInterfaceAttributes()
-
-}
-
-object DBG_CTI3 extends AbstractCrossTrigger() {
-
-  override val port = slave(CrossTrigger())
-
-  this.port.setPartialName("dbg_cti3")
-  this.setInterfaceAttributes()
-
-}
-
-object DBG_CTO0 extends AbstractCrossTrigger() {
-
-  override val port = master(CrossTrigger())
-
-  this.port.setPartialName("dbg_cto0")
-  this.setInterfaceAttributes()
-
-}
-
-object DBG_CTO1 extends AbstractCrossTrigger() {
-
-  override val port = master(CrossTrigger())
-
-  this.port.setPartialName("dbg_cto1")
-  this.setInterfaceAttributes()
-
-}
-
-object DBG_CTO2 extends AbstractCrossTrigger() {
-
-  override val port = master(CrossTrigger())
-
-  this.port.setPartialName("dbg_cto2")
-  this.setInterfaceAttributes()
-
-}
-
-object DBG_CTO3 extends AbstractCrossTrigger() {
-
-  override val port = master(CrossTrigger())
-
-  this.port.setPartialName("dbg_cto3")
-  this.setInterfaceAttributes()
-
 }
