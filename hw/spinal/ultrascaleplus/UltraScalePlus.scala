@@ -1,5 +1,16 @@
 package ultrascaleplus
 
+/** Package for all thing UltrScalePlus.
+  * It provides all common nad abstract constructs to build and define
+  * detailed UltraScale+ implemntations.
+  *
+  * class implemented in this package are:
+  *  - [[ultrascaleplus.UltraScalePlusConfig]]
+  *  - [[ultrascaleplus.UltraScalePlusIO]]
+  *  - [[ultrascaleplus.UltraScalePlus]]
+  * 
+  */
+ package object scaladoc {}
 
 import Console.{RESET, YELLOW}
 
@@ -10,16 +21,15 @@ import spinal.lib.bus.amba4.axi._
 
 
 import ultrascaleplus.signal.crosstrigger._
+import ultrascaleplus.signal.irq._
 import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.scripts._
 import ultrascaleplus.utils._
 
 
-import generic.interface.irq._
-
-
 class UltraScalePlusConfig(
   val withLPD_HPM0   : Boolean = false,
+  val withLPD_HP0    : Boolean = false,
   val withFPD_HPM0   : Boolean = false,
   val withFPD_HPM1   : Boolean = false,
   val withFPD_HP0    : Boolean = false,
@@ -28,6 +38,7 @@ class UltraScalePlusConfig(
   val withFPD_HP3    : Boolean = false,
   val withFPD_HPC0   : Boolean = false,
   val withFPD_HPC1   : Boolean = false,
+  val withFPD_ACP    : Boolean = false,
   val withFPD_ACE    : Boolean = false,
   val withDBG_CTI0   : Boolean = false,
   val withDBG_CTI1   : Boolean = false,
@@ -37,40 +48,42 @@ class UltraScalePlusConfig(
   val withDBG_CTO1   : Boolean = false,
   val withDBG_CTO2   : Boolean = false,
   val withDBG_CTO3   : Boolean = false,
-  val withTo_PS_IRQ  : Boolean = false,
-  val withFrom_PS_IRQ: Boolean = false
+  val withPL_PS_IRQ0 : Int     =     0,
+  val withPL_PS_IRQ1 : Int     =     0
   ) {
 }
 
 
 class UltraScalePlusIO(config: UltraScalePlusConfig) extends Bundle {
   val lpd = new Bundle {
-    val hpm0 = (config.withLPD_HPM0   ) generate ( slave(Axi4Mapped(LPD.HPM0)))
+    val hp0  = (config.withLPD_HP0       ) generate (master(Axi4Mapped(LPD.HP0 )))
+    val hpm0 = (config.withLPD_HPM0      ) generate ( slave(Axi4Mapped(LPD.HPM0)))
   }
   val fpd = new Bundle {
-    val hpm0 = (config.withFPD_HPM0   ) generate ( slave(Axi4Mapped(FPD.HPM0)))
-    val hpm1 = (config.withFPD_HPM1   ) generate ( slave(Axi4Mapped(FPD.HPM1)))
-    val hp0  = (config.withFPD_HP0    ) generate (master(Axi4Mapped(FPD.HP0 )))
-    val hp1  = (config.withFPD_HP1    ) generate (master(Axi4Mapped(FPD.HP1 )))
-    val hp2  = (config.withFPD_HP2    ) generate (master(Axi4Mapped(FPD.HP2 )))
-    val hp3  = (config.withFPD_HP3    ) generate (master(Axi4Mapped(FPD.HP3 )))
-    val hpc0 = (config.withFPD_HPC0   ) generate (master(Axi4Mapped(FPD.HPC0)))
-    val hpc1 = (config.withFPD_HPC1   ) generate (master(Axi4Mapped(FPD.HPC1)))
+    val hpm0 = (config.withFPD_HPM0      ) generate ( slave(Axi4Mapped(FPD.HPM0)))
+    val hpm1 = (config.withFPD_HPM1      ) generate ( slave(Axi4Mapped(FPD.HPM1)))
+    val hp0  = (config.withFPD_HP0       ) generate (master(Axi4Mapped(FPD.HP0 )))
+    val hp1  = (config.withFPD_HP1       ) generate (master(Axi4Mapped(FPD.HP1 )))
+    val hp2  = (config.withFPD_HP2       ) generate (master(Axi4Mapped(FPD.HP2 )))
+    val hp3  = (config.withFPD_HP3       ) generate (master(Axi4Mapped(FPD.HP3 )))
+    val hpc0 = (config.withFPD_HPC0      ) generate (master(Axi4Mapped(FPD.HPC0)))
+    val hpc1 = (config.withFPD_HPC1      ) generate (master(Axi4Mapped(FPD.HPC1)))
+    val acp  = (config.withFPD_ACP       ) generate (master(Axi4Mapped(FPD.ACP )))
 //  val fpd_ace  = (withFPD_ACE    ) generate ( slave(Axi4(KriaPorts.FPD_ACE_Config )))
   }
   val dbg = new Bundle {
-    val cti0 = (config.withDBG_CTI0   ) generate (DBG_CTI0.port)
-    val cti1 = (config.withDBG_CTI1   ) generate (DBG_CTI1.port)
-    val cti2 = (config.withDBG_CTI2   ) generate (DBG_CTI2.port)
-    val cti3 = (config.withDBG_CTI3   ) generate (DBG_CTI3.port)
-    val cto0 = (config.withDBG_CTO0   ) generate (DBG_CTO0.port)
-    val cto1 = (config.withDBG_CTO1   ) generate (DBG_CTO1.port)
-    val cto2 = (config.withDBG_CTO2   ) generate (DBG_CTO2.port)
-    val cto3 = (config.withDBG_CTO3   ) generate (DBG_CTO3.port)
+    val cti0 = (config.withDBG_CTI0      ) generate ( slave(CrossTrigger()))
+    val cti1 = (config.withDBG_CTI1      ) generate ( slave(CrossTrigger()))
+    val cti2 = (config.withDBG_CTI2      ) generate ( slave(CrossTrigger()))
+    val cti3 = (config.withDBG_CTI3      ) generate ( slave(CrossTrigger()))
+    val cto0 = (config.withDBG_CTO0      ) generate (master(CrossTrigger()))
+    val cto1 = (config.withDBG_CTO1      ) generate (master(CrossTrigger()))
+    val cto2 = (config.withDBG_CTO2      ) generate (master(CrossTrigger()))
+    val cto3 = (config.withDBG_CTO3      ) generate (master(CrossTrigger()))
   }
   val irq = new Bundle {
-    val toPS = (config.withTo_PS_IRQ  ) generate (master(IRQ()))
-    val toPL = (config.withFrom_PS_IRQ) generate ( slave(IRQ()))
+    val toPS0 = (config.withPL_PS_IRQ0 > 0) generate (out(IRQ(config.withPL_PS_IRQ0)))
+    val toPS1 = (config.withPL_PS_IRQ1 > 0) generate (out(IRQ(config.withPL_PS_IRQ1)))
   }
 }
 
@@ -396,6 +409,14 @@ abstract class UltraScalePlus (
     tcl += "  CONFIG.PSU__FPD_SLCR__WDT1__ACT_FREQMHZ {99.999001} \\\n"
     tcl += "  CONFIG.PSU__FPGA_PL0_ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__FPGA_PL1_ENABLE {0} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_IN_0 {${config.withDBG_CTI0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_IN_1 {${config.withDBG_CTI1.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_IN_2 {${config.withDBG_CTI2.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_IN_3 {${config.withDBG_CTI3.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_OUT_0 {${config.withDBG_CTO0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_OUT_1 {${config.withDBG_CTO1.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_OUT_2 {${config.withDBG_CTO2.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_OUT_3 {${config.withDBG_CTO3.toInt}} \\\n"
     tcl += "  CONFIG.PSU__GPIO0_MIO__IO {MIO 0 .. 25} \\\n"
     tcl += "  CONFIG.PSU__GPIO0_MIO__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__GPIO1_MIO__IO {MIO 26 .. 51} \\\n"
@@ -469,6 +490,8 @@ abstract class UltraScalePlus (
       tcl += "  CONFIG.PSU__SAXIGP4__DATA_WIDTH {128} \\\n"
     if (this.config.withFPD_HP3)
       tcl += "  CONFIG.PSU__SAXIGP5__DATA_WIDTH {128} \\\n"
+    if (this.config.withLPD_HP0)
+      tcl += "  CONFIG.PSU__SAXIGP6__DATA_WIDTH {128} \\\n"
     tcl += "  CONFIG.PSU__SPI1__GRP_SS0__IO {MIO 9} \\\n"
     tcl += "  CONFIG.PSU__SPI1__GRP_SS1__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__SPI1__GRP_SS2__ENABLE {0} \\\n"
@@ -492,16 +515,19 @@ abstract class UltraScalePlus (
     tcl += "  CONFIG.PSU__TTC3__CLOCK__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__TTC3__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__TTC3__WAVEOUT__ENABLE {0} \\\n"
-    tcl += "  CONFIG.PSU__USE__IRQ0 {0} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__IRQ0 {${this.config.withPL_PS_IRQ0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__IRQ1 {${this.config.withPL_PS_IRQ1.toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__USE__M_AXI_GP0 {${this.config.withFPD_HPM0.toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__USE__M_AXI_GP1 {${this.config.withFPD_HPM1.toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__USE__M_AXI_GP2 {${this.config.withLPD_HPM0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_ACP {${this.config.withFPD_ACP.toInt }} \\\n"
     tcl +=f"  CONFIG.PSU__USE__S_AXI_GP0 {${this.config.withFPD_HPC0.toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__USE__S_AXI_GP1 {${this.config.withFPD_HPC1.toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__USE__S_AXI_GP2 {${this.config.withFPD_HP0.toInt }} \\\n"
     tcl +=f"  CONFIG.PSU__USE__S_AXI_GP3 {${this.config.withFPD_HP1.toInt }} \\\n"
     tcl +=f"  CONFIG.PSU__USE__S_AXI_GP4 {${this.config.withFPD_HP2.toInt }} \\\n"
     tcl +=f"  CONFIG.PSU__USE__S_AXI_GP5 {${this.config.withFPD_HP3.toInt }} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP6 {${this.config.withLPD_HP0.toInt }} \\\n"
     tcl += "] $processing_system\n"
     tcl += "\n"
     return tcl
