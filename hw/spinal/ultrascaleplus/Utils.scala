@@ -10,16 +10,39 @@ import spinal.lib.bus.misc.SizeMapping
 trait PSPLInterface {
   
   /**
+   * Genrate and attach attribute to the interface
+   */
+  def setAttribute(): Unit = {}
+
+}
+
+
+/**
+ * Trait for all elments that can generate TCL constructs
+ */
+trait TCL {
+
+  /**
    * Generates the TCL script specific to the element.
    */
   def getTCL(moduleName: String, clock: String): String = {
     return ""
   }
 
+}
+
+
+/**
+ * Trait for all elments that can generate XDC constructs
+ */
+trait XDC {
+
   /**
-   * Genrate and attach attribute to the interface
+   * Generates the XDC script specific to the element.
    */
-  def setAttribute(): Unit = {}
+  def getXDC(): String = {
+    return ""
+  }
 
 }
 

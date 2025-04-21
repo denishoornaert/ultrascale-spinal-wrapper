@@ -1,4 +1,4 @@
-package ultrascaleplus.interface.axi.sim
+package ultrascaleplus.bus.amba.axi4.sim
 
 
 class MemoryPage(size : Int) {

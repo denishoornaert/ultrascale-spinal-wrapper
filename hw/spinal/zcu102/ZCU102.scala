@@ -1,4 +1,4 @@
-package kv260
+package zcu102
 
 
 import spinal.core._
@@ -11,10 +11,10 @@ import ultrascaleplus.signal.crosstrigger._
 import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.io.pmod._
 import ultrascaleplus.scripts._
-import kv260.io.pmod._
+import zcu102.io.pmod._
 
 
-class KV260Config(
+class ZCU102Config(
   withLPD_HPM0   : Boolean = false,
   withLPD_HP0    : Boolean = false,
   withFPD_HPM0   : Boolean = false,
@@ -36,9 +36,7 @@ class KV260Config(
   withDBG_CTO2   : Boolean = false,
   withDBG_CTO3   : Boolean = false,
   withPL_PS_IRQ0 : Int     =     0,
-  withPL_PS_IRQ1 : Int     =     0,
-  // here
-  val withIO_PMOD0: Boolean = false
+  withPL_PS_IRQ1 : Int     =     0
   ) extends UltraScalePlusConfig(
     withLPD_HPM0   = withLPD_HPM0  ,
     withLPD_HP0    = withLPD_HP0   ,
@@ -65,30 +63,22 @@ class KV260Config(
   ) {
 }
 
-class KV260IO(config: KV260Config) extends UltraScalePlusIO(config) {
-  val pmod0 = (config.withIO_PMOD0) generate (out(PMOD(PMOD0.names)))
+class ZCU102IO(config: ZCU102Config) extends UltraScalePlusIO(config) {
 }
 
 
-class KV260(
+class ZCU102(
   frequency: HertzNumber = 99.999001 MHz,
-  override val config   : KV260Config = new KV260Config()
+  override val config   : ZCU102Config = new ZCU102Config()
 ) extends UltraScalePlus(
   frequency = frequency,
   config    = config
 ) {
 
-  override val board = "kv260_som"
-  override val version = "1.4"
-  override val boardPart = "xck26-sfvc784-2LV-c"
+  override val board = "zcu102"
+  override val version = "3.4"
+  override val boardPart = "xczu9eg-ffvb1156-2-e"
 
-  override def generate(): Unit = {
-    if (this.config.withIO_PMOD0) {
-      Constraints.add(io.pmod0.getXDC())
-    }
-    super.generate()
-  }
-
-  override val io = new KV260IO(config)
+  override val io = new ZCU102IO(config)
 
 }

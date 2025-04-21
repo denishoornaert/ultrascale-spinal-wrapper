@@ -6,14 +6,16 @@ import spinal.lib._
 
 
 import kv260._
-import kv260.interface.axi._
+import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.scripts._
 import ultrascaleplus.configport._
 
 
 case class ConfigPortTest() extends KV260(
-  frequency    = 100 MHz,
-  withLPD_HPM0 = true
+  frequency = 100 MHz,
+  config    = new KV260Config(
+    withLPD_HPM0 = true
+  )
 ) {
 
   val config_port = ConfigPort(io.lpd.hpm0, io.lpd.hpm0.getPartialName())

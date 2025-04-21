@@ -1,14 +1,17 @@
 package example
 
+
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib.bus.amba4.axi._
 import spinal.lib.bus.misc.SizeMapping
 import spinal.sim._
 
+
 import kv260._
 import ultrascaleplus.parameters._
-import ultrascaleplus.interface.axi.sim._
+import ultrascaleplus.bus.amba.axi4.sim._
+
 
 
 class Primary(axi: Axi4, clock: ClockDomain) extends Axi4CheckerPrimary(axi, clock) {

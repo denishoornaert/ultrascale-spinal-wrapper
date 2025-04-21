@@ -1,185 +1,112 @@
-package ultrascaleplus.scripts
+package ultrascaleplus
 
+/** Package for all thing UltrScalePlus.
+  * It provides all common nad abstract constructs to build and define
+  * detailed UltraScale+ implemntations.
+  *
+  * class implemented in this package are:
+  *  - [[ultrascaleplus.UltraScalePlusConfig]]
+  *  - [[ultrascaleplus.UltraScalePlusIO]]
+  *  - [[ultrascaleplus.UltraScalePlus]]
+  * 
+  */
+ package object scaladoc {}
 
-import java.io._
+import Console.{RESET, YELLOW}
+
 
 import spinal.core._
-import spinal.lib.bus.misc.SizeMapping
-
-import kv260._
-import ultrascaleplus.parameters.AddressMap
-import ultrascaleplus.utils.PSPLInterface
+import spinal.lib._
+import spinal.lib.bus.amba4.axi._
 
 
-object TCLFactory {
+import ultrascaleplus.signal.crosstrigger._
+import ultrascaleplus.signal.irq._
+import ultrascaleplus.bus.amba.axi4._
+import ultrascaleplus.scripts._
+import ultrascaleplus.utils._
 
-  var target    : String = "vivado/untitled.tcl"
-  var moduleName: String = "untitled"
-  var platform  : Option[KV260] = None
 
-  def apply(platform: KV260): Unit = {
-    this.platform = Some(platform)
-    this.moduleName = platform.getClass.getSimpleName
-    this.target = f"vivado/${this.moduleName}.tcl"
+class UltraScalePlusConfig(
+  val withLPD_HPM0   : Boolean = false,
+  val withLPD_HP0    : Boolean = false,
+  val withFPD_HPM0   : Boolean = false,
+  val withFPD_HPM1   : Boolean = false,
+  val withFPD_HP0    : Boolean = false,
+  val withFPD_HP1    : Boolean = false,
+  val withFPD_HP2    : Boolean = false,
+  val withFPD_HP3    : Boolean = false,
+  val withFPD_HPC0   : Boolean = false,
+  val withFPD_HPC1   : Boolean = false,
+  val withFPD_ACP    : Boolean = false,
+  val withFPD_ACE    : Boolean = false,
+  val withDBG_CTI0   : Boolean = false,
+  val withDBG_CTI1   : Boolean = false,
+  val withDBG_CTI2   : Boolean = false,
+  val withDBG_CTI3   : Boolean = false,
+  val withDBG_CTO0   : Boolean = false,
+  val withDBG_CTO1   : Boolean = false,
+  val withDBG_CTO2   : Boolean = false,
+  val withDBG_CTO3   : Boolean = false,
+  val withPL_PS_IRQ0 : Int     =     0,
+  val withPL_PS_IRQ1 : Int     =     0
+  ) {
+}
+
+
+class UltraScalePlusIO(config: UltraScalePlusConfig) extends Bundle {
+  val lpd = new Bundle {
+    val hp0  = (config.withLPD_HP0       ) generate (master(Axi4Mapped(LPD.HP0 )))
+    val hpm0 = (config.withLPD_HPM0      ) generate ( slave(Axi4Mapped(LPD.HPM0)))
   }
-
-  // Call from inside
-
-  def setProperty(name: String, value: String, obj: String): String = {
-    return "set_property -name \""+name+"\" -value \""+value+"\" -object "+obj+"\n"
+  val fpd = new Bundle {
+    val hpm0 = (config.withFPD_HPM0      ) generate ( slave(Axi4Mapped(FPD.HPM0)))
+    val hpm1 = (config.withFPD_HPM1      ) generate ( slave(Axi4Mapped(FPD.HPM1)))
+    val hp0  = (config.withFPD_HP0       ) generate (master(Axi4Mapped(FPD.HP0 )))
+    val hp1  = (config.withFPD_HP1       ) generate (master(Axi4Mapped(FPD.HP1 )))
+    val hp2  = (config.withFPD_HP2       ) generate (master(Axi4Mapped(FPD.HP2 )))
+    val hp3  = (config.withFPD_HP3       ) generate (master(Axi4Mapped(FPD.HP3 )))
+    val hpc0 = (config.withFPD_HPC0      ) generate (master(Axi4Mapped(FPD.HPC0)))
+    val hpc1 = (config.withFPD_HPC1      ) generate (master(Axi4Mapped(FPD.HPC1)))
+    val acp  = (config.withFPD_ACP       ) generate (master(Axi4Mapped(FPD.ACP )))
+//  val fpd_ace  = (withFPD_ACE    ) generate ( slave(Axi4(KriaPorts.FPD_ACE_Config )))
   }
+  val dbg = new Bundle {
+    val cti0 = (config.withDBG_CTI0      ) generate ( slave(CrossTrigger()))
+    val cti1 = (config.withDBG_CTI1      ) generate ( slave(CrossTrigger()))
+    val cti2 = (config.withDBG_CTI2      ) generate ( slave(CrossTrigger()))
+    val cti3 = (config.withDBG_CTI3      ) generate ( slave(CrossTrigger()))
+    val cto0 = (config.withDBG_CTO0      ) generate (master(CrossTrigger()))
+    val cto1 = (config.withDBG_CTO1      ) generate (master(CrossTrigger()))
+    val cto2 = (config.withDBG_CTO2      ) generate (master(CrossTrigger()))
+    val cto3 = (config.withDBG_CTO3      ) generate (master(CrossTrigger()))
+  }
+  val irq = new Bundle {
+    val toPS0 = (config.withPL_PS_IRQ0 > 0) generate (out(IRQ(config.withPL_PS_IRQ0)))
+    val toPS1 = (config.withPL_PS_IRQ1 > 0) generate (out(IRQ(config.withPL_PS_IRQ1)))
+  }
+}
+
+
+abstract class UltraScalePlus (
+  var frequency: HertzNumber          = 99.999001 MHz,
+  val config   : UltraScalePlusConfig = new UltraScalePlusConfig()
+) extends Component with TCL {
+
+  // List of IOPLL clocks available for UltraScale+
+  val availableFrequencies = Seq(333.329987 MHz, 299.997009 MHz, 249.997498 MHz, 199.998001 MHz, 142.855713 MHz, 99.999001 MHz, 49.999500 MHz)
+  // Looks for the available clock that is the closest to the requested one but not higher
+  val differences = availableFrequencies.map(x => (x-frequency).toDouble).map(x => if (x > 0) -1.0/0 else x)
+  val index       = differences.indexOf(differences.max)
+  frequency       = availableFrequencies(index)
+  println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Actual frequency set is ${frequency}.${RESET}")
   
-  def createProject(): String = {
-    var tcl = ""
-    tcl +=  "\n"
-    tcl += f"create_project ${this.moduleName} ./vivado/${this.moduleName} -part xck26-sfvc784-2LV-c\n"
-    tcl +=  "set proj_dir [get_property directory [current_project]]\n"
-    tcl +=  "\n"
-    tcl +=  "set obj [current_project]\n"
-    tcl +=  setProperty("board_part_repo_paths", "[file normalize \"~/.Xilinx/Vivado/2022.2/xhub/board_store/xilinx_board_store\"]" , "$obj")
-    tcl +=  setProperty("board_part", "xilinx.com:kv260_som:part0:1.4", "$obj")
-    tcl +=  setProperty("default_lib", "xil_defaultlib", "$obj")
-    tcl +=  setProperty("enable_resource_estimation", "0", "$obj")
-    tcl +=  setProperty("enable_vhdl_2008", "1", "$obj")
-    tcl +=  setProperty("ip_cache_permissions", "read write", "$obj")
-    tcl +=  setProperty("ip_output_repo", "$proj_dir/"+f"${this.moduleName}.cache/ip", "$obj")
-    tcl +=  setProperty("mem.enable_memory_map_generation", "1", "$obj")
-    tcl +=  setProperty("platform.board_id", "kv260_som", "$obj")
-    tcl +=  setProperty("revised_directory_structure", "1", "$obj")
-    tcl +=  setProperty("sim.central_dir", "$proj_dir/"+f"${this.moduleName}.ip_user_files", "$obj")
-    tcl +=  setProperty("sim.ip.auto_export_scripts", "1", "$obj")
-    tcl +=  setProperty("sim_compile_state", "1", "$obj")
-    tcl += "\n"
-    return tcl
-  }
+  // Components name for TCL
+  val board: String
+  val version: String
+  val boardPart: String
 
-  def checkAndCreateFileset(fileset: String, filesetType: String): String = {
-    val empty = "\"\""
-    var tcl = ""
-    tcl += f"if {[string equal [get_filesets -quiet ${fileset}] ${empty}]} {\n"
-    tcl += f"  create_fileset -${filesetType} ${fileset}\n"
-    tcl += f"}\n"
-    tcl += f"\n"
-    return tcl
-  }
-
-  def setObject(fileset: String): String = {
-    return f"set obj [get_filesets ${fileset}]\n\n"
-  }
-
-  def importConstraints(fileset: String): String = {
-    var tcl = ""
-    tcl +=  "add_files -fileset constrs_1 -norecurse ./hw/gen/"+this.moduleName+".xdc\n"
-    tcl +=  "import_files -fileset constrs_1 ./hw/gen/"+this.moduleName+".xdc\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def addFileset(fileset: String): String = {
-    var tcl = ""
-    tcl += f"set obj [get_filesets ${fileset}]\n"
-    tcl +=  "set files [list [file normalize \"./hw/gen/"+this.moduleName+".v\"]]\n"
-    tcl +=  "add_files -norecurse -fileset $obj $files\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def addSources(fileset: String): String = {
-    val empty = "\"\"" 
-    var tcl = ""
-    tcl += f"if { [get_files ${this.moduleName}.v] == ${empty} } {\n"
-    tcl += f"  import_files -quiet -fileset ${fileset} ./hw/gen/${this.moduleName}.v\n"
-    tcl +=  "}\n"
-    return tcl
-  }
-
-  def print(level: String, id: Int, message: String): String = {
-    return f"common::send_gid_msg -ssname BD::TCL -id ${id}"+" -severity \""+level+"\" \""+message+"\""
-  }
-
-  def createDesign(name: String): String = {
-    return f"create_bd_design ${name}\n"
-  }
-
-  def checkIPs(): String = {
-    var tcl = ""
-    tcl += "set list_check_ips \"xilinx.com:ip:proc_sys_reset:5.0 xilinx.com:ip:zynq_ultra_ps_e:3.4\"\n"
-    tcl += "set list_ips_missing \"\"\n"
-    tcl += "foreach ip_vlnv $list_check_ips {\n"
-    tcl += "  set ip_obj [get_ipdefs -all $ip_vlnv]\n"
-    tcl += "  if { $ip_obj eq \"\" } {\n"
-    tcl += "    lappend list_ips_missing $ip_vlnv\n"
-    tcl += "  }\n"
-    tcl += "}\n"
-    tcl += "\n"
-    tcl += "if { $list_ips_missing ne \"\" } {\n"
-    tcl += "  catch {"+this.print("ERROR", 2012, "The following IPs are not found in the IP Catalog:\\n  $list_ips_missing\\n\\nResolution: Please add the repository containing the IP(s) to the project.")+" }\n"
-    tcl += "  "+this.print("WARNING", 2023, "Will not continue with creation of design due to the error(s) above.")+"\n"
-    tcl += "  return 3\n"
-    tcl += "}\n"
-    return tcl
-  }
-
-  def checkModules(): String = {
-    var tcl = ""
-    tcl +=  "set list_mods_missing \"\"\n"
-    tcl += f"foreach mod_vlnv ${this.moduleName} {\n"
-    tcl +=  "  if { [can_resolve_reference $mod_vlnv] == 0 } {\n"
-    tcl +=  "    lappend list_mods_missing $mod_vlnv\n"
-    tcl +=  "  }\n"
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    tcl +=  "if { $list_mods_missing ne \"\" } {\n"
-    tcl +=  "  catch {"+this.print("ERROR", 2021, "The following module(s) are not found in the project: $list_mods_missing")+"}\n"
-    tcl +=  "  "+this.print("INFO", 2022, "Please add source files for the missing module(s) above.")+"\n"
-    tcl +=  "  "+this.print("WARNING", 2023, "Will not continue with creation of design due to the error(s) above.")+"\n"
-    tcl +=  "  return 3\n"
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def createHierarchy(): String = {
-    var tcl = ""
-    tcl += "set parentObj [get_bd_cells [get_bd_cells /]]\n"
-    tcl += "if { $parentObj == \"\" } {\n"
-    tcl += "  catch {"+this.print("ERROR", 2090, "Unable to find parent cell!")+"}\n"
-    tcl += "  return\n"
-    tcl += "}\n"
-    tcl += "\n"
-    tcl += "set parentType [get_property TYPE $parentObj]\n"
-    tcl += "if { $parentType ne \"hier\" } {\n"
-    tcl += "  catch {"+this.print("ERROR", 2091, "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>.")+"}\n"
-    tcl += "  return\n"
-    tcl += "}\n"
-    tcl += "\n"
-    tcl += "set oldCurInst [current_bd_instance .]\n"
-    tcl += "\n"
-    tcl += "current_bd_instance $parentObj\n"
-    tcl += "\n"
-    return tcl
-  }
-
-  def createBlock(): String = {
-    val empty = "\"\"" 
-    var tcl = ""
-    tcl += f"set block_name ${this.moduleName}\n"
-    tcl += f"if { [catch {set ${this.moduleName} [create_bd_cell -type module -reference ${this.moduleName} ${this.moduleName}] } errmsg] } {\n"
-    tcl +=  "  catch {"+this.print("ERROR", 2095, f"Unable to add referenced block <${this.moduleName}>. Please add the files for ${this.moduleName}'s definition into the project.")+"}\n"
-    tcl +=  "  return 1\n"
-    tcl +=  "} elseif { $"+this.moduleName+f" eq ${empty} } {\n"
-    tcl +=  "  catch {"+this.print("ERROR", 2096, f"Unable to referenced block <${this.moduleName}>. Please add the files for ${this.moduleName}'s definition into the project.")+"}\n"
-    tcl +=  "  return 1\n"
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def instantiateResetSystem(): String = {
-    return "set reset_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 reset_system ]\n\n"
-  }
-
-  def instantiateProcessingSystem(): String = {
+  def getTCL(): String = {
     var tcl = ""
     tcl += "set processing_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.4 processing_system ]\n"
     tcl += "set_property -dict [list \\\n"
@@ -427,8 +354,8 @@ object TCLFactory {
     tcl += "  CONFIG.PSU__CRL_APB__PCAP_CTRL__ACT_FREQMHZ {199.998001} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__PCAP_CTRL__FREQMHZ {200} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__PCAP_CTRL__SRCSEL {IOPLL} \\\n"
-    tcl +=f"  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__ACT_FREQMHZ {${this.platform.get.actualFrequency.decompose._1}} \\\n"
-    tcl +=f"  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {${this.platform.get.actualFrequency.decompose._1}} \\\n"
+    tcl +=f"  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__ACT_FREQMHZ {${this.frequency.decompose._1}} \\\n"
+    tcl +=f"  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {${this.frequency.decompose._1}} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__SRCSEL {IOPLL} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__PL1_REF_CTRL__ACT_FREQMHZ {99.999001} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__QSPI_REF_CTRL__ACT_FREQMHZ {124.998749} \\\n"
@@ -482,6 +409,14 @@ object TCLFactory {
     tcl += "  CONFIG.PSU__FPD_SLCR__WDT1__ACT_FREQMHZ {99.999001} \\\n"
     tcl += "  CONFIG.PSU__FPGA_PL0_ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__FPGA_PL1_ENABLE {0} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_IN_0 {${config.withDBG_CTI0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_IN_1 {${config.withDBG_CTI1.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_IN_2 {${config.withDBG_CTI2.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_IN_3 {${config.withDBG_CTI3.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_OUT_0 {${config.withDBG_CTO0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_OUT_1 {${config.withDBG_CTO1.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_OUT_2 {${config.withDBG_CTO2.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FTM__CTI_OUT_3 {${config.withDBG_CTO3.toInt}} \\\n"
     tcl += "  CONFIG.PSU__GPIO0_MIO__IO {MIO 0 .. 25} \\\n"
     tcl += "  CONFIG.PSU__GPIO0_MIO__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__GPIO1_MIO__IO {MIO 26 .. 51} \\\n"
@@ -499,11 +434,11 @@ object TCLFactory {
     tcl += "  CONFIG.PSU__IOU_SLCR__TTC3__ACT_FREQMHZ {100.000000} \\\n"
     tcl += "  CONFIG.PSU__IOU_SLCR__WDT0__ACT_FREQMHZ {99.999001} \\\n"
     tcl += "  CONFIG.PSU__LPD_SLCR__CSUPMU__ACT_FREQMHZ {100.000000} \\\n"
-    if (this.platform.get.io.withFPD_HPM0)
+    if (this.config.withFPD_HPM0)
       tcl += "  CONFIG.PSU__MAXIGP0__DATA_WIDTH {128} \\\n"
-    if (this.platform.get.io.withFPD_HPM1)
+    if (this.config.withFPD_HPM1)
       tcl += "  CONFIG.PSU__MAXIGP1__DATA_WIDTH {128} \\\n"
-    if (this.platform.get.io.withLPD_HPM0)
+    if (this.config.withLPD_HPM0)
       tcl += "  CONFIG.PSU__MAXIGP2__DATA_WIDTH {128} \\\n"
     tcl += "  CONFIG.PSU__OVERRIDE__BASIC_CLOCK {0} \\\n"
     tcl += "  CONFIG.PSU__PL_CLK0_BUF {TRUE} \\\n"
@@ -543,18 +478,20 @@ object TCLFactory {
     tcl += "  CONFIG.PSU__QSPI__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__QSPI__PERIPHERAL__IO {MIO 0 .. 5} \\\n"
     tcl += "  CONFIG.PSU__QSPI__PERIPHERAL__MODE {Single} \\\n"
-    if (this.platform.get.io.withFPD_HPC0)
+    if (this.config.withFPD_HPC0)
       tcl += "  CONFIG.PSU__SAXIGP0__DATA_WIDTH {128} \\\n"
-    if (this.platform.get.io.withFPD_HPC1)
+    if (this.config.withFPD_HPC1)
       tcl += "  CONFIG.PSU__SAXIGP1__DATA_WIDTH {128} \\\n"
-    if (this.platform.get.io.withFPD_HP0)
+    if (this.config.withFPD_HP0)
       tcl += "  CONFIG.PSU__SAXIGP2__DATA_WIDTH {128} \\\n"
-    if (this.platform.get.io.withFPD_HP1)
+    if (this.config.withFPD_HP1)
       tcl += "  CONFIG.PSU__SAXIGP3__DATA_WIDTH {128} \\\n"
-    if (this.platform.get.io.withFPD_HP2)
+    if (this.config.withFPD_HP2)
       tcl += "  CONFIG.PSU__SAXIGP4__DATA_WIDTH {128} \\\n"
-    if (this.platform.get.io.withFPD_HP3)
+    if (this.config.withFPD_HP3)
       tcl += "  CONFIG.PSU__SAXIGP5__DATA_WIDTH {128} \\\n"
+    if (this.config.withLPD_HP0)
+      tcl += "  CONFIG.PSU__SAXIGP6__DATA_WIDTH {128} \\\n"
     tcl += "  CONFIG.PSU__SPI1__GRP_SS0__IO {MIO 9} \\\n"
     tcl += "  CONFIG.PSU__SPI1__GRP_SS1__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__SPI1__GRP_SS2__ENABLE {0} \\\n"
@@ -578,503 +515,48 @@ object TCLFactory {
     tcl += "  CONFIG.PSU__TTC3__CLOCK__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__TTC3__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__TTC3__WAVEOUT__ENABLE {0} \\\n"
-    tcl += "  CONFIG.PSU__USE__IRQ0 {0} \\\n"
-    tcl +=f"  CONFIG.PSU__USE__M_AXI_GP0 {${this.platform.get.io.withFPD_HPM0.toInt}} \\\n"
-    tcl +=f"  CONFIG.PSU__USE__M_AXI_GP1 {${this.platform.get.io.withFPD_HPM1.toInt}} \\\n"
-    tcl +=f"  CONFIG.PSU__USE__M_AXI_GP2 {${this.platform.get.io.withLPD_HPM0.toInt}} \\\n"
-    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP0 {${this.platform.get.io.withFPD_HPC0.toInt}} \\\n"
-    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP1 {${this.platform.get.io.withFPD_HPC1.toInt}} \\\n"
-    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP2 {${this.platform.get.io.withFPD_HP0.toInt }} \\\n"
-    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP3 {${this.platform.get.io.withFPD_HP1.toInt }} \\\n"
-    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP4 {${this.platform.get.io.withFPD_HP2.toInt }} \\\n"
-    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP5 {${this.platform.get.io.withFPD_HP3.toInt }} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__IRQ0 {${this.config.withPL_PS_IRQ0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__IRQ1 {${this.config.withPL_PS_IRQ1.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__M_AXI_GP0 {${this.config.withFPD_HPM0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__M_AXI_GP1 {${this.config.withFPD_HPM1.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__M_AXI_GP2 {${this.config.withLPD_HPM0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_ACP {${this.config.withFPD_ACP.toInt }} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP0 {${this.config.withFPD_HPC0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP1 {${this.config.withFPD_HPC1.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP2 {${this.config.withFPD_HP0.toInt }} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP3 {${this.config.withFPD_HP1.toInt }} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP4 {${this.config.withFPD_HP2.toInt }} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP5 {${this.config.withFPD_HP3.toInt }} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_GP6 {${this.config.withLPD_HP0.toInt }} \\\n"
     tcl += "] $processing_system\n"
     tcl += "\n"
     return tcl
   }
 
-  def anyConnection(netType: String, source: String, targets: Seq[String]): String = {
-    var tcl = f"connect_bd_${netType}net -${netType}net ${source}"
-    for (target <- targets)
-      tcl += f" [get_bd_${netType}pins ${target}]"
-    return tcl+"\n"
-  }
-
-  def netConnection(source: String, targets: Seq[String]): String = {
-    return this.anyConnection("", source, targets)
-  }
-
-  def interfaceConnection(source: String, targets: Seq[String]): String = {
-    return this.anyConnection("intf_", source, targets)
-  }
-
-  def addressMap(addressBase: BigInt, rangeSize: BigInt, port: String, target: String): String = {
-    return f"assign_bd_address -offset 0x${addressBase.toString(16)} -range 0x${rangeSize.toString(16)} -target_address_space [get_bd_addr_spaces ${port}] [get_bd_addr_segs ${target}] -force\n"
-  }
-  
-  def addInterfaces(bundle: Bundle): String = {
-    var tcl = ""
+  def setAttribute(bundle: Bundle): Unit = {
     for ((name, element) <- bundle.elements) {
       // Bundle MUST stay at the last place!
       element match {
-        case _:PSPLInterface => tcl += element.asInstanceOf[PSPLInterface].getTCL(this.moduleName, "pl_clk0") // TODO: must be replace with variable
-        case _:Bundle        => tcl += this.addInterfaces(element.asInstanceOf[Bundle])
+        case _:PSPLInterface => element.asInstanceOf[PSPLInterface].setAttribute()
+        case _:Bundle        => this.setAttribute(element.asInstanceOf[Bundle])
+        case _               => {}
       }
     }
-    return tcl
-  }
-
-  def saveAndValidate(): String = {
-    var tcl = ""
-    tcl += "current_bd_instance $oldCurInst\n"
-    tcl += "\n"
-    tcl += "validate_bd_design\n"
-    tcl += "save_bd_design\n"
-    tcl += "\n"
-    tcl += "set_property REGISTERED_WITH_MANAGER \"1\" [get_files design_1.bd]\n" 
-    tcl += "set_property SYNTH_CHECKPOINT_MODE \"Hierarchical\" [get_files design_1.bd]\n"
-    tcl += "\n"
-    return tcl
-  }
-
-  def wrapDesign(fileset: String): String = {
-    val path = f"./vivado/${this.moduleName}/${this.moduleName}.gen/${fileset}/bd/design_1/hdl/design_1_wrapper.v"
-    var tcl = "" 
-    tcl +=  "if { [get_property IS_LOCKED [ get_files -norecurse design_1.bd]] == 1 } {\n"
-    tcl +=  "  import_files -fileset sources_1 [file normalize \""+path+"\"]\n"
-    tcl +=  "} else {\n"
-    tcl += f"set wrapper_path [make_wrapper -fileset ${fileset} -files [ get_files -norecurse design_1.bd] -top]\n"
-    tcl += f"add_files -norecurse -fileset ${fileset} "+"$wrapper_path\n"
-    tcl += "}\n"
-    tcl += "\n"
-    return tcl
-  }
-
-  def disableIDRFlow(): String = {
-    val empty = "\"\""
-    var tcl = ""
-    tcl += f"set idrFlowPropertiesConstraints ${empty}\n"
-    tcl +=  "catch {\n"
-    tcl +=  "  set idrFlowPropertiesConstraints [get_param runs.disableIDRFlowPropertyConstraints]\n"
-    tcl +=  "  set_param runs.disableIDRFlowPropertyConstraints 1\n"
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def createSynthesis(fileset: String, constraintFileset: String): String = {
-    val strategy = "\"Vivado Synthesis Defaults\""
-    val flow     = "\"Vivado Synthesis 2022\""
-    var tcl = ""
-    tcl += f"set_property strategy ${strategy} [get_runs ${fileset}]\n"
-    tcl += f"set_property flow ${flow} [get_runs ${fileset}]\n"
-    tcl += f"set obj [get_runs ${fileset}]\n"
-    tcl +=  "set_property set_report_strategy_name 1 $obj\n"
-    tcl +=  "set_property report_strategy {Vivado Synthesis Default Reports} $obj\n"
-    tcl +=  "set_property set_report_strategy_name 0 $obj\n"
-    tcl +=  "\n"
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_synth_report_utilization_0]\n"
-    tcl += f"set obj [get_runs ${fileset}]\n"
-    tcl +=  "set_property -name \"auto_incremental_checkpoint\" -value \"1\" -objects $obj\n"
-    tcl +=  "set_property -name \"strategy\" -value \"Vivado Synthesis Defaults\" -objects $obj\n"
-    tcl +=  "\n"
-    tcl += f"current_run -synthesis [get_runs ${fileset}]\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def createImplementation(fileset: String): String = {
-    val strategy = "\"Vivado Implementation Defaults\""
-    val flow     = "\"Vivado Implementation 2022\""
-    var tcl = ""
-    tcl += f"set_property strategy ${strategy} [get_runs ${fileset}]\n"
-    tcl += f"set_property flow ${flow} [get_runs ${fileset}]\n"
-    tcl += f"set obj [get_runs ${fileset}]\n"
-    tcl +=  "set_property set_report_strategy_name 1 $obj\n"
-    tcl +=  "set_property report_strategy {Vivado Implementation Default Reports} $obj\n"
-    tcl +=  "set_property set_report_strategy_name 0 $obj\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_init_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  set_property -name \"is_enabled\" -value \"0\" -objects $obj\n"
-    tcl +=  "  set_property -name \"options.max_paths\" -value \"10\" -objects $obj\n"
-    tcl +=  "  set_property -name \"options.report_unconstrained\" -value \"1\" -objects $obj\n"
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportDRC(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_opt_report_drc_0]\n\n"
-  }
-
-  def reportOptTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_opt_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportOptPower(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_power_opt_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def reportPlaceIO(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_io_0]\n\n"
-  }
-
-  def reportPlaceUtilization(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_utilization_0]\n\n"
-  }
-
-  def reportPlaceControlSets(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_control_sets_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("options.verbose", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportPlaceIncremental(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_incremental_reuse_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "}\n"
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_incremental_reuse_1]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportPlaceTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def reportPostPlacePower(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_post_place_power_opt_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def reportPhysTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_phys_opt_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def reportRouteDRC(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_drc_0]\n\n"
-  }
-
-  def reportRouteMethodology(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_methodology_0]\n\n"
-  }
-
-  def reportRoutePower(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_power_0]\n\n"
-  }
-
-  def reportRouteStatus(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_status_0]\n\n"
-  }
-
-  def reportRouteTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportRouteIncremental(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_incremental_reuse_0]\n"
-  }
-
-  def reportRouteClockUtilization(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_clock_utilization_0]\n"
-  }
-
-  def reportRouteBusSkew(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_bus_skew_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("options.warn_on_violation", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def reportPostRoutePhysTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_post_route_phys_opt_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "  "+this.setProperty("options.warn_on_violation", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportPostRoutePhysBusSkew(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_post_route_phys_opt_report_bus_skew_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("options.warn_on_violation", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def setImplmentationStrategy(fileset: String): String = {
-    var tcl = ""
-    tcl += f"set obj [get_runs ${fileset}]\n"
-    tcl +=  this.setProperty("strategy", "Vivado Implementation Defaults", "$obj")
-    tcl +=  this.setProperty("steps.write_bitstream.args.readback_file", "0", "$obj")
-    tcl +=  this.setProperty("steps.write_bitstream.args.verbose", "0", "$obj")
-    tcl += f"current_run -implementation [get_runs ${fileset}]\n"
-    tcl +=  "catch {\n"
-    tcl +=  "  if { $idrFlowPropertiesConstraints != {} } {\n"
-    tcl +=  "    set_param runs.disableIDRFlowPropertyConstraints $idrFlowPropertiesConstraints\n"
-    tcl +=  "  }\n"
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def createGadgets(synthFileset:String, implFileset: String): String = {
-    var tcl = ""
-    tcl +=  "set obj [get_dashboard_gadgets [list \"drc_1\"]]\n"
-    tcl +=  this.setProperty("reports", f"${implFileset}#${implFileset}_route_report_drc_0", "$obj")
-    tcl +=  "\n"
-    tcl +=  "set obj [get_dashboard_gadgets [list \"methodology_1\"]]\n"
-    tcl +=  this.setProperty("reports", f"${implFileset}#${implFileset}_route_report_methodology_0", "$obj")
-    tcl +=  "\n"
-    tcl +=  "set obj [get_dashboard_gadgets [list \"power_1\"]]\n"
-    tcl +=  this.setProperty("reports", f"${implFileset}#${implFileset}_route_report_power_0", "$obj")
-    tcl +=  "\n"
-    tcl +=  "set obj [get_dashboard_gadgets [list \"timing_1\"]]\n"
-    tcl +=  this.setProperty("reports", f"${implFileset}#${implFileset}_route_report_timing_summary_0", "$obj")
-    tcl +=  "\n"
-    tcl +=  "set obj [get_dashboard_gadgets [list \"utilization_1\"]]\n"
-    tcl +=  this.setProperty("reports", f"${synthFileset}#${synthFileset}_synth_report_utilization_0", "$obj")
-    tcl +=  this.setProperty("run.step", "synth_design", "$obj")
-    tcl +=  this.setProperty("run.type", "synthesis", "$obj")
-    tcl +=  "\n"
-    tcl +=  "set obj [get_dashboard_gadgets [list \"utilization_2\"]]\n"
-    tcl +=  this.setProperty("reports", f"${implFileset}#${implFileset}_place_report_utilization_0", "$obj")
-    tcl +=  "\n"
-    tcl +=  "move_dashboard_gadget -name {utilization_1} -row 0 -col 0\n"
-    tcl +=  "move_dashboard_gadget -name {power_1} -row 1 -col 0\n"
-    tcl +=  "move_dashboard_gadget -name {drc_1} -row 2 -col 0\n"
-    tcl +=  "move_dashboard_gadget -name {timing_1} -row 0 -col 1\n"
-    tcl +=  "move_dashboard_gadget -name {utilization_2} -row 1 -col 1\n"
-    tcl +=  "move_dashboard_gadget -name {methodology_1} -row 2 -col 1\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def setTopModule(fileset: String): String = {
-    var tcl = ""
-    tcl +=  "set_property top design_1_wrapper [current_fileset]\n"
-    tcl += f"update_compile_order -fileset ${fileset}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def synthesize(fileset: String): String = {
-    var tcl = ""
-    tcl += f"launch_runs ${fileset} -jobs 4\n"
-    tcl += f"wait_on_run ${fileset}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def implement(fileset: String): String = {
-    var tcl = ""
-    tcl += f"launch_runs ${fileset} -to_step write_bitstream -jobs 4\n"
-    tcl += f"wait_on_run ${fileset}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def getBitstream(fileset: String): String = {
-    return f"file copy -force ./vivado/${this.moduleName}/${this.moduleName}.runs/${fileset}/design_1_wrapper.bit ./${this.moduleName}.bit\n"
-  }
-
-  def script(): String = {
-    var tcl = ""
-
-    // Create project
-    tcl += this.createProject()
-
-    // Setup project
-    //// Sources
-    tcl += this.checkAndCreateFileset("sources_1", "srcset")
-    tcl += this.addFileset("sources_1")
-    tcl += this.setProperty("top", "design_1_wrapper", "$obj")
-    //// Constraint
-    tcl += this.checkAndCreateFileset("constrs_1", "constrset")
-    tcl += this.setObject("constrs_1")
-    if (this.platform.get.io.withIO_PMOD0)
-      tcl += this.importConstraints("constrs_1")
-    tcl += this.setObject("constrs_1")
-    //// Sim
-    tcl += this.checkAndCreateFileset("sim_1", "simset")
-    tcl += this.setObject("sim_1")
-    tcl += this.setProperty("top", "design_1_wrapper", "$obj")
-    tcl += this.setProperty("top_lib", "xil_defaultlib", "$obj")
-    //// Uilization
-    tcl += this.setObject("utils_1")
-    tcl += this.setObject("utils_1")
-    tcl += this.addSources("sources_1")
-    
-    // Block design
-    tcl += this.print("INFO", 2010, "Currently there is no design <design_1> in project, so creating one...")+"\n"
-    tcl += this.createDesign("design_1")
-    tcl += this.print("INFO", 2011, "Checking if the selected IPs exist in the project's IP catalog.")+"\n"
-    tcl += this.checkIPs()
-    tcl += this.print("INFO", 2020, f"Checking if the following modules exist in the project's sources: ${this.moduleName}.")+"\n"
-    tcl += this.checkModules()
-    tcl += this.createHierarchy()
-    tcl += this.createBlock()
-    tcl += this.instantiateResetSystem()
-    tcl += this.instantiateProcessingSystem()
-    //// Connections
-    ////// Clock and reset
-    tcl += this.netConnection("pl_clk0", Seq(f"${this.moduleName}/clk", "reset_system/slowest_sync_clk", "processing_system/pl_clk0"))
-    tcl += this.netConnection("periph_reset", Seq("reset_system/peripheral_reset", f"${this.moduleName}/reset"))
-    tcl += this.netConnection("pl_resetn", Seq("processing_system/pl_resetn0", "reset_system/ext_reset_in"))
-    tcl += "\n"
-    ////// Buses
-    tcl += this.addInterfaces(this.platform.get.io)
-    //// Save, validate, and wrap
-    tcl += this.saveAndValidate()
-    tcl += this.wrapDesign("sources_1")
-    tcl += this.disableIDRFlow()
-
-    // Setup synthesis
-    tcl += this.createSynthesis("synth_1", "constrs_1")
-
-    // Setup implementation
-    tcl += this.createImplementation("impl_1")
-
-    // Setup reports
-    tcl += this.reportTiming("impl_1")
-    tcl += this.reportDRC("impl_1")
-    tcl += this.reportOptTiming("impl_1")
-    tcl += this.reportOptPower("impl_1")
-    tcl += this.reportPlaceIO("impl_1")
-    tcl += this.reportPlaceUtilization("impl_1")
-    tcl += this.reportPlaceControlSets("impl_1")
-    tcl += this.reportPlaceIncremental("impl_1")
-    tcl += this.reportPlaceTiming("impl_1")
-    tcl += this.reportPostPlacePower("impl_1")
-    tcl += this.reportPhysTiming("impl_1")
-    tcl += this.reportRouteDRC("impl_1")
-    tcl += this.reportRouteMethodology("impl_1")
-    tcl += this.reportRoutePower("impl_1")
-    tcl += this.reportRouteStatus("impl_1")
-    tcl += this.reportRouteTiming("impl_1")
-    tcl += this.reportRouteIncremental("impl_1")
-    tcl += this.reportRouteClockUtilization("impl_1")
-    tcl += this.reportRouteBusSkew("impl_1")
-    tcl += this.reportPostRoutePhysTiming("impl_1")
-    tcl += this.reportPostRoutePhysBusSkew("impl_1")
-
-    // vivado setup
-    tcl += this.setImplmentationStrategy("impl_1")
-    tcl += this.createGadgets("synth_1", "impl_1")
-
-    // Go to bitstream
-    tcl += this.setTopModule("sources_1")
-    tcl += this.synthesize("synth_1")
-    tcl += this.implement("impl_1")
-    tcl += this.getBitstream("impl_1")
-
-    return tcl
   }
 
   def generate(): Unit = {
-    val tcl = this.script()
-    if (!new File("vivado").exists()) {
-        if (new File("vivado").mkdir()) {
-          throw new RuntimeException("Can't create vivado directory")
-        }
-    }
-    val bw = new BufferedWriter(new FileWriter(new File(this.target), false))
-    bw.write(tcl)
-    bw.close
+    this.setAttribute(io)
+    TCLFactory.generate()
   }
+
+  // Get name of the class (should be the off spring).
+  TCLFactory(this)
+  Constraints(this.getClass.getSimpleName)
+
+  val io: UltraScalePlusIO
+  
+  // Generate dummy register to infer a clock and reset IO
+  val dummyRegForClockInUltraScalePlusPlatforms = Reg(Bool())
+  dummyRegForClockInUltraScalePlusPlatforms := !dummyRegForClockInUltraScalePlusPlatforms
 
 }

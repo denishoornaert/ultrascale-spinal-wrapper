@@ -26,4 +26,8 @@ object Constraints {
     bw.close
   }
 
+  def mustImportConstraints(): Boolean = {
+    return this.alreadyOpened
+  }
+
 }

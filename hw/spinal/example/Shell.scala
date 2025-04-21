@@ -6,37 +6,37 @@ import spinal.lib._
 
 
 import kv260._
-import kv260.interface.axi._
-import ultrascaleplus.scripts._
 
 
 case class Shell() extends KV260(
-  frequency    = 332 MHz,
-  withLPD_HPM0 = true,
-  withFPD_HPM0 = true,
-  withFPD_HPM1 = true,
-  withFPD_HP0  = true,
-  withFPD_HP1  = true,
-  withFPD_HP2  = true,
-  withFPD_HP3  = true,
-  withFPD_HPC0 = true,
-  withFPD_HPC1 = true,
-  withIO_PMOD0 = true
+  frequency = 332 MHz,
+  config    = new KV260Config(
+    withLPD_HPM0   = true,
+    withLPD_HP0    = true,
+    withFPD_HPM0   = true,
+    withFPD_HPM1   = true,
+    withFPD_HP0    = true,
+    withFPD_HP1    = true,
+    withFPD_HP2    = true,
+    withFPD_HP3    = true,
+    withFPD_HPC0   = true,
+    withFPD_HPC1   = true,
+    withFPD_ACP    = true,
+    withIO_PMOD0   = true,
+    withDBG_CTI0   = true,
+    withDBG_CTI1   = true,
+    withDBG_CTI2   = true,
+    withDBG_CTI3   = true,
+    withDBG_CTO0   = true,
+    withDBG_CTO1   = true,
+    withDBG_CTO2   = true,
+    withDBG_CTO3   = true,
+    withPL_PS_IRQ0 =    8,
+    withPL_PS_IRQ1 =    8,
+  )
 ) {
 
-  io.lpd.hpm0.setBlocked()
-  io.fpd.hpm0.setBlocked()
-  io.fpd.hpm1.setBlocked()
-
-  io.fpd.hp0.setIdle()
-  io.fpd.hp1.setIdle()
-  io.fpd.hp2.setIdle()
-  io.fpd.hp3.setIdle()
-  io.fpd.hpc0.setIdle()
-  io.fpd.hpc1.setIdle()
-
-  io.pmod0.asOutput()
-  io.pmod0.clearAll()
+  this.stub()
 
   // Create dummy register to force instantiation of cock and reset I/O
   val clock_count = Reg(UInt(64 bits)) init(0)
