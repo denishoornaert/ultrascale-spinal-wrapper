@@ -659,7 +659,7 @@ object TCLFactory {
     val tcl = this.script()
     // Check if destination exists; if not create.
     if (!new File("vivado").exists()) {
-        if (new File("vivado").mkdir()) {
+        if (!new File("vivado").mkdir()) {
           throw new RuntimeException("Can't create vivado directory")
         }
     }
