@@ -655,7 +655,15 @@ object TCLFactory {
   }
 
   def generate(): Unit = {
+    // Generate tcl script as long string
     val tcl = this.script()
+    // Check if destination exists; if not create.
+    if (!new File("vivado").exists()) {
+        if (new File("vivado").mkdir()) {
+          throw new RuntimeException("Can't create vivado directory")
+        }
+    }
+    // Write script in destination
     val bw = new BufferedWriter(new FileWriter(new File(this.target), false))
     bw.write(tcl)
     bw.close

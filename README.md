@@ -22,6 +22,38 @@ In theory most boards can be supported. However, you can find here a list of boa
 
 Soon to be added!
 
+### Generate and publish locally the library (to include in other projects)
+
+___PAY ATTENTION TO VERSIONS!___
+
+From the root foolder
+
+```bash
+sbt clean compile publishLocal
+
+# or
+
+make library
+```
+
+This will create the `.jar` files in `/target/scala-2.12/` and install them under `${HOME}/.ivy2/local/`;
+the library can now be included as a dependency on other projects.
+
+To add it as a dependency:
+
+1. Directly add it with following line in the project settings
+```scala
+    libraryDependencies += "de.tum" %% "ultrascale-spinal-wrapper" % "0.1"
+```
+2. Create a variable for the dependency, after the SpinalHDL ones
+```scala
+val ultrascaleLib = "de.tum" %% "ultrascale-spinal-wrapper" % "0.1"
+```
+and add it to the main list of dependencies
+```scala
+libraryDependencies ++= Seq(spinalCore, spinalLib, spinalIdslPlugin, ultrascaleLib)
+```
+
 ### Generate bitstream
 
 Must be done from the root folder!
