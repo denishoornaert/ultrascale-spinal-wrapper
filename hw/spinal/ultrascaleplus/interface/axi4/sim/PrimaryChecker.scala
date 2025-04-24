@@ -231,7 +231,7 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
       val beatOffset = (context.actual_addr%axi.config.bytePerWord).toInt
       axi.w.valid #= true
       axi.w.data  #= context.data(wBeatCount) << (beatOffset*8) // 8 is 1 byte
-      axi.w.strb  #= (pow(2, context.size).toInt-1) << beatOffset
+      axi.w.strb  #= (if (context.size > 0) ((pow(2, context.size).toInt-1)) else 1) << beatOffset
       if (wBeatCount == context.len) {
         axi.w.last #= true
       }
