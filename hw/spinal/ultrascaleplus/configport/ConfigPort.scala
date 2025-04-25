@@ -30,19 +30,25 @@ case class ConfigPort(axi: Axi4, portName: String, baseAddress: BigInt = 0) exte
   def this(axi: Axi4, portName: String) = this(axi, portName, 0)
 
   def this(axi: Axi4, baseAddress: BigInt) = this(axi, axi.getPartialName(), baseAddress)
-
+  
+  private def bytePerWord = axi.config.bytePerWord
+  
+  private def adjustAddressHelper(address: BigInt, byteWidth: Int): BigInt =
+    if ((address % bytePerWord) + byteWidth > bytePerWord) {
+      return (((address >> log2Up(bytePerWord)) << log2Up(bytePerWord))) + bytePerWord
+    } else if (address % byteWidth != 0) {
+      return (address >> log2Up(byteWidth) << log2Up(byteWidth)) + byteWidth
+    } else {
+      return address
+    }
 
   def adjustAddress(address: BigInt, bitsWidth: Int = 0): (BigInt, Int) = {
+    require(bitsWidth > 0, "Can't adjust the address of zero byte width")
     
-    val valAddress = 
-      if ((address % axi.config.bytePerWord) + (bitsWidth/8) > axi.config.bytePerWord) {
-        ((address >> log2Up(axi.config.bytePerWord)) << log2Up(axi.config.bytePerWord)) + axi.config.bytePerWord
-      } else {
-        address
-      }
+    val valAddress = adjustAddressHelper(address, bitsWidth / 8)
       
-    val roundedAddress = (valAddress >> log2Up(axi.config.bytePerWord)) << log2Up(axi.config.bytePerWord)
-    val offset: Int = (valAddress%axi.config.bytePerWord).toInt*8
+    val roundedAddress = (valAddress >> log2Up(bytePerWord)) << log2Up(bytePerWord)
+    val offset: Int = (valAddress % bytePerWord).toInt*8
 
     return (roundedAddress, offset)
   }

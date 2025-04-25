@@ -30,6 +30,7 @@ case class ConfigPortTest() extends KV260(
   val test_w_reg = Reg(UInt(64 bits)) init (0)
   val test_rw_reg = Reg(UInt(64 bits)) init (0)
 
+  val test_unaligned_reg = Reg(UInt(16 bits)) init(0)
 
   val test_bundle = Reg(new Bundle {
     val alfa = UInt(16 bits)
@@ -38,8 +39,9 @@ case class ConfigPortTest() extends KV260(
   
   config_port.addAll[Data](
     Array((clock_count, R),
-      (soft_reset, RW),
       (enabled, RW),
+      (test_unaligned_reg, RW),
+      (soft_reset, RW),
       (test_w_reg, W),
       (test_byte_reg, RW),
       (test_rw_reg, RW),
