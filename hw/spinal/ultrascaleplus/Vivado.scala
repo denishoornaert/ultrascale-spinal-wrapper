@@ -3,22 +3,14 @@ package ultrascaleplus
 import Console.{RESET, YELLOW}
 import sys.process._
 import scala.util.matching.Regex
+import upickle.default._
 
 
 object Vivado {
 
   var version: String = null
 
-  def IPVersionMap: Map[String, Map[String, String]] = Map(
-    "2024.1" -> Map(
-      "zynq_ultra_ps_e" -> "3.5",
-      "proc_sys_reset"  -> "5.0"
-    ),
-    "2022.2" -> Map(
-      "zynq_ultra_ps_e" -> "3.4",
-      "proc_sys_reset"  -> "5.0"
-    )
-  )
+  val IPVersionMap= read[Map[String, Map[String, String]]](os.read(os.pwd / "hw/ext/VivadoIPVersion.json"))
 
   def supportedVivadoVersions: Seq[String] = {
     return IPVersionMap.keys.toSeq

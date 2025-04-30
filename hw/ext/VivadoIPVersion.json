@@ -1,0 +1,10 @@
+{ 
+  "2024.1" : {
+    "zynq_ultra_ps_e" : "3.5",
+    "proc_sys_reset"  : "5.0"
+  },
+  "2022.2" : {
+    "zynq_ultra_ps_e" : "3.4",
+    "proc_sys_reset"  : "5.0"
+  }
+}
