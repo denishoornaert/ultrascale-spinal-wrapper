@@ -1,9 +1,12 @@
 package ultrascaleplus
 
-import Console.{RESET, YELLOW}
+
 import sys.process._
 import scala.util.matching.Regex
 import upickle.default._
+
+
+import ultrascaleplus.utils.Log
 
 
 object Vivado {
@@ -33,9 +36,15 @@ object Vivado {
       }
     }
     catch {
-      case e: java.io.IOException        => { println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] No Vivado install found... Make sure to source your install 'settings.sh'!${RESET}") }
-      case e: java.lang.RuntimeException => { println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Calling 'vivado -version' failed... Make sure to source your install 'settings.sh'!${RESET}") }
-      case e: Exception                  => { println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Vivado install found but no version could be inferred from command line!${RESET}") }
+      case e: java.io.IOException => {
+        Log.info("No Vivado install found... Make sure to source your install 'settings.sh'!")
+      }
+      case e: java.lang.RuntimeException => {
+        Log.info("Calling 'vivado -version' failed... Make sure to source your install 'settings.sh'!")
+      }
+      case e: Exception => {
+        Log.info("Vivado install found but no version could be inferred from command line!")
+      }
       System.exit(-1);
     }
     return detectedVersion
@@ -45,20 +54,20 @@ object Vivado {
     this.version = this.detectVivadoVersion()
     // Report to user on specified version and detected one
     if (targetVersion == "auto") {
-      println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Vivado version ${this.version} detected and picked!${RESET}")
+      Log.info(f"Vivado version ${this.version} detected and picked!")
     }
     else if (supportedVivadoVersions contains targetVersion) {
       if (targetVersion != this.version) {
         this.version = targetVersion
-        println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Vivado version ${version} specified but version ${this.version} detected! (v${this.version} conserved for TCl script generation)${RESET}")
+        Log.info(f"$Vivado version ${version} specified but version ${this.version} detected! (v${this.version} conserved for TCl script generation)")
       }
       else {
-        println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Vivado version ${version} specified and detected!${RESET}")
+        Log.info(f"Vivado version ${version} specified and detected!")
       }
     }
     else {
-        println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Requested vivado version (v${targetVersion}) is not supported!${RESET}")
-        System.exit(-1)
+      Log.info(f"Requested vivado version (v${targetVersion}) is not supported!")
+      System.exit(-1)
     }
   }
 

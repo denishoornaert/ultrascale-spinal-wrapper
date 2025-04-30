@@ -13,9 +13,6 @@ package ultrascaleplus
  package object scaladoc {}
 
 
-import Console.{RESET, YELLOW}
-
-
 import spinal.core._
 import spinal.lib._
 import spinal.lib.bus.amba4.axi._
@@ -103,7 +100,7 @@ abstract class UltraScalePlus (
   val differences = availableFrequencies.map(x => (x-frequency).toDouble).map(x => if (x > 0) -1.0/0 else x)
   val index       = differences.indexOf(differences.max)
   frequency       = availableFrequencies(index)
-  println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Actual frequency set is ${frequency}.${RESET}")
+  Log.info(f"Actual frequency set is ${frequency}.")
   
   // Components name for TCL
   val board: String
