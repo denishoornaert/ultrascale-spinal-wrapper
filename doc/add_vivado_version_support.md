@@ -2,7 +2,7 @@
 
 As we found out, the main difference between one version to another is the IPs versions.
 As most of the TCL script generation logic can be kept and re-use, the library uses a simple JSOM file as database to store the relevant IPs versions for each vivado version.
-The database in question named `VivadoIPVersion.json` can be found in `hw/ext/`.
+The database in question named `VivadoIPVersion.json` can be found in `hw/ext/` (see [file](../hw/ext/VivadoIPVersion.json)).
 
 The JSON file structure is as follows:
 ```json
