@@ -13,10 +13,12 @@ In theory most boards can be supported. However, you can find here a list of boa
 
 ## Vivado version tested
 
- - [x] Vivado 2022.2.2
+ - [x] Vivado 2024.1
+ - [x] Vivado 2022.2
 
 **Let us know** if it works for you with another version!
 
+See [How to add suport for a Vivado version](doc/add_vivado_version_support.md) section for further information on how to extend the library.
 
 ## How to use the library (guidelines)
 
