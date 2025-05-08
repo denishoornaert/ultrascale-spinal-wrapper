@@ -38,7 +38,7 @@ object TCLFactory {
     tcl +=  "set proj_dir [get_property directory [current_project]]\n"
     tcl +=  "\n"
     tcl +=  "set obj [current_project]\n"
-    tcl +=  setProperty("board_part_repo_paths", "[file normalize \"~/.Xilinx/Vivado/2022.2/xhub/board_store/xilinx_board_store\"]" , "$obj")
+    tcl +=  setProperty("board_part_repo_paths", f"[file normalize \"~/.Xilinx/Vivado/${Vivado.version}/xhub/board_store/xilinx_board_store\"]" , "$obj")
     tcl +=  setProperty("board_part", f"xilinx.com:${this.platform.get.board}:part0:${this.platform.get.version}", "$obj")
     tcl +=  setProperty("default_lib", "xil_defaultlib", "$obj")
     tcl +=  setProperty("enable_resource_estimation", "0", "$obj")
@@ -105,7 +105,7 @@ object TCLFactory {
 
   def checkIPs(): String = {
     var tcl = ""
-    tcl += "set list_check_ips \"xilinx.com:ip:proc_sys_reset:5.0 xilinx.com:ip:zynq_ultra_ps_e:3.4\"\n"
+    tcl +=f"set list_check_ips \"xilinx.com:ip:proc_sys_reset:5.0 xilinx.com:ip:zynq_ultra_ps_e:${Vivado.getIPVersion("zynq_ultra_ps_e")}\"\n"
     tcl += "set list_ips_missing \"\"\n"
     tcl += "foreach ip_vlnv $list_check_ips {\n"
     tcl += "  set ip_obj [get_ipdefs -all $ip_vlnv]\n"

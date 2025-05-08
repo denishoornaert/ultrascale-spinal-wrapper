@@ -12,8 +12,6 @@ package ultrascaleplus
   */
  package object scaladoc {}
 
-import Console.{RESET, YELLOW}
-
 
 import spinal.core._
 import spinal.lib._
@@ -89,9 +87,12 @@ class UltraScalePlusIO(config: UltraScalePlusConfig) extends Bundle {
 
 
 abstract class UltraScalePlus (
-  var frequency: HertzNumber          = 99.999001 MHz,
-  val config   : UltraScalePlusConfig = new UltraScalePlusConfig()
+  var vivadoVersion: String               = "auto",
+  var frequency    : HertzNumber          = 99.999001 MHz,
+  val config       : UltraScalePlusConfig = new UltraScalePlusConfig()
 ) extends Component with TCL {
+
+  Vivado(vivadoVersion)
 
   // List of IOPLL clocks available for UltraScale+
   val availableFrequencies = Seq(333.329987 MHz, 299.997009 MHz, 249.997498 MHz, 199.998001 MHz, 142.855713 MHz, 99.999001 MHz, 49.999500 MHz)
@@ -99,7 +100,7 @@ abstract class UltraScalePlus (
   val differences = availableFrequencies.map(x => (x-frequency).toDouble).map(x => if (x > 0) -1.0/0 else x)
   val index       = differences.indexOf(differences.max)
   frequency       = availableFrequencies(index)
-  println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Actual frequency set is ${frequency}.${RESET}")
+  Log.info(f"Actual frequency set is ${frequency}.")
   
   // Components name for TCL
   val board: String
@@ -108,7 +109,7 @@ abstract class UltraScalePlus (
 
   def getTCL(): String = {
     var tcl = ""
-    tcl += "set processing_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.4 processing_system ]\n"
+    tcl +=f"set processing_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:${Vivado.getIPVersion("zynq_ultra_ps_e")} processing_system ]\n"
     tcl += "set_property -dict [list \\\n"
     tcl += "  CONFIG.PSU_BANK_0_IO_STANDARD {LVCMOS18} \\\n"
     tcl += "  CONFIG.PSU_BANK_1_IO_STANDARD {LVCMOS18} \\\n"
