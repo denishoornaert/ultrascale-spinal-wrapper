@@ -87,12 +87,9 @@ class UltraScalePlusIO(config: UltraScalePlusConfig) extends Bundle {
 
 
 abstract class UltraScalePlus (
-  var vivadoVersion: String               = "auto",
   var frequency    : HertzNumber          = 99.999001 MHz,
   val config       : UltraScalePlusConfig = new UltraScalePlusConfig()
 ) extends Component with TCL {
-
-  Vivado(vivadoVersion)
 
   // List of IOPLL clocks available for UltraScale+
   val availableFrequencies = Seq(333.329987 MHz, 299.997009 MHz, 249.997498 MHz, 199.998001 MHz, 142.855713 MHz, 99.999001 MHz, 49.999500 MHz)
