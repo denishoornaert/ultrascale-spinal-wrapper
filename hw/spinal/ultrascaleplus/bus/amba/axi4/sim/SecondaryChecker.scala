@@ -19,18 +19,14 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   // Simulated memory
   private val memory = SparseMemory()
 
-  // Maintaining clock count
-  private var clock_count: BigInt = 0
-
-  // AR
   // R
-  private val RDriver = ChannelDriverInOrder(axi.r, clockDomain)
+  private val RDriver = ChannelDriverRandom(axi.r, clockDomain)
   // AW
   private val AWQueue = new mutable.Queue[Axi4AWJob]()
   // W
   private var wBeatCount = 0
   // B
-  private val BDriver = ChannelDriverInOrder(axi.b, clockDomain)
+  private val BDriver = ChannelDriverRandom(axi.b, clockDomain)
 
   def readNotInFullCapacity(): Boolean = {
     // Add scheduled entry if relevant (i.e., not done)
@@ -52,7 +48,7 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   StreamMonitor(axi.ar, clockDomain) { payload =>
     val context = new Axi4ARJob(payload)
     val transaction = new Axi4RJob(axi.r, payload)
-    for (beat <- 0 until payload.len.toInt) {
+    for (beat <- 0 to payload.len.toInt) {
       transaction.enqueue({
         memory.readBigInt(
           context.alignedNextAddress(context.aligned+beat, log2Up(payload.config.bytePerWord)),

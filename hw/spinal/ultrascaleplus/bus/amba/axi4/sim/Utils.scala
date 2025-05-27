@@ -30,7 +30,7 @@ object Axi4Sim {
 }
 
 
-abstract class Axi4Job () {
+abstract class Axi4Job (private val delay: () => Int = () => 0) {
   
   // Keep track of the job age
   private var age: Int = 0
@@ -40,14 +40,12 @@ abstract class Axi4Job () {
   }
 
   def ready(): Boolean = {
-    return age >= 30
+    return age >= this.delay()
   }
 
-  def isDone(): Boolean = {
-    return true
-  }
+  def isDone(): Boolean
 
-  def place(): Unit = {}
+  def place(): Unit
 
 }
 
@@ -65,7 +63,9 @@ class Axi4AXJob(channel: Axi4Ax, val addr: BigInt, val id: Int, val len: Int, va
   val dataTransactionSize : Int    = (1+len)<<size
   val lowerWrapBoundary   : BigInt = (aligned/dataTransactionSize)*dataTransactionSize 
   val upperWrapBoundary   : BigInt = lowerWrapBoundary+dataTransactionSize
- 
+
+  private var placed: Boolean = false
+
   // check for read/write over 4k boundary
   if (burst == 1) {
     assert(
@@ -103,6 +103,10 @@ class Axi4AXJob(channel: Axi4Ax, val addr: BigInt, val id: Int, val len: Int, va
     return (nextAddress(i) >> maxBurstSize) << maxBurstSize
   }
 
+  override def isDone(): Boolean = {
+    return this.placed
+  }
+
   override def place(): Unit = {
     this.channel.addr     #= this.addr
     if (this.channel.config.useId)
@@ -123,6 +127,8 @@ class Axi4AXJob(channel: Axi4Ax, val addr: BigInt, val id: Int, val len: Int, va
       this.channel.qos    #= this.qos
     if (this.channel.config.useRegion)
       this.channel.region #= this.region
+    // Set as placed
+    this.placed = true
   }
 
 }
@@ -212,7 +218,7 @@ class Axi4RJob(channel: Axi4R, val id: Int = 0, val resp: Int = Axi4Sim.resp.OKA
   }
 
   def enqueue(value: BigInt): Unit = {
-    this.enqueue({value})
+    this.enqueue(() => value)
   }
 
   override def isDone(): Boolean = {
@@ -233,14 +239,21 @@ class Axi4RJob(channel: Axi4R, val id: Int = 0, val resp: Int = Axi4Sim.resp.OKA
 
 class Axi4BJob(channel: Axi4B, val id: Int, val resp: Int) extends Axi4Job() {
 
+  private var placed: Boolean = false
+
   // TODO: resp can be deduced from the Axi4AWJob!
   def this(channel: Axi4B, job: Axi4AWJob) = this(channel, job.id, Axi4Sim.resp.OKAY)
+
+  override def isDone(): Boolean = {
+    return placed
+  }
 
   override def place(): Unit = {
     if (this.channel.config.useId)
       this.channel.id #= id
     if (this.channel.config.useResp)
       this.channel.resp #= resp
+    placed = true
   }
 
 }
@@ -248,15 +261,11 @@ class Axi4BJob(channel: Axi4B, val id: Int, val resp: Int) extends Axi4Job() {
 
 class Axi4JobQueue(cd: ClockDomain) extends mutable.Queue[Axi4Job]() {
 
-  override def isEmpty: Boolean = {
-    return super.isEmpty || !(this.map(p => p.ready()).reduce(_ || _))
+  def hasCandidate(): Boolean = {
+    return super.nonEmpty && this.map(p => p.ready()).reduce(_ || _)
   }
 
-  override def nonEmpty: Boolean = {
-    return !this.isEmpty
-  }
-
-  def readys(): Seq[Int] = {
+  def getCandidates(): Seq[Int] = {
     return this.zipWithIndex.filter(_._1.ready()).map(_._2).toSeq
   }
 
@@ -268,7 +277,7 @@ class Axi4JobQueue(cd: ClockDomain) extends mutable.Queue[Axi4Job]() {
 }
 
 
-abstract class ChannelDriver[T <: Data](channel: Stream[T], cd: ClockDomain) {
+abstract class ChannelDriver[T <: Data](val channel: Stream[T], cd: ClockDomain) {
   
   val storage = new Axi4JobQueue(cd)
 
@@ -283,17 +292,15 @@ abstract class ChannelDriver[T <: Data](channel: Stream[T], cd: ClockDomain) {
       this.scheduled = this.storage(pick)
       this.storage.remove(pick)
     }
-    else {
-      println(f"No schedulable transaction found")
-    }
   }
 
   private val ctrl = StreamDriver(channel, cd) { p =>
     // Schedule new job if any available AND ready
-    if (this.storage.nonEmpty) {
-      if ((this.scheduled == null) || this.scheduled.isDone()) {
-        this.schedule()
-      }
+    if (this.storage.hasCandidate() && ((this.scheduled == null) || this.scheduled.isDone())) {
+      this.schedule()
+    }
+    // If job scheduled and the job is not done, place on bus
+    if ((this.scheduled != null) && !this.scheduled.isDone()) {
       this.scheduled.place()
       true
     }
@@ -307,7 +314,7 @@ abstract class ChannelDriver[T <: Data](channel: Stream[T], cd: ClockDomain) {
   this.ctrl.setFactor(1)
 
   def isDone(): Boolean = {
-    return this.storage.isEmpty && (this.storage.length == 0) && (this.scheduled == null || this.scheduled.isDone())
+    return this.storage.isEmpty && (this.scheduled == null || this.scheduled.isDone())
   }
 
 }
@@ -317,7 +324,7 @@ class ChannelDriverRandom[T <: Data](stream: Stream[T], cd: ClockDomain) extends
 
   override def next(): Int = {
     var index = -1
-    val candidates = this.storage.readys()
+    val candidates = this.storage.getCandidates()
     if (candidates.nonEmpty)
       index = candidates(simRandom.nextInt(candidates.length))
     return index
@@ -336,9 +343,8 @@ class ChannelDriverInOrder[T <: Data](stream: Stream[T], cd: ClockDomain) extend
 
   override def next(): Int = {
     var index = -1
-    val candidates = this.storage.readys()
-    if (candidates.nonEmpty)
-      index = candidates(0)
+    if (this.storage(0).ready())
+      index = 0
     return index
   }
 
