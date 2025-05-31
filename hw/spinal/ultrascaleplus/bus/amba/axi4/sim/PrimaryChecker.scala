@@ -50,7 +50,6 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
   }
 
   def allWritesCompleted(): Boolean = {
-    //println(f"BMonitor (${BMonitor.isEmpty}) && AWDriver (${AWDriver.storage.length}, ${AWDriver.isDone()})")
     return BMonitor.isEmpty && AWDriver.isDone()
   }
 
@@ -144,14 +143,15 @@ class Axi4CheckerPrimary(axi: Axi4, clockDomain: ClockDomain) {
     // When last beat
     if (axi.r.last.toBoolean) {
       readTransactionsCompleted += 1
+      val job = new Axi4RJob(axi.r)
       // Expectation: there should be a pending transaction for that id
       assert(
-        assertion = RMonitor(axi.r.id.toInt) > 0,
-        message   = f"No read response expcted for 0x${axi.r.id.toInt.toHexString}"
+        assertion = RMonitor(job.id) > 0,
+        message   = f"No read response expcted for 0x${job.id.toHexString}"
       )
-      RMonitor(axi.r.id.toInt) -= 1
-      if (RMonitor(axi.r.id.toInt) == 0)
-        RMonitor.remove(axi.r.id.toInt)
+      RMonitor(job.id) -= 1
+      if (RMonitor(job.id) == 0)
+        RMonitor.remove(job.id)
       // Maintain tracking variable
       readTransactionsCompleted += 1
     }

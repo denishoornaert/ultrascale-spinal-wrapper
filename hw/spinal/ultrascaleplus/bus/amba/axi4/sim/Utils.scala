@@ -11,40 +11,81 @@ import spinal.lib.sim.StreamDriver
 import spinal.lib.bus.amba4.axi._
 
 
+/**
+ *  Object containing all encodings hard-defined in the protocol. 
+ *  [[https://developer.arm.com/documentation/ihi0022/latest/ See the official documentation for further details.]]
+ */
 object Axi4Sim {
   
+  /**
+   *  Burst type encodings.
+   *  [[https://developer.arm.com/documentation/ihi0022/latest/ See the official documentation for further details.]]
+   */
   object burst {
+    /** Each beat of the burst targets the same address given during the address phase */
     val FIXED    = 0
+    /** Each beat of the burst targets the next address, starting from the address given during the address phase. */
     val INCR     = 1
+    /** Same as [[Axi4Sim.burst.INCR]] but when address given during the address phase is not aligned with the burst length */
     val WRAP     = 2
+    /** RESERVED do not use! */
     val RESERVED = 3
   }
 
+  /**
+   *  Response type encodings.
+   *  [[https://developer.arm.com/documentation/ihi0022/latest/ See the official documentation for further details.]]
+   */
   object resp {
+    /** Successful non-exclusive transaction */
     val OKAY   = 0
+    /** Successful exclusive transaction */
     val EXOKAY = 1
+    /** Error with the transaction itself (not with the target). Can be due to size, burst type, ... */
     val SLVERR = 2
+    /** Error with target. For instance, target could not be found (i.e., error decoding address). */
     val DECERR = 3
   }
 
 }
 
 
+/** Abstract class representing and encapsulating the base logic of an Axi4Job.
+ *
+ *  Class keeps track of the job age and define basic methods to be defined by child classes.
+ *  It applies to all AXI4 channel jobs (i.e., [[Axi4ARJob]], [[Axi4AWJob]], [[Axi4RJob]], [[Axi4WJob]], [[Axi4BJob]]).
+ *
+ *  @constructor Creates a job with a delay as a no-parameter function returning an Int (default returns 0).
+ */
 abstract class Axi4Job (private val delay: () => Int = () => 0) {
   
-  // Keep track of the job age
+  /** Keep track of the job age. Monotonously increases. */
   private var age: Int = 0
 
+  /** Increase age of job by one step. */
   def makeOlder(): Unit = {
     age += 1
   }
 
+  /**
+   *  Indicates whether the job is ready (i.e., mature) with respect to its age and the constructor-specified delay.
+   *
+   *  @return ready Returns a boolean indicating whether the joib is mature.
+   */
   def ready(): Boolean = {
     return age >= this.delay()
   }
 
+  /**
+   *  Indicates if the job has been completed.
+   *
+   *  @return `true` if the job as completed.
+   */
   def isDone(): Boolean
 
+  /**
+   *  Abstract method in charge of placing signals on the channel.
+   */
   def place(): Unit
 
 }
@@ -213,6 +254,8 @@ class Axi4RJob(channel: Axi4R, val id: Int = 0, val resp: Int = Axi4Sim.resp.OKA
 
   def this(channel: Axi4R, context: Axi4Ar) = this(channel, context.id.toInt)
 
+  def this(channel: Axi4R) = this(channel, channel.id.toInt)
+
   def enqueue(func: () => BigInt): Unit = {
     this.data.enqueue(func)
   }
@@ -273,85 +316,5 @@ class Axi4JobQueue(cd: ClockDomain) extends mutable.Queue[Axi4Job]() {
   cd.onRisingEdges({
     this.foreach({ p => p.makeOlder() })
   })
-
-}
-
-
-abstract class ChannelDriver[T <: Data](val channel: Stream[T], cd: ClockDomain) {
-  
-  val storage = new Axi4JobQueue(cd)
-
-  private var scheduled: Axi4Job = null
-
-  protected def next(): Int
-
-  private def schedule(): Unit = {
-    val pick = this.next()
-    // If no candidate, skip replacement
-    if (pick != -1) {
-      this.scheduled = this.storage(pick)
-      this.storage.remove(pick)
-    }
-  }
-
-  private val ctrl = StreamDriver(channel, cd) { p =>
-    // Schedule new job if any available AND ready
-    if (this.storage.hasCandidate() && ((this.scheduled == null) || this.scheduled.isDone())) {
-      this.schedule()
-    }
-    // If job scheduled and the job is not done, place on bus
-    if ((this.scheduled != null) && !this.scheduled.isDone()) {
-      this.scheduled.place()
-      true
-    }
-    else {
-      false
-    }
-  }
-
-  // Explicitly set control over StreamDriver's flow
-  this.ctrl.delay = 0
-  this.ctrl.setFactor(1)
-
-  def isDone(): Boolean = {
-    return this.storage.isEmpty && (this.scheduled == null || this.scheduled.isDone())
-  }
-
-}
-
-
-class ChannelDriverRandom[T <: Data](stream: Stream[T], cd: ClockDomain) extends ChannelDriver(stream, cd) {
-
-  override def next(): Int = {
-    var index = -1
-    val candidates = this.storage.getCandidates()
-    if (candidates.nonEmpty)
-      index = candidates(simRandom.nextInt(candidates.length))
-    return index
-  }
-
-}
-
-object ChannelDriverRandom {
-  
-  def apply[T <: Data](stream : Stream[T], cd: ClockDomain) = new ChannelDriverRandom[T](stream, cd)
-
-}
-
-
-class ChannelDriverInOrder[T <: Data](stream: Stream[T], cd: ClockDomain) extends ChannelDriver(stream, cd) {
-
-  override def next(): Int = {
-    var index = -1
-    if (this.storage(0).ready())
-      index = 0
-    return index
-  }
-
-}
-
-object ChannelDriverInOrder {
-
-  def apply[T <: Data](stream : Stream[T], cd: ClockDomain) = new ChannelDriverInOrder[T](stream, cd)
 
 }
