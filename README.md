@@ -17,8 +17,12 @@ In theory most boards can be supported. However, you can find here a list of boa
 
 ## Vivado version tested
 
+Llist of board supported (if listed) and tested (if checked).
+
+ - [ ] Vivado 2024.2
  - [x] Vivado 2024.1
  - [x] Vivado 2022.2
+ - [ ] Vivado 2019.2
 
 **Let us know** if it works for you with another version!
 
