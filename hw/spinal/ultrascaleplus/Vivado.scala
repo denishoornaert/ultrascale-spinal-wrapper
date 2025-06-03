@@ -7,13 +7,16 @@ import upickle.default._
 
 
 import ultrascaleplus.utils.Log
+import scala.io.Source
 
 
 object Vivado {
 
   var version: String = null
 
-  val IPVersionMap= read[Map[String, Map[String, String]]](os.read(os.pwd / "hw/ext/VivadoIPVersion.json"))
+  val template = "/VivadoIPVersion.json"
+  val resource_url = getClass.getResource(template)
+  val IPVersionMap = read[Map[String, Map[String, String]]](Source.fromURL(resource_url).mkString)
 
   def supportedVivadoVersions: Seq[String] = {
     return IPVersionMap.keys.toSeq
