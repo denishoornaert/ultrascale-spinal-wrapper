@@ -11,12 +11,16 @@ import spinal.lib.sim.{StreamDriver, StreamMonitor, StreamReadyRandomizer}
 import spinal.lib.bus.amba4.axi._
 
 
+/** Class simulating an Axi4 secondary actor. It handles: transaction scheduling,
+ *  transaction emission, and basic protocol checks.
+ *
+ *  @constructor Creates an Axi4 secondary checker/handler
+ *  @param axi The [[spinal.lib.bus.amba4.axi.Axi4]] bus to handle and check.
+ *  @param clockDomain The clock domain associated with the bus.
+ */
 class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
 
-  // Defined response time for each transactions
-  val writeAgeThreshold = 0
-
-  // Simulated memory
+  /** Simulated memory block */
   private val memory = SparseMemory()
 
   // R
@@ -28,22 +32,33 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   // B
   private val BDriver = ChannelDriverRandom(axi.b, clockDomain)
 
-  def readNotInFullCapacity(): Boolean = {
+  /** Method indicating whether the simulatated secondary target has reached 
+   *  full capacity for read transactions.
+   *
+   *  @return notFull `true` if place is still available in the target.
+   */
+  private def readNotInFullCapacity(): Boolean = {
     // Add scheduled entry if relevant (i.e., not done)
     return RDriver.storage.length+(!RDriver.isDone()).toInt < axi.config.readIssuingCapability
   }
 
-  def writeNotInFullCapacity(): Boolean = {
+  /** Method indicating whether the simulatated secondary target has reached 
+   *  full capacity for read transactions.
+   *
+   *  @return notFull `true` if place is still available in the target.
+   */
+  private def writeNotInFullCapacity(): Boolean = {
     return AWQueue.length < axi.config.writeIssuingCapability
   }
   
-  /** AXI AR
-   *
-   */
+  /** AXI AR: Random drive for AR ready signal. */
   StreamReadyRandomizer(axi.ar, clockDomain, readNotInFullCapacity).setFactor(1.0f)
 
-  /** AXI AR
-   *  Catches handshakes on AR channel
+  /** AXI AR: Catches and handles handshakes on AR channel.
+   *
+   *  Upon handshake on the address read phase, method constructs a data and 
+   *  response job. Fills data with function looking-up the simulated memory 
+   *  target. Enqueues the created job for serving later on.
    */
   StreamMonitor(axi.ar, clockDomain) { payload =>
     val context = new Axi4ARJob(payload)
@@ -59,25 +74,19 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
     RDriver.storage.enqueue(transaction)
   }
 
-  /** AXI AW
-   *
-   */
+  /** AXI AW: Random drive for AW ready signal. */
   StreamReadyRandomizer(axi.aw, clockDomain, writeNotInFullCapacity).setFactor(1.0f)
 
-  /** AXI AW
-   *
-   */
+  /** AXI AW: Enqueue write address phase job upon reception. */
   StreamMonitor(axi.aw, clockDomain) { payload =>
     AWQueue.enqueue(new Axi4AWJob(axi.aw))
   }
 
-  /** AXI W
-   *
-   */
+  /** AXI W: Random drive for W ready signal. */
   StreamReadyRandomizer(axi.w, clockDomain).setFactor(1.0f)
 
-  /** AXI W
-   *
+  /** AXI W: Check whether write data phase has the proper length and last is 
+   *  asserted at expected time.
    */
   StreamMonitor(axi.w, clockDomain) { payload =>
     val context = AWQueue.front
@@ -91,7 +100,10 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
 
     // must be done before manipulating the wBeatcounter
     memory.writeArray(
-      context.alignedNextAddress(context.aligned+this.wBeatCount, log2Up(axi.config.dataWidth/8)),
+      context.alignedNextAddress(
+        context.aligned+this.wBeatCount,
+        log2Up(axi.config.bytePerWord)
+      ),
       payload.data.toBytes
     )
     
