@@ -57,7 +57,9 @@ object Axi4Sim {
  *
  *  @constructor Creates a job with a delay as a no-parameter function returning an Int (default returns 0).
  */
-abstract class Axi4Job (private val delay: () => Int = () => 0) {
+abstract class Axi4Job (
+  private val delay: () => Int = () => 0
+) {
   
   /** Keep track of the job age. Monotonously increases. */
   private var age: Int = 0
@@ -105,7 +107,14 @@ abstract class Axi4Job (private val delay: () => Int = () => 0) {
  *  @param size the amount of bytes used within a beat
  *  @param burst the burst type of the transaction (default [[Axi4Sim.burst.INCR]])
  */
-abstract class Axi4AXJob(channel: Axi4Ax, val addr: BigInt, val id: Int, val len: Int, val size: Int, val burst: Int = Axi4Sim.burst.INCR) extends Axi4Job() {
+abstract class Axi4AXJob(
+  channel  : Axi4Ax,
+  val addr : BigInt,
+  val id   : Int,
+  val len  : Int,
+  val size : Int,
+  val burst: Int = Axi4Sim.burst.INCR
+) extends Axi4Job() {
 
   val cache   = 8
   val lock    = 0
@@ -226,7 +235,21 @@ abstract class Axi4AXJob(channel: Axi4Ax, val addr: BigInt, val id: Int, val len
  *  @param size the amount of bytes used within a beat
  *  @param burst the burst type of the transaction (default [[Axi4Sim.burst.INCR]])
  */
-class Axi4AWJob(channel: Axi4Aw, addr: BigInt, id: Int, len: Int, size: Int, burst: Int = Axi4Sim.burst.INCR) extends Axi4AXJob(channel, addr, id, len, size, burst) {
+class Axi4AWJob(
+  channel: Axi4Aw,
+  addr   : BigInt,
+  id     : Int,
+  len    : Int,
+  size   : Int,
+  burst  : Int = Axi4Sim.burst.INCR
+) extends Axi4AXJob(
+  channel,
+  addr,
+  id,
+  len,
+  size,
+  burst
+) {
 
   /**
    *  Constructor made to capture bus state during simulation.
@@ -270,7 +293,21 @@ class Axi4AWJob(channel: Axi4Aw, addr: BigInt, id: Int, len: Int, size: Int, bur
  *  @param size the amount of bytes used within a beat
  *  @param burst the burst type of the transaction (default [[Axi4Sim.burst.INCR]])
  */
-class Axi4ARJob(channel: Axi4Ar, addr: BigInt, id: Int, len: Int, size: Int, burst: Int = Axi4Sim.burst.INCR) extends Axi4AXJob(channel, addr, id, len, size, burst) {
+class Axi4ARJob(
+  channel: Axi4Ar,
+  addr   : BigInt,
+  id     : Int,
+  len    : Int,
+  size   : Int,
+  burst  : Int = Axi4Sim.burst.INCR
+) extends Axi4AXJob(
+  channel,
+  addr,
+  id,
+  len,
+  size,
+  burst
+) {
 
   /**
    *  Constructor made to capture bus state during simulation.
@@ -309,7 +346,13 @@ class Axi4ARJob(channel: Axi4Ar, addr: BigInt, id: Int, len: Int, size: Int, bur
  *  @param data Sequence of the [[BigInt]] representing the data to be written.
  *  @param strb Sequence of [[BigInt]] representing the valid bytes in each beats.
  */
-class Axi4WJob(channel: Axi4W, val data: Seq[BigInt], val strb: Seq[BigInt]) extends Axi4Job() {
+class Axi4WJob(
+  channel : Axi4W,
+  val data: Seq[BigInt],
+  val strb: Seq[BigInt]
+) extends Axi4Job(
+  delay = () => 20+simRandom.nextInt(20)
+) {
 
   assert(
     assertion = (data.length == strb.length),
@@ -342,7 +385,13 @@ class Axi4WJob(channel: Axi4W, val data: Seq[BigInt], val strb: Seq[BigInt]) ext
  *  @param id transaction ID.
  *  @param resp transaction response status (default [[Axi4Sim.resp.OKAY]]).
  */
-class Axi4RJob(channel: Axi4R, val id: Int = 0, val resp: Int = Axi4Sim.resp.OKAY) extends Axi4Job() {
+class Axi4RJob(
+  channel : Axi4R,
+  val id  : Int = 0,
+  val resp: Int = Axi4Sim.resp.OKAY
+) extends Axi4Job(
+  delay = () => 20+simRandom.nextInt(20)
+) {
   
   /** 
    *  Queue storing data to be read in the form of function returning a 
@@ -404,7 +453,11 @@ class Axi4RJob(channel: Axi4R, val id: Int = 0, val resp: Int = Axi4Sim.resp.OKA
  *  @param id transaction ID.
  *  @param resp transaction response status (default [[Axi4Sim.resp.OKAY]]).
  */
-class Axi4BJob(channel: Axi4B, val id: Int, val resp: Int) extends Axi4Job() {
+class Axi4BJob(
+  channel : Axi4B,
+  val id  : Int,
+  val resp: Int
+) extends Axi4Job() {
 
   /** Track whether the transaction/job has already been placed on its channel */
   private var placed: Boolean = false
@@ -434,7 +487,9 @@ class Axi4BJob(channel: Axi4B, val id: Int, val resp: Int) extends Axi4Job() {
 }
 
 
-class Axi4JobQueue(cd: ClockDomain) extends mutable.Queue[Axi4Job]() {
+class Axi4JobQueue(
+  cd: ClockDomain
+) extends mutable.Queue[Axi4Job]() {
 
   def hasCandidate(): Boolean = {
     return super.nonEmpty && this.map(p => p.ready()).reduce(_ || _)
