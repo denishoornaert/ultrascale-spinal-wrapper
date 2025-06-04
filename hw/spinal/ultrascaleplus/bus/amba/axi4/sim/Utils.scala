@@ -134,7 +134,7 @@ abstract class Axi4AXJob(
   private var placed: Boolean = false
 
   // check for read/write over 4k boundary
-  if (burst == 1) {
+  if (burst == Axi4Sim.burst.INCR) {
     assert(
       assertion = (((len+1)<<size)+(addr%4096)) <= 4096,
       message   = s"Read/write request crossing 4KB boundary (addr=${addr.toString(16)}, len=${len}, size=${size})"
