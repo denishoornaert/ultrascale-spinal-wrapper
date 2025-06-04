@@ -14,8 +14,14 @@ object Vivado {
 
   private var targetVersion: String = null
   
-  private val resource_url = getClass.getResource("/VivadoIPVersion.json")
-  private val IPVersionMap = read[Map[String, Map[String, String]]](Source.fromURL(resource_url).mkString)
+  private val IPVersionMap = readIPVersionMap("/VivadoIPVersion.json")
+
+  private def readIPVersionMap(resourcePath: String): Map[String,Map[String,String]] = {
+    val resource_url = getClass.getResource("/VivadoIPVersion.json")
+    val content = Source.fromURL(resource_url).mkString
+    val map = read[Map[String, Map[String, String]]](content)
+    return map
+  }
 
   private def setVersionIfNotDefined(): Unit = {
     if (targetVersion == null) {
