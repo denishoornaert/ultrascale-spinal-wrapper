@@ -10,7 +10,6 @@ import spinal.lib.bus.misc.{SingleMapping, BusSlaveFactoryRead, BusSlaveFactoryW
 import spinal.lib.bus.amba4.axi._
 
 import scripts._
-import ultrascaleplus.interface.axi.AbstractSecondaryAxi4
 
 case class ConfigPort(axi: Axi4, portName: String, baseAddress: BigInt = 0) extends Axi4SlaveFactory(axi) {
   
@@ -19,8 +18,9 @@ case class ConfigPort(axi: Axi4, portName: String, baseAddress: BigInt = 0) exte
   }
 
   val pageSize    =  12
-  val template    =  "hw/ext/configuration_port.h.template"
-  val destination = f"hw/gen/${portName}.h"
+  val template    =  "/configuration_port.h.template"
+  val destinationParent = "hw/gen"
+  val destination = f"${destinationParent}/${portName}.h"
   val items       = new ArrayBuffer[(BigInt, Data)]()
 
   var lastByte    = 0  
@@ -131,7 +131,8 @@ case class ConfigPort(axi: Axi4, portName: String, baseAddress: BigInt = 0) exte
     val aperture: BigInt = (sortedMapping(0)._1 >> pageSize) << pageSize
     
     // Open buffer for read
-    val br = Source.fromFile(template)
+    val resource_url = getClass.getResource(template)
+    val br = Source.fromURL(resource_url)
     // Make string out of buffer read
     var header = br.mkString
     // Close read buffer
@@ -144,6 +145,9 @@ case class ConfigPort(axi: Axi4, portName: String, baseAddress: BigInt = 0) exte
     header = header.replace("${insert_struct}", struct)
     header = header.replace("${insert_addr}", aperture.toString())
     // Open buffer for writing
+    if (!new File(destinationParent).exists()) {
+      new File(destinationParent).mkdir()
+    }
     val bw = new BufferedWriter(new FileWriter(new File(destination)))
     // Write header in target file
     bw.write(header+"\n")

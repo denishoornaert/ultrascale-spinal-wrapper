@@ -1,14 +1,17 @@
 package example
 
+
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib.bus.amba4.axi._
 import spinal.lib.bus.misc.SizeMapping
 import spinal.sim._
 
+
 import kv260._
 import ultrascaleplus.parameters._
-import ultrascaleplus.interface.axi.sim._
+import ultrascaleplus.bus.amba.axi4.sim._
+
 
 
 class Primary(axi: Axi4, clock: ClockDomain) extends Axi4CheckerPrimary(axi, clock) {
@@ -62,8 +65,8 @@ object BleacherSim extends App {
     }.doSim { dut =>
     dut.clockDomain.forkStimulus(period = 10)
 
-    val primary = new Primary(dut.io.fpd_hpm0, dut.clockDomain)
-    val secondary = new Secondary(dut.io.fpd_hp0, dut.clockDomain)
+    val primary = new Primary(dut.io.fpd.hpm0, dut.clockDomain)
+    val secondary = new Secondary(dut.io.fpd.hp0, dut.clockDomain)
 
     dut.clockDomain.waitSampling(50) // Arbitrary
     

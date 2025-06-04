@@ -1,0 +1,18 @@
+{ 
+  "2024.2" : {
+    "zynq_ultra_ps_e" : "3.5",
+    "proc_sys_reset"  : "5.0"
+  },
+  "2024.1" : {
+    "zynq_ultra_ps_e" : "3.5",
+    "proc_sys_reset"  : "5.0"
+  },
+  "2022.2" : {
+    "zynq_ultra_ps_e" : "3.4",
+    "proc_sys_reset"  : "5.0"
+  },
+  "2019.2" : {
+    "zynq_ultra_ps_e" : "3.3",
+    "proc_sys_reset"  : "5.0"
+  }
+}

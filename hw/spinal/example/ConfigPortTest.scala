@@ -6,19 +6,20 @@ import spinal.lib._
 
 
 import kv260._
-import kv260.interface.axi._
+import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.scripts._
 import ultrascaleplus.configport._
-import ultrascaleplus.interface.axi.AbstractSecondaryAxi4
+import ultrascaleplus.parameters.AddressMap
 
 
 case class ConfigPortTest() extends KV260(
-  frequency    = 100 MHz,
-  withLPD_HPM0 = true
+  frequency = 100 MHz,
+  config    = new KV260Config(
+    withLPD_HPM0 = true
+  )
 ) {
 
-  val port: AbstractSecondaryAxi4 = LPD_HPM0
-  val config_port = new ConfigPort(io.lpd_hpm0, portName = io.lpd_hpm0.getPartialName(), LPD_HPM0.aperture.base)
+  val config_port = new ConfigPort(io.lpd.hpm0, portName = io.lpd.hpm0.getPartialName(), AddressMap.LPD_HPM0.base)
 
   val clock_count = Reg(UInt(64 bits)) init(0)
 
@@ -55,7 +56,7 @@ case class ConfigPortTest() extends KV260(
   }
 
   this.generate()
-  KernelModule.addIO(LPD_HPM0)
+  KernelModule.addIO(io.lpd.hpm0)
   KernelModule.generate()
 }
 
