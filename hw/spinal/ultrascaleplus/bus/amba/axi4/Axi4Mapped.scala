@@ -80,4 +80,14 @@ class Axi4Mapped(override val config: Axi4Config, name: String, val apertures: S
     }
   }
 
+  override def clone(): Axi4Mapped = {
+    return new Axi4Mapped(
+      config    = this.config,
+      name      = this.name,
+      apertures = this.apertures,
+      id        = this.id,
+      domain    = this.domain
+    )
+  }
+
 }
