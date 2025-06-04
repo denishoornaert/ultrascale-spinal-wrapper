@@ -12,21 +12,34 @@ import scala.io.Source
 
 object Vivado {
 
-  var version: String = null
+  private var targetVersion: String = null
+  
+  private val resource_url = getClass.getResource("/VivadoIPVersion.json")
+  private val IPVersionMap = read[Map[String, Map[String, String]]](Source.fromURL(resource_url).mkString)
 
-  val template = "/VivadoIPVersion.json"
-  val resource_url = getClass.getResource(template)
-  val IPVersionMap = read[Map[String, Map[String, String]]](Source.fromURL(resource_url).mkString)
+  private def setVersionIfNotDefined(): Unit = {
+    if (targetVersion == null) {
+      // Report to user on specified version and detected one
+      if (Config.vivado == "auto") {
+        targetVersion = this.detectVivadoVersion()
+        Log.info(f"Vivado version ${this.version} detected and picked!")
+      }
+      else if (supportedVivadoVersions contains Config.vivado) {
+        targetVersion = Config.vivado
+        Log.info(f"$Vivado version ${targetVersion} will be used as specified!")
+      }
+      else {
+        Log.info(f"Requested vivado version (v${targetVersion}) is not supported!")
+        System.exit(-1)
+      }
+    }
+  }
 
-  def supportedVivadoVersions: Seq[String] = {
+  private def supportedVivadoVersions: Seq[String] = {
     return IPVersionMap.keys.toSeq
   }
 
-  def getIPVersion(ip: String): String = {
-    return IPVersionMap(this.version)(ip)
-  }
-
-  def detectVivadoVersion(): String = {
+  private def detectVivadoVersion(): String = {
     var detectedVersion = ""
     // Execute bash command and get output in string
     try {
@@ -53,25 +66,14 @@ object Vivado {
     return detectedVersion
   }
   
-  def apply(targetVersion: String = "auto"): Unit = {
-    this.version = this.detectVivadoVersion()
-    // Report to user on specified version and detected one
-    if (targetVersion == "auto") {
-      Log.info(f"Vivado version ${this.version} detected and picked!")
-    }
-    else if (supportedVivadoVersions contains targetVersion) {
-      if (targetVersion != this.version) {
-        this.version = targetVersion
-        Log.info(f"$Vivado version ${version} specified but version ${this.version} detected! (v${this.version} conserved for TCl script generation)")
-      }
-      else {
-        Log.info(f"Vivado version ${version} specified and detected!")
-      }
-    }
-    else {
-      Log.info(f"Requested vivado version (v${targetVersion}) is not supported!")
-      System.exit(-1)
-    }
+  def version: String = {
+    this.setVersionIfNotDefined()
+    return this.targetVersion
+  }
+  
+  def getIPVersion(ip: String): String = {
+    this.setVersionIfNotDefined()
+    return IPVersionMap(this.targetVersion)(ip)
   }
 
 }
