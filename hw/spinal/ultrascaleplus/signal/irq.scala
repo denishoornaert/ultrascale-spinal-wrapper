@@ -15,6 +15,7 @@ case class IRQ(amount: Int = 8) extends Bits() with TCL {
     val index = this.getPartialName().takeRight(1)
     var tcl = ""
     tcl += TCLFactory.netConnection(f"${moduleName}_${this.getName()}", Seq(f"${moduleName}/${this.getName()}", f"processing_system/ps_pl_irq${index}"))
+    tcl += "\n"
     return tcl
   }
 

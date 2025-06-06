@@ -32,6 +32,7 @@ class PMOD(pins: Seq[String]) extends Vec[Bool](Bool, Vector.fill(pins.length)(B
       tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/io_${this.getPartialName()}_${pin}]\n"
       tcl += f"set_property NAME io_${this.getPartialName()}_${pin} [get_bd_ports /io_${this.getPartialName()}_${pin}_0]\n"
     }
+    tcl += "\n"
     return tcl
   }
 
