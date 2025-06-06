@@ -33,6 +33,7 @@ case class Shell() extends KV260(
     withDBG_CTO3   = true,
     withPL_PS_IRQ0 =    8,
     withPL_PS_IRQ1 =    8,
+    withTRACE      = true
   )
 ) {
 

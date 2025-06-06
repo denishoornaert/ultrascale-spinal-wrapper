@@ -36,7 +36,8 @@ class ZCU102Config(
   withDBG_CTO2   : Boolean = false,
   withDBG_CTO3   : Boolean = false,
   withPL_PS_IRQ0 : Int     =     0,
-  withPL_PS_IRQ1 : Int     =     0
+  withPL_PS_IRQ1 : Int     =     0,
+  withTRACE      : Boolean = false
   ) extends UltraScalePlusConfig(
     withLPD_HPM0   = withLPD_HPM0  ,
     withLPD_HP0    = withLPD_HP0   ,
@@ -59,7 +60,8 @@ class ZCU102Config(
     withDBG_CTO2   = withDBG_CTO2  ,
     withDBG_CTO3   = withDBG_CTO3  ,
     withPL_PS_IRQ0 = withPL_PS_IRQ0,
-    withPL_PS_IRQ1 = withPL_PS_IRQ1
+    withPL_PS_IRQ1 = withPL_PS_IRQ1,
+    withTRACE      = withTRACE
   ) {
 }
 

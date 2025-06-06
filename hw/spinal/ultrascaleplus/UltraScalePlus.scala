@@ -47,7 +47,8 @@ class UltraScalePlusConfig(
   val withDBG_CTO2   : Boolean = false,
   val withDBG_CTO3   : Boolean = false,
   val withPL_PS_IRQ0 : Int     =     0,
-  val withPL_PS_IRQ1 : Int     =     0
+  val withPL_PS_IRQ1 : Int     =     0,
+  val withTRACE      : Boolean = false
   ) {
 }
 
@@ -83,6 +84,7 @@ class UltraScalePlusIO(config: UltraScalePlusConfig) extends Bundle {
     val toPS0 = (config.withPL_PS_IRQ0 > 0) generate (out(IRQ(config.withPL_PS_IRQ0)))
     val toPS1 = (config.withPL_PS_IRQ1 > 0) generate (out(IRQ(config.withPL_PS_IRQ1)))
   }
+  val trace = (config.withTRACE         ) generate ( in(Trace(32)))
 }
 
 
@@ -501,6 +503,12 @@ abstract class UltraScalePlus (
     tcl += "  CONFIG.PSU__SWDT1__CLOCK__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__SWDT1__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__SWDT1__RESET__ENABLE {0} \\\n"
+    if (this.config.withTRACE) {
+      tcl += "  CONFIG.PSU__TRACE__INTERNAL_WIDTH {32} \\\n"
+      tcl += "  CONFIG.PSU__TRACE__PERIPHERAL__ENABLE {1} \\\n"
+      tcl += "  CONFIG.PSU__TRACE__PERIPHERAL__IO {EMIO} \\\n"
+      tcl += "  CONFIG.PSU__TRACE__WIDTH {32Bit} \\\n"
+    }
     tcl += "  CONFIG.PSU__TTC0__CLOCK__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__TTC0__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__TTC0__WAVEOUT__ENABLE {0} \\\n"

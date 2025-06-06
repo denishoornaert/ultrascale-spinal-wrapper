@@ -37,6 +37,7 @@ class KR260Config(
   withDBG_CTO3   : Boolean = false,
   withPL_PS_IRQ0 : Int     =     0,
   withPL_PS_IRQ1 : Int     =     0,
+  withTRACE      : Boolean = false,
   // here
   val withIO_PMOD0: Boolean = false,
   val withIO_PMOD1: Boolean = false,
@@ -64,7 +65,8 @@ class KR260Config(
     withDBG_CTO2   = withDBG_CTO2  ,
     withDBG_CTO3   = withDBG_CTO3  ,
     withPL_PS_IRQ0 = withPL_PS_IRQ0,
-    withPL_PS_IRQ1 = withPL_PS_IRQ1
+    withPL_PS_IRQ1 = withPL_PS_IRQ1,
+    withTRACE      = withTRACE
   ) {
 }
 
