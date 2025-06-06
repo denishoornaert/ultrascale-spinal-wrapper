@@ -41,16 +41,22 @@ object TCLFactory {
     tcl +=  setProperty("board_part_repo_paths", f"[file normalize \"~/.Xilinx/Vivado/${Vivado.version}/xhub/board_store/xilinx_board_store\"]" , "$obj")
     tcl +=  setProperty("board_part", f"xilinx.com:${this.platform.get.board}:part0:${this.platform.get.version}", "$obj")
     tcl +=  setProperty("default_lib", "xil_defaultlib", "$obj")
-    tcl +=  setProperty("enable_resource_estimation", "0", "$obj")
+    // TODO implement version/properties map
+    if (Vivado.version != "2019.2")
+      tcl +=  setProperty("enable_resource_estimation", "0", "$obj")
     tcl +=  setProperty("enable_vhdl_2008", "1", "$obj")
     tcl +=  setProperty("ip_cache_permissions", "read write", "$obj")
     tcl +=  setProperty("ip_output_repo", "$proj_dir/"+f"${this.moduleName}.cache/ip", "$obj")
     tcl +=  setProperty("mem.enable_memory_map_generation", "1", "$obj")
     tcl +=  setProperty("platform.board_id", this.platform.get.board, "$obj")
-    tcl +=  setProperty("revised_directory_structure", "1", "$obj")
+    // TODO implement version/properties map
+    if (Vivado.version != "2019.2")
+      tcl +=  setProperty("revised_directory_structure", "1", "$obj")
     tcl +=  setProperty("sim.central_dir", "$proj_dir/"+f"${this.moduleName}.ip_user_files", "$obj")
     tcl +=  setProperty("sim.ip.auto_export_scripts", "1", "$obj")
-    tcl +=  setProperty("sim_compile_state", "1", "$obj")
+    // TODO implement version/properties map
+    if (Vivado.version != "2019.2")
+      tcl +=  setProperty("sim_compile_state", "1", "$obj")
     tcl += "\n"
     return tcl
   }
@@ -96,7 +102,11 @@ object TCLFactory {
   }
 
   def print(level: String, id: Int, message: String): String = {
-    return f"common::send_gid_msg -ssname BD::TCL -id ${id}"+" -severity \""+level+"\" \""+message+"\""
+
+    return Vivado.version match {
+      case "2019.2" => f"common::send_msg_id \"BD_TCL-${id}\" \"${level}\" \"${message}\""
+      case _        => f"common::send_gid_msg -ssname BD::TCL -id ${id} -severity \"${level}\" \"${message}\""
+    }
   }
 
   def createDesign(name: String): String = {
@@ -253,7 +263,10 @@ object TCLFactory {
 
   def createSynthesis(fileset: String, constraintFileset: String): String = {
     val strategy = "\"Vivado Synthesis Defaults\""
-    val flow     = "\"Vivado Synthesis 2022\""
+    val flow     = Vivado.version match {
+      case "2019.2" => "\"Vivado Synthesis 2019\""
+      case _ => "\"Vivado Synthesis 2022\""
+    }
     var tcl = ""
     tcl += f"set_property strategy ${strategy} [get_runs ${fileset}]\n"
     tcl += f"set_property flow ${flow} [get_runs ${fileset}]\n"
@@ -274,7 +287,10 @@ object TCLFactory {
 
   def createImplementation(fileset: String): String = {
     val strategy = "\"Vivado Implementation Defaults\""
-    val flow     = "\"Vivado Implementation 2022\""
+    val flow     = Vivado.version match {
+      case "2019.2" => "\"Vivado Implementation 2019\""
+      case _ => "\"Vivado Implementation 2022\""
+    }
     var tcl = ""
     tcl += f"set_property strategy ${strategy} [get_runs ${fileset}]\n"
     tcl += f"set_property flow ${flow} [get_runs ${fileset}]\n"

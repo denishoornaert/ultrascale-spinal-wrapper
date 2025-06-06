@@ -76,7 +76,7 @@ class ZCU102(
 ) {
 
   override val board = "zcu102"
-  override val version = "3.4"
+  override val version = "3.3"
   override val boardPart = "xczu9eg-ffvb1156-2-e"
 
   override val io = new ZCU102IO(config)
