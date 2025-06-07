@@ -13,10 +13,10 @@ In theory, any board and Vivado version can be supported. However, you can find 
 
 |        | Kria KV260 | Kria KR260 | ZCU102 |
 |:------:|:----------:|:----------:|:------:|
-| 2024.2 |        [x] |        [x] |    [ ] |
-| 2024.1 |        [x] |        [x] |    [ ] |
-| 2022.2 |        [x] |        [x] |    [ ] |
-| 2019.2 |        --- |        --- |    [x] |
+| 2024.2 |        ✔️  |        ✔️  |    ❓  |
+| 2024.1 |        ✔️  |        ✔️  |    ❓  |
+| 2022.2 |        ✔️  |        ✔️  |    ❓  |
+| 2019.2 |        ⛔  |        ⛔  |    ✔️  |
 
 **Let us know** if it works for you with another version!
 
