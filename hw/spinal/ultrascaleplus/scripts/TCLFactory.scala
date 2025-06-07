@@ -263,10 +263,7 @@ object TCLFactory {
 
   def createSynthesis(fileset: String, constraintFileset: String): String = {
     val strategy = "\"Vivado Synthesis Defaults\""
-    val flow     = Vivado.version match {
-      case "2019.2" => "\"Vivado Synthesis 2019\""
-      case _ => "\"Vivado Synthesis 2022\""
-    }
+    val flow = f"\"Vivado Synthesis ${Vivado.year}\""
     var tcl = ""
     tcl += f"set_property strategy ${strategy} [get_runs ${fileset}]\n"
     tcl += f"set_property flow ${flow} [get_runs ${fileset}]\n"
@@ -287,10 +284,7 @@ object TCLFactory {
 
   def createImplementation(fileset: String): String = {
     val strategy = "\"Vivado Implementation Defaults\""
-    val flow     = Vivado.version match {
-      case "2019.2" => "\"Vivado Implementation 2019\""
-      case _ => "\"Vivado Implementation 2022\""
-    }
+    val flow = f"\"Vivado Implementation ${Vivado.year}\""
     var tcl = ""
     tcl += f"set_property strategy ${strategy} [get_runs ${fileset}]\n"
     tcl += f"set_property flow ${flow} [get_runs ${fileset}]\n"

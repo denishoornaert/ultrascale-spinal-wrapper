@@ -12,8 +12,9 @@ import scala.io.Source
 
 object Vivado {
 
-  private var targetVersion: String = null
-  
+  var year    : String = null
+  var revision: String = null
+
   private val IPVersionMap = readIPVersionMap("/VivadoIPVersion.json")
 
   private def readIPVersionMap(resourcePath: String): Map[String,Map[String,String]] = {
@@ -24,18 +25,22 @@ object Vivado {
   }
 
   private def setVersionIfNotDefined(): Unit = {
-    if (targetVersion == null) {
+    if ((this.year == null) || (this.revision == null)) {
       // Report to user on specified version and detected one
-      if (Config.vivado == "auto") {
-        targetVersion = this.detectVivadoVersion()
-        Log.info(f"Vivado version ${this.version} detected and picked!")
+      if (Config.vivado == "auto") { 
+        val versionFound: Array[java.lang.String] = this.detectVivadoVersion().split('.')
+        this.year = versionFound(0)
+        this.revision = versionFound(1)
+        Log.info(f"Vivado version ${this.year}.${this.revision} detected and picked!")
       }
       else if (supportedVivadoVersions contains Config.vivado) {
-        targetVersion = Config.vivado
-        Log.info(f"$Vivado version ${targetVersion} will be used as specified!")
+        val versionFound: Array[java.lang.String] = this.detectVivadoVersion().split('.')
+        this.year = versionFound(0)
+        this.revision = versionFound(1)
+        Log.info(f"$Vivado version ${this.year}.${this.revision} will be used as specified!")
       }
       else {
-        Log.info(f"Requested vivado version (v${targetVersion}) is not supported!")
+        Log.info(f"Requested vivado version (v${this.year}.${this.revision}) is not supported!")
         System.exit(-1)
       }
     }
@@ -74,12 +79,12 @@ object Vivado {
   
   def version: String = {
     this.setVersionIfNotDefined()
-    return this.targetVersion
+    return f"${this.year}.${this.revision}"
   }
-  
+
   def getIPVersion(ip: String): String = {
     this.setVersionIfNotDefined()
-    return IPVersionMap(this.targetVersion)(ip)
+    return IPVersionMap(this.version)(ip)
   }
 
 }
