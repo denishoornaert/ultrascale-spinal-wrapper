@@ -17,17 +17,7 @@ import scala.io.Source
  */
 object Vivado {
 
-  /** 
-   *  Year of the vivado version employed. E.g., "2019" if version is "2019.2".
-   *  **Do not modify by yourself!**
-   */
-  var year    : String = null
-
-  /** 
-   *  Revision of the Vivado version employed. E.g., "2" if version is "2019.2".
-   *  **Do not modify by yourself!**
-   */
-  var revision: String = null
+  private var versionFound: Array[java.lang.String] = null
 
   /** 
    *  Nested mapping: Vivado version, Xilinx IP, IP version.
@@ -54,18 +44,14 @@ object Vivado {
    *  can be used (i.e., [[Config.vivado]] == XXXX.X).
    */
   private def setVersionIfNotDefined(): Unit = {
-    if ((this.year == null) || (this.revision == null)) {
+    if (this.versionFound == null) {
       // Report to user on specified version and detected one
       if (Config.vivado == "auto") { 
-        val versionFound: Array[java.lang.String] = this.detectVivadoVersion().split('.')
-        this.year = versionFound(0)
-        this.revision = versionFound(1)
+        versionFound = this.detectVivadoVersion().split('.')
         Log.info(f"Vivado version ${this.year}.${this.revision} detected and picked!")
       }
       else if (supportedVivadoVersions contains Config.vivado) {
-        val versionFound: Array[java.lang.String] = this.detectVivadoVersion().split('.')
-        this.year = versionFound(0)
-        this.revision = versionFound(1)
+        versionFound = this.detectVivadoVersion().split('.')
         Log.info(f"$Vivado version ${this.year}.${this.revision} will be used as specified!")
       }
       else {
@@ -114,6 +100,18 @@ object Vivado {
     return detectedVersion
   }
   
+  /** Year of the vivado version employed. E.g., "2019" if version is "2019.2". */
+  def year: String = {
+    this.setVersionIfNotDefined()
+    return this.versionFound(0)
+  }
+
+  /** Revision of the Vivado version employed. E.g., "2" if version is "2019.2". */
+  def revision: String = {
+    this.setVersionIfNotDefined()
+    return this.versionFound(1)
+  }
+
   /** Returns Vivado version used for the project.
    *
    *  @return version [[String]] in the format "year.revision".
