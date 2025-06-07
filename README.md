@@ -7,22 +7,16 @@ To get started, follow the guidelines provided hereunder and have a look at the 
 
 The API documentation of the library can be found [here](https://denishoornaert.github.io/ultrascale-spinal-wrapper/) (work in progress!).
 
-## List of supported boards
+## List of supported boards and Vivado version
 
-In theory most boards can be supported. However, you can find here a list of board supported (if listed) and tested (if checked).
+In theory, any board and Vivado version can be supported. However, you can find here the board and vivado version supported (if listed) and tested (if checked).
 
- - [x] AMD-Xilinx Kria KV260
- - [x] AMD-Xilinx Kria KR260
- - [x] AMD-Xilinx ZCU102
-
-## Vivado version tested
-
-Llist of board supported (if listed) and tested (if checked).
-
- - [x] Vivado 2024.2
- - [x] Vivado 2024.1
- - [x] Vivado 2022.2
- - [x] Vivado 2019.2
+|        | Kria KV260 | Kria KR260 | ZCU102 |
+|:------:|:----------:|:----------:|:------:|
+| 2024.2 |        [x] |        [x] |    [ ] |
+| 2024.1 |        [x] |        [x] |    [ ] |
+| 2022.2 |        [x] |        [x] |    [ ] |
+| 2019.2 |        --- |        --- |    [x] |
 
 **Let us know** if it works for you with another version!
 
