@@ -92,6 +92,8 @@ object Vivado {
    **/
   private var catalog: VivadoCatalog = {
 
+    setVersionIfNotDefined()
+
     val resource_url = getClass.getResource("/vivado_catalog_scan.tcl")
     val content = Source.fromURL(resource_url).mkString
 
@@ -206,12 +208,15 @@ object Vivado {
     catch {
       case e: java.io.IOException => {
         Log.info("No Vivado install found... Make sure to source your install 'settings.sh'!")
+        System.exit(-1)
       }
       case e: java.lang.RuntimeException => {
         Log.info("Calling 'vivado -version' failed... Make sure to source your install 'settings.sh'!")
+        System.exit(-1)
       }
       case e: Exception => {
         Log.info("Vivado install found but no version could be inferred from command line!")
+        System.exit(-1)
       }
       System.exit(-1);
     }
