@@ -5,9 +5,77 @@ import sys.process._
 import scala.util.matching.Regex
 import upickle.default._
 
+import scala.collection.mutable
+import scala.collection.immutable 
 
 import ultrascaleplus.utils.Log
 import scala.io.Source
+import scala.tools.nsc.doc.html.HtmlTags.P
+
+class VivadoCatalogItem(val vendor: String, val name: String, val version: String, val itemType: String) {}
+
+object VivadoCatalogItem {
+
+  def apply(line: String): VivadoCatalogItem = apply(line, null)
+
+  def apply(line: String, itemType: String): VivadoCatalogItem = {
+    val fields = line.split(":")
+    fields.size match {
+      case 3 => new VivadoCatalogItem(
+        vendor = fields(0),
+        name = fields(1),
+        version = fields(2),
+        itemType = itemType
+      )
+      case 4 => new VivadoCatalogItem(
+        vendor = fields(0),
+        itemType = if (itemType == null) fields(1) else itemType,
+        name = fields(2),
+        version = fields(3)
+      )
+      case _: Int => throw new RuntimeException(s"Invalid item line ${line}")
+    }
+  }
+}
+
+  /**
+    * Collect the vendor and version of available IPs and Boards, and list of the available parts for the currently sourced Vivado version.
+    *
+    * @param ips dictionary with name index of ips found in the sourced Vivado version
+    * @param boards dictionary with name index of boards found in the sourced Vivado version
+    * @param parts list of available parts in the sourced Vivado version
+    */
+  private class VivadoCatalog (
+    private val ips: Map[String, VivadoCatalogItem],
+    private val boards: Map[String, VivadoCatalogItem],
+    private val parts: List[String]
+  ) {
+    
+    /**
+      * Return the version of the passed IP, if present in the catalog
+      *
+      * @param ipName The name of the IP of interest
+      * @return Option object containing the version if IP found
+      */
+    def getIpVersion(ipName: String) : Option[String] = return ips.get(ipName).map(i => i.version)
+
+    /**
+      * Return the version of the passed Board, if present in the catalog
+      *
+      * @param boardName The name of the Board of interest
+      * @return Option object containing the version if Board found
+      */
+    def getBoardVersion(boardName: String) : Option[String] = return boards.get(boardName).map(i => i.version)
+
+    /**
+      * Check if the passed part is present in the catalog
+      *
+      * @param partName Name of the part of interest
+      * @return [[True]] if present, false otherwise
+      */
+    def isPartPresent(partName: String) : Boolean = parts.contains(partName)
+  }
+
 
 /** Object storing and referencing all things Vivado.
  *  
@@ -16,6 +84,56 @@ import scala.io.Source
  *  instance, this includes Vivado version, IP version for that Vivado, ...
  */
 object Vivado {
+
+
+  /**
+   * Populate a singleton object [[VivadoCatalog]]
+   * The data is collected via TCL scripts, could be necessary to update to python shell in future versions of Vivado.
+   **/
+  private var catalog: VivadoCatalog = {
+
+    val resource_url = getClass.getResource("/vivado_catalog_scan.tcl")
+    val content = Source.fromURL(resource_url).mkString
+
+    var path: os.Path = os.temp.dir() / "vivado_catalog_scan.tcl"
+
+    os.write(path, content)
+
+    val res = os.proc("vivado", "-nolog", "-nojournal", "-notrace", "-mode", "batch", "-source", path).call()
+
+    if (res.exitCode != 0)
+      throw new RuntimeException(s"Failed to execture probing tcl:\n${res.err.toString()}")
+
+    os.remove(path)
+
+    def readLines(filename: String) = {
+      val path = os.root / "tmp" / filename
+      os.read
+        .lines
+        .stream(path)
+    }
+
+    val boards = readLines("vivado_boards.txt")
+        .map(l => VivadoCatalogItem(l, "board"))
+        .map(i => (i.name, i))
+        .toList
+        .toMap
+
+    val ips = readLines("vivado_ips.txt")
+        .map(l => VivadoCatalogItem(l, "ip"))
+        .map(i => (i.name, i))
+        .toList
+        .toMap
+
+    val parts = readLines("vivado_parts.txt")
+        .toList
+
+    new VivadoCatalog(
+      ips = ips,
+      boards = boards,
+      parts = parts
+    )
+  }
 
   private var versionFound: Array[java.lang.String] = null
 
@@ -126,9 +244,13 @@ object Vivado {
    *  @param ip IP's name for which the version is required.
    *  @return version Version of the IP requested.
    */
-  def getIPVersion(ip: String): String = {
-    this.setVersionIfNotDefined()
-    return IPVersionMap(this.version)(ip)
-  }
+  def getIPVersion(ip: String): String = catalog.getIpVersion(ip).getOrElse(throw new RuntimeException(s"IP ${ip} does not exist in the catalog"))
+
+  /** Method returning the version of a given board for the Vivado set.
+   *
+   *  @param board Boards's name for which the version is required.
+   *  @return version Version of the board requested.
+   */
+  def getBoardVersion(board: String): String = catalog.getBoardVersion(board).getOrElse(throw new RuntimeException(s"Board ${board} does not exist in the catalog"))
 
 }

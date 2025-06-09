@@ -39,7 +39,7 @@ object TCLFactory {
     tcl +=  "\n"
     tcl +=  "set obj [current_project]\n"
     tcl +=  setProperty("board_part_repo_paths", f"[file normalize \"~/.Xilinx/Vivado/${Vivado.version}/xhub/board_store/xilinx_board_store\"]" , "$obj")
-    tcl +=  setProperty("board_part", f"xilinx.com:${this.platform.get.board}:part0:${this.platform.get.version}", "$obj")
+    tcl +=  setProperty("board_part", f"xilinx.com:${this.platform.get.board}:part0:${Vivado.getBoardVersion(this.platform.get.board)}", "$obj")
     tcl +=  setProperty("default_lib", "xil_defaultlib", "$obj")
     // TODO implement version/properties map
     if (Vivado.version != "2019.2")
