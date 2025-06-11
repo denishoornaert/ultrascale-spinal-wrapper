@@ -18,11 +18,11 @@ case class Bleacher() extends KV260(
 ) with Plim {  
   
   override def connectAWAddr(primary: UInt, secondary: UInt): Unit = {
-    secondary := Cat(U"8'h08", U"4'h0", primary(31 downto 16), primary(11 downto 0)).asUInt
+    secondary := Cat(U"17'h00008", U"4'h0", primary(31 downto 16), primary(11 downto 0)).asUInt
   }
 
   override def connectARAddr(primary: UInt, secondary: UInt): Unit = {
-    secondary := Cat(U"8'h08", U"4'h0", primary(31 downto 16), primary(11 downto 0)).asUInt
+    secondary := Cat(U"17'h00008", U"4'h0", primary(31 downto 16), primary(11 downto 0)).asUInt
   }
 
   override def connectAWId(primary: UInt, secondary: UInt): Unit = {
@@ -39,6 +39,14 @@ case class Bleacher() extends KV260(
 
   override def connectRId(primary: UInt, secondary: UInt): Unit = {
     primary := Cat(B"01101", secondary, B"00000").asUInt
+  }
+
+  override def connectAWUser(primary: Bits, secondary: Bits): Unit = {
+    secondary.clearAll()
+  }
+
+  override def connectARUser(primary: Bits, secondary: Bits): Unit = {
+    secondary.clearAll()
   }
 
   connect(io.fpd.hpm0, io.fpd.hp0)
