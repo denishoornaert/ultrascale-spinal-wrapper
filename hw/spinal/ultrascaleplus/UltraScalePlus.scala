@@ -542,8 +542,20 @@ abstract class UltraScalePlus (
     }
   }
 
+  def setConstraints(bundle: Bundle): Unit = {
+    for ((name, element) <- bundle.elements) {
+      // Bundle MUST stay at the last place!
+      element match {
+        case _:XDC    => Constraints.add(element.asInstanceOf[XDC].getXDC())
+        case _:Bundle => this.setConstraints(element.asInstanceOf[Bundle])
+        case _        => {}
+      }
+    }
+  }
+
   def generate(): Unit = {
     this.setAttribute(io)
+    this.setConstraints(io)
     TCLFactory.generate()
   }
 

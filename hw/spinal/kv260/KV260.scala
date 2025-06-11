@@ -82,13 +82,6 @@ class KV260(
   override val version = "1.4"
   override val boardPart = "xck26-sfvc784-2LV-c"
 
-  override def generate(): Unit = {
-    if (this.config.withIO_PMOD0) {
-      Constraints.add(io.pmod0.getXDC())
-    }
-    super.generate()
-  }
-
   override val io = new KV260IO(config)
 
 }
