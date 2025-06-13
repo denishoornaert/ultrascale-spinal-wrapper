@@ -14,7 +14,7 @@ import ultrascaleplus.utils._
  *  @param sfpPins SFP board pins' name for the platform.
  *  @param rxPins RX board pins' name for the platform.
  */
-case class GT(txPins: Seq[String], sfpPins: Seq[String], rxPins: Seq[String]) extends Bundle {
+case class GT(txPins: Seq[String], sfpPins: Seq[String], rxPins: Seq[String]) extends Bundle with PSPLInterface {
   
   case class SFP(pins: Seq[String]) extends Bundle with TCL with XDC {
     
@@ -65,6 +65,13 @@ case class GT(txPins: Seq[String], sfpPins: Seq[String], rxPins: Seq[String]) ex
       constraints += f"set_property PACKAGE_PIN ${pins(1)} [get_ports ${this.n.getName()}]\n"
       return constraints
     }
+  }
+
+  override def setAttribute(): Unit = {
+    this.tx.p.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getPartialName()} TXP")
+    this.tx.n.addAttribute("X_INTERFACE_INFO", f"xilinx.com;interface:sgmii:1.0 ${this.getPartialName()} TXN")
+    this.rx.p.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getPartialName()} RXP")
+    this.rx.n.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getPartialName()} RXN")
   }
 
   val tx  = out(DifferentialPaire(txPins))

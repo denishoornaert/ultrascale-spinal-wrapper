@@ -67,7 +67,7 @@ class ZCU102Config(
 }
 
 class ZCU102IO(config: ZCU102Config) extends UltraScalePlusIO(config) {
-  val sfp0 = (config.with_SFP0) generate (out(GT(GT0.TX, GT0.SFP, GT0.RX)))
+  val gt0 = (config.with_SFP0) generate (out(GT(GT0.TX, GT0.SFP, GT0.RX)))
 }
 
 
