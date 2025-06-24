@@ -32,7 +32,7 @@ case class Shell() extends ZCU102(
     withDBG_CTO3   = true,
     withPL_PS_IRQ0 =    8,
     withPL_PS_IRQ1 =    8,
-    with_SFP0      = true
+    with_GT0       = true
   )
 ) {
 
