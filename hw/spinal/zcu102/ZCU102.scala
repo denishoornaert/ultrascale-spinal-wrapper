@@ -10,7 +10,7 @@ import ultrascaleplus._
 import ultrascaleplus.signal.crosstrigger._
 import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.io.pmod._
-import ultrascaleplus.io.ethernet._
+import ultrascaleplus.io.gt._
 import ultrascaleplus.scripts._
 import zcu102.io.pmod._
 import zcu102.io.ethernet._
@@ -39,7 +39,7 @@ class ZCU102Config(
   withDBG_CTO3   : Boolean = false,
   withPL_PS_IRQ0 : Int     =     0,
   withPL_PS_IRQ1 : Int     =     0,
-  val with_SFP0  : Boolean = false
+  val with_GT0   : Boolean = false
   ) extends UltraScalePlusConfig(
     withLPD_HPM0   = withLPD_HPM0  ,
     withLPD_HP0    = withLPD_HP0   ,
@@ -67,7 +67,7 @@ class ZCU102Config(
 }
 
 class ZCU102IO(config: ZCU102Config) extends UltraScalePlusIO(config) {
-  val gt0 = (config.with_SFP0) generate (out(GT(GT0)))
+  val gt0 = (config.with_GT0) generate (master(GTMapped(GT0)))
 }
 
 
