@@ -34,23 +34,23 @@ object Ethernet {
   //    val rxoutclksel_in_0             = out(Bool())
   //    val s_axi_aclk_0                 =  in(Bool())
   //    val s_axi_aresetn_0              =  in(Bool())
-  //    val s_axi_arvalid_0              =  in(Bool())
-  //    val s_axi_arready_0              = out(Bool())
-  //    val s_axi_araddr_0               =  in(UInt(32 bits))
-  //    val s_axi_rvalid_0               = out(Bool())
-  //    val s_axi_rready_0               =  in(Bool())
-  //    val s_axi_rdata_0                = out(UInt(32 bits))
-  //    val s_axi_rresp_0                = out(UInt( 3 bits))
-  //    val s_axi_awvalid_0              =  in(Bool())
-  //    val s_axi_awready_0              = out(Bool())
-  //    val s_axi_awaddr_0               =  in(UInt(32 bits))
-  //    val s_axi_wvalid_0               =  in(Bool())
-  //    val s_axi_wready_0               = out(Bool())
-  //    val s_axi_wdata_0                =  in(UInt(32 bits))
-  //    val s_axi_wstrb_0                =  in(UInt( 4 bits))
-  //    val s_axi_bvalid_0               = out(Bool())
-  //    val s_axi_bready_0               =  in(Bool())
-  //    val s_axi_bresp_0                = out(UInt( 3 bits))
+      val s_axi_arvalid_0              =  in(Bool())
+      val s_axi_arready_0              = out(Bool())
+      val s_axi_araddr_0               =  in(UInt(32 bits))
+      val s_axi_rvalid_0               = out(Bool())
+      val s_axi_rready_0               =  in(Bool())
+      val s_axi_rdata_0                = out(UInt(32 bits))
+      val s_axi_rresp_0                = out(UInt( 3 bits))
+      val s_axi_awvalid_0              =  in(Bool())
+      val s_axi_awready_0              = out(Bool())
+      val s_axi_awaddr_0               =  in(UInt(32 bits))
+      val s_axi_wvalid_0               =  in(Bool())
+      val s_axi_wready_0               = out(Bool())
+      val s_axi_wdata_0                =  in(UInt(32 bits))
+      val s_axi_wstrb_0                =  in(UInt( 4 bits))
+      val s_axi_bvalid_0               = out(Bool())
+      val s_axi_bready_0               =  in(Bool())
+      val s_axi_bresp_0                = out(UInt( 3 bits))
   //    val stat_tx_bad_fcs_0            = out(Bool())
   //    val stat_tx_frame_error_0        = out(Bool())
   //    val stat_tx_local_fault_0        = out(Bool())
@@ -58,12 +58,12 @@ object Ethernet {
   //    val stat_tx_packet_small_0       = out(Bool())
   //    val stat_tx_total_good_packets_0 = out(UInt(32 bits))
   //    val sys_reset                    =  in(Bool())
-  //    val tx_axis_tvalid_0             =  in(Bool())
-  //    val tx_axis_tready_0             = out(Bool())
-  //    val tx_axis_tdata_0              =  in(UInt(32 bits))
-  //    val tx_axis_tkeep_0              =  in(Bool())
-  //    val tx_axis_tlast_0              =  in(Bool())
-  //    val tx_axis_tuser_0              =  in(UInt( 1 bits))
+      val tx_axis_tvalid_0             =  in(Bool())
+      val tx_axis_tready_0             = out(Bool())
+      val tx_axis_tdata_0              =  in(UInt(32 bits))
+      val tx_axis_tkeep_0              =  in(Bool())
+      val tx_axis_tlast_0              =  in(Bool())
+      val tx_axis_tuser_0              =  in(UInt( 1 bits))
   //    val tx_clk_out_0                 = out(Bool())
   //    val tx_preamblein_0              =  in(Bool())
   //    val tx_reset_0                   =  in(Bool())
@@ -83,6 +83,22 @@ object Ethernet {
    *  @param lane The selected lane.
    */
   case class Config(group: String, lane: String) {}
+
+  /** Configuration of the Slave/Secondary AxiLite configuration port of the 
+   *  Xilinx Ethenet IP. Mirrors the blackboxed IP; do not modify.
+   */
+  val AxiPortConfig = AxiLite4Config(32, 32)
+
+  /** configuration of the transmission (TX) Axi4Stream port of the Xilinx
+   *  Ethernet IP. Mirrors the blackboxed IP; do not modify.
+   */
+  val AxiTXConfig = Axi4StreamConfig(
+    dataWidth =    4,
+    userWidth =    1,
+    useKeep   = true,
+    useLast   = true,
+    useUser   = true
+  )
 
 }
 
@@ -110,14 +126,44 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
   override val blackbox = Ethernet.xxv_ethernet()
 
   val io = new Bundle{
-    val gt = master(GT())
-  } 
+    val gt  = master(GT())
+    val axi = slave(AxiLite4(Ethernet.AxiPortConfig))
+    val tx  = new Bundle {
+      val axis = slave(Axi4Stream(Ethernet.AxiTXConfig))
+    }
+  }
 
   // Hardcoded io connections
+  //// GT
   io.gt.tx.n <> blackbox.io.gt_txn_out
   io.gt.tx.p <> blackbox.io.gt_txp_out
   io.gt.rx.n <> blackbox.io.gt_rxn_in
   io.gt.rx.p <> blackbox.io.gt_rxp_in
   io.gt.sfp.dis := False
+  //// AXI 
+  blackbox.io.s_axi_arvalid_0 <> io.axi.ar.valid
+  io.axi.ar.ready             <> blackbox.io.s_axi_arready_0
+  blackbox.io.s_axi_araddr_0  <> io.axi.ar.addr
+  io.axi.r.valid              <> blackbox.io.s_axi_rvalid_0
+  blackbox.io.s_axi_rready_0  <> io.axi.r.ready
+  io.axi.r.data               <> blackbox.io.s_axi_rdata_0
+  io.axi.r.resp               <> blackbox.io.s_axi_rresp_0
+  blackbox.io.s_axi_awvalid_0 <> io.axi.aw.valid
+  io.axi.aw.ready             <> blackbox.io.s_axi_awready_0
+  blackbox.io.s_axi_awaddr_0  <> io.axi.aw.addr
+  blackbox.io.s_axi_wvalid_0  <> io.axi.w.valid
+  io.axi.w.ready              <> blackbox.io.s_axi_wready_0
+  blackbox.io.s_axi_wdata_0   <> io.axi.w.data
+  blackbox.io.s_axi_wstrb_0   <> io.axi.w.strb
+  io.axi.b.valid              <> black.io.s_axi_bvalid_0
+  black.io.s_axi_bready_0     <> io.axi.b.ready
+  io.axi.b.resp               <> 0
+  //// TX
+  blackbox.io.tx_axis_tvalid_0 <> io.tx.axis.valid
+  io.tx.axis.ready             <> blackbox.io.tx_axis_tready_0
+  blackbox.io.tx_axis_tdata_0  <> io.tx.axis.data
+  blackbox.io.tx_axis_tkeep_0  <> io.tx.axis.keep
+  blackbox.io.tx_axis_tlast_0  <> io.tx.axis.last
+  blackbox.io.tx_axis_tuser_0  <> io.tx.axis.user
 
 }
