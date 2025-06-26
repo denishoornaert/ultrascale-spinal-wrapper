@@ -3,6 +3,18 @@
 **NOTE:** The content of the repository does not standalone: it only provides the support to ease and speed-up the generation of SpinalHDL written modules on AMD-Xilinx UltraScale+ platforms.
 To get started, follow the guidelines provided hereunder and have a look at the example.
 
+## Cite us
+
+If you have found this project helpful and used it in your project, feel free to cite us via:
+```bibtex
+@inproceedings{UltraScaleplusSpinalHDLWrapper,
+  title={UltraScale+ SpinalHDL Wrapper: Streamlining Ideas to Bitstream on UltraScale+ platforms},
+  author={Hoornaert, Denis and Corradi, Giulio and Mancuso, Renato and Caccamo, Marco},
+  booktitle={In Proceedings of the 19th Workshop on Operating Systems Platforms for Embedded Real-Time Applications (OSPERT 2025)},
+  year={2025}
+}
+```
+
 ## Documentation
 
 The API documentation of the library can be found [here](https://denishoornaert.github.io/ultrascale-spinal-wrapper/) (work in progress!).
