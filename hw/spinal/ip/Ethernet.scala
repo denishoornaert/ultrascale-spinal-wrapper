@@ -14,25 +14,33 @@ object Ethernet {
   case class xxv_ethernet() extends BlackBox() {
   
     val io = new Bundle {
-  //    val ctl_tx_send_idle_0           =  in(Bool())
-  //    val ctl_tx_send_lfi_0            =  in(Bool())
-  //    val ctl_tx_send_rfi_0            =  in(Bool())
-  //    val dclk                         =  in(Bool())
-  //    val gt_refclk_n                  =  in(Bool())
-  //    val gt_refclk_p                  =  in(Bool())
+  //    val ctl_tx_send_idle_0           =  in(Bool()) // hardcoded to false
+  //    val ctl_tx_send_lfi_0            =  in(Bool()) // hardcoded to false
+  //    val ctl_tx_send_rfi_0            =  in(Bool()) // hardcoded to false
+  //    val dclk                         =  in(Bool()) // clock 75 MHz
+  //    val gt_refclk_n                  =  in(Bool()) // Comes fromt he constraint. SI570User (dtb). Specified in constraints
+  //    val gt_refclk_p                  =  in(Bool()) // Comes fromt he constraint. SI570User (dtb). Specified in constraints
       val gt_rxn_in                    =  in(Bool())
       val gt_rxp_in                    =  in(Bool())
       val gt_txn_out                   = out(Bool())
       val gt_txp_out                   = out(Bool())
-  //    val gtwiz_reset_rx_datapath_0    =  in(Bool())
-  //    val gtwiz_reset_tx_datapath_0    = out(Bool())
-  //    val pm_tick_0                    =  in(Bool())
-  //    val qpllreset_in_0               =  in(Bool())
-  //    val rx_clk_out_0                 = out(Bool())
+  //    val gtwiz_reset_rx_datapath_0    =  in(Bool()) // same reset as everyone
+  //    val gtwiz_reset_tx_datapath_0    =  in(Bool()) // same reset as everyone
+  //    val pm_tick_0                    =  in(Bool()) // Not connected (try false)
+  //    val qpllreset_in_0               =  in(Bool()) // Not connected (try false)
+  //    val rx_reset_0                   =  in(Bool()) // Not connected (try false)
+  //    val tx_reset_0                   =  in(Bool()) // Not connected (try false)
+  //    val rx_clk_out_0                 = out(Bool()) // feedback to rx_core_clk_0
   //    val rx_core_clk_0                =  in(Bool())
-  //    val rx_reset_0                   =  in(Bool())
-  //    val rxoutclksel_in_0             = out(Bool())
-  //    val s_axi_aclk_0                 =  in(Bool())
+  //    val tx_clk_out_0                 = out(Bool()) // Operating clock of the IP; must be fedback to data source
+  //    val user_tx_reset_0              = out(Bool()) // reset associated with tx_clk_out_0
+  //    val sys_reset                    =  in(Bool()) // overall reset of the IP (TODO: to double)
+  //    val tx_preamblein_0              =  in(UInt(56 bits)) // Hardcoded to 0
+  //    val tx_unfout_0                  = out(Bool()) // Not connected (maybe an error signal)
+  //    val txoutclksel_in_0             =  in(UInt(3 bits)) // hardcoded to 0 (part of Versal)
+  //    val rxoutclksel_in_0             =  in(UInt(3 bits)) // hardcoded to 0 (part of Versal)
+      
+  //    val s_axi_aclk_0                 =  in(Bool()) // in patrick's design same as 75 MHz (TODO: check if must be the same or different)
   //    val s_axi_aresetn_0              =  in(Bool())
       val s_axi_arvalid_0              =  in(Bool())
       val s_axi_arready_0              = out(Bool())
@@ -51,25 +59,20 @@ object Ethernet {
       val s_axi_bvalid_0               = out(Bool())
       val s_axi_bready_0               =  in(Bool())
       val s_axi_bresp_0                = out(UInt( 3 bits))
+  // could be defined as an interface! (xilinx.com:display_xxv_ethernet:statics_port:2.0)
+  // TODO: there is one equivalent for RX
   //    val stat_tx_bad_fcs_0            = out(Bool())
   //    val stat_tx_frame_error_0        = out(Bool())
   //    val stat_tx_local_fault_0        = out(Bool())
   //    val stat_tx_packet_large_0       = out(Bool())
   //    val stat_tx_packet_small_0       = out(Bool())
   //    val stat_tx_total_good_packets_0 = out(UInt(32 bits))
-  //    val sys_reset                    =  in(Bool())
       val tx_axis_tvalid_0             =  in(Bool())
       val tx_axis_tready_0             = out(Bool())
       val tx_axis_tdata_0              =  in(UInt(32 bits))
       val tx_axis_tkeep_0              =  in(Bool())
       val tx_axis_tlast_0              =  in(Bool())
       val tx_axis_tuser_0              =  in(UInt( 1 bits))
-  //    val tx_clk_out_0                 = out(Bool())
-  //    val tx_preamblein_0              =  in(Bool())
-  //    val tx_reset_0                   =  in(Bool())
-  //    val tx_unfout_0                  = out(Bool())
-  //    val txoutclksel_in_0             =  in(Bool())
-  //    val user_tx_reset_0              =  in(Bool())
     }
   
   }
