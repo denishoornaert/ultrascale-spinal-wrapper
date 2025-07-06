@@ -4,6 +4,8 @@ package ultrascaleplus.utils
 import Console.{RESET, YELLOW}
 
 
+import spinal.core._
+import spinal.lib._
 import spinal.lib.bus.misc.SizeMapping
 
 
@@ -28,7 +30,7 @@ trait TCL {
   /**
    * Generates the TCL script specific to the element.
    */
-  def getTCL(moduleName: String, clock: String): String = {
+  def getTCL(moduleName: String): String = {
     return ""
   }
 
@@ -57,6 +59,22 @@ object Log {
 
   def info(message: String): Unit = {
     println(f"${RESET}${YELLOW}[UltraScale+] ${message}${RESET}")
+  }
+
+}
+
+object Util {
+
+  def topmodule(component: Component): Component = {
+    var module = component
+    while (module.parent != null) {
+      module = module.parent
+    }
+    return module
+  }
+
+  def topmodule(interface: Bundle): Component = {
+    return topmodule(interface.component)
   }
 
 }
