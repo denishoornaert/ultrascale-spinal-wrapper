@@ -7,7 +7,7 @@ import spinal.lib.bus.amba4.axi._
 
 
 import ultrascaleplus.scripts.{TCLFactory}
-import ultrascaleplus.utils.{Aperture, PSPLInterface, TCL, Util}
+import ultrascaleplus.utils.{Aperture, PSPLInterface, TCL, Util, hasClockReset}
 import ultrascaleplus.clock.ClockResetMapped
 
 
@@ -35,15 +35,9 @@ object Axi4Mapped {
 }
 
 
-class Axi4Mapped(override val config: Axi4Config, name: String, val apertures: Seq[Aperture], id: String, domain: String) extends Axi4(config) with PSPLInterface with TCL {
+class Axi4Mapped(override val config: Axi4Config, name: String, val apertures: Seq[Aperture], id: String, domain: String) extends Axi4(config) with hasClockReset with PSPLInterface with TCL {
 
   this.setName(f"${domain}${if(name != "") f"_${name}" else ""}")
-
-  private var clock: Option[ClockResetMapped] = None
-
-  def associateClockDomain(associate: ClockResetMapped): Unit = {
-    this.clock = Some(associate)
-  }
 
   override def getTCL(): String = {
     val moduleName = Util.topmodule(this).getName()
@@ -56,7 +50,7 @@ class Axi4Mapped(override val config: Axi4Config, name: String, val apertures: S
     // TODO: code could be optimized by checking whether the port is in primary/subordinate mode.
     // TODO: quite mesy at this point... Should be refactored
     var tcl = ""
-    if (!clock.isDefined) {
+    if (!this.clockAssociated) {
       throw new Exception(f"No clock associated with ${this.getName()}");
     }
     else {
