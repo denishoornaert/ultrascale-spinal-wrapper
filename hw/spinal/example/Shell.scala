@@ -39,17 +39,17 @@ case class Shell() extends KV260(
 
   this.stub()
 
-  io.lpd.hp0.associateClockDomain(io.pl.clk0)
-  io.lpd.hpm0.associateClockDomain(io.pl.clk0)
-  io.fpd.hpm0.associateClockDomain(io.pl.clk0)
-  io.fpd.hpm1.associateClockDomain(io.pl.clk0)
-  io.fpd.hp0.associateClockDomain(io.pl.clk0)
-  io.fpd.hp1.associateClockDomain(io.pl.clk0)
-  io.fpd.hp2.associateClockDomain(io.pl.clk0)
-  io.fpd.hp3.associateClockDomain(io.pl.clk0)
-  io.fpd.hpc0.associateClockDomain(io.pl.clk0)
-  io.fpd.hpc1.associateClockDomain(io.pl.clk0)
-  io.fpd.acp.associateClockDomain(io.pl.clk0)
+  io.lpd.hp0.associate(io.pl.clk0)
+  io.lpd.hpm0.associate(io.pl.clk0)
+  io.fpd.hpm0.associate(io.pl.clk0)
+  io.fpd.hpm1.associate(io.pl.clk0)
+  io.fpd.hp0.associate(io.pl.clk0)
+  io.fpd.hp1.associate(io.pl.clk0)
+  io.fpd.hp2.associate(io.pl.clk0)
+  io.fpd.hp3.associate(io.pl.clk0)
+  io.fpd.hpc0.associate(io.pl.clk0)
+  io.fpd.hpc1.associate(io.pl.clk0)
+  io.fpd.acp.associate(io.pl.clk0)
 
   plclk0.rework{
     // Create dummy register to force instantiation of cock and reset I/O
