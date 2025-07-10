@@ -65,6 +65,11 @@ object Log {
 
 object Util {
 
+  /** Looks for the topmodule of a given module.
+   *  
+   *  @parameter component The child component we want to look-up the root.
+   *  @return topmodule The parent/topmodule/root component of the component given in parameter.
+   */
   def topmodule(component: Component): Component = {
     var module = component
     while (module.parent != null) {
@@ -73,6 +78,11 @@ object Util {
     return module
   }
 
+  /** Looks for the topmodule of a given module.
+   *  
+   *  @parameter interface The interface of a child component we want to look-up the root.
+   *  @return topmodule The parent/topmodule/root component of the component given in parameter.
+   */
   def topmodule(interface: Data): Component = {
     return topmodule(interface.component)
   }
