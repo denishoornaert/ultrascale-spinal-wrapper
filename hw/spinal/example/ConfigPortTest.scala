@@ -12,8 +12,8 @@ import ultrascaleplus.configport._
 
 
 case class ConfigPortTest() extends KV260(
-  frequency = 100 MHz,
   config    = new KV260Config(
+    withPL_CLK0  = 100 MHz,
     withLPD_HPM0 = true
   )
 ) {
