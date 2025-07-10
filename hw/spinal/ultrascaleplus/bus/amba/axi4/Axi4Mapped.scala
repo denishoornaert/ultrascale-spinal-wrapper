@@ -8,7 +8,7 @@ import spinal.lib.bus.amba4.axi._
 
 import ultrascaleplus.scripts.{TCLFactory}
 import ultrascaleplus.utils.{Aperture, PSPLInterface, TCL, Util}
-import ultrascaleplus.clock.ClockMapped
+import ultrascaleplus.clock.ClockResetMapped
 
 
 abstract class Axi4MappedInstanceTemplate() {
@@ -39,9 +39,9 @@ class Axi4Mapped(override val config: Axi4Config, name: String, val apertures: S
 
   this.setName(f"${domain}${if(name != "") f"_${name}" else ""}")
 
-  private var clock: Option[ClockMapped] = None
+  private var clock: Option[ClockResetMapped] = None
 
-  def associateClockDomain(associate: ClockMapped): Unit = {
+  def associateClockDomain(associate: ClockResetMapped): Unit = {
     this.clock = Some(associate)
   }
 
