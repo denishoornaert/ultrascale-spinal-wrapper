@@ -119,7 +119,7 @@ abstract class UltraScalePlus (
   val plclk3: ClockingArea
 
   
-  def getTCL(): String = {
+  override def getTCL(): String = {
     var tcl = ""
     tcl +=f"set processing_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:${Vivado.getIPVersion("zynq_ultra_ps_e")} processing_system ]\n"
     tcl += "set_property -dict [list \\\n"

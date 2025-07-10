@@ -30,7 +30,7 @@ trait TCL {
   /**
    * Generates the TCL script specific to the element.
    */
-  def getTCL(moduleName: String): String = {
+  def getTCL(): String = {
     return ""
   }
 
@@ -73,7 +73,7 @@ object Util {
     return module
   }
 
-  def topmodule(interface: Bundle): Component = {
+  def topmodule(interface: Data): Component = {
     return topmodule(interface.component)
   }
 

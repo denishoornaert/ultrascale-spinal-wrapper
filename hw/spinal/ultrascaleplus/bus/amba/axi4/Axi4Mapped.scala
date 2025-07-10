@@ -7,7 +7,7 @@ import spinal.lib.bus.amba4.axi._
 
 
 import ultrascaleplus.scripts.{TCLFactory}
-import ultrascaleplus.utils.{Aperture, PSPLInterface, TCL}
+import ultrascaleplus.utils.{Aperture, PSPLInterface, TCL, Util}
 import ultrascaleplus.clock.ClockMapped
 
 
@@ -45,8 +45,9 @@ class Axi4Mapped(override val config: Axi4Config, name: String, val apertures: S
     this.clock = Some(associate)
   }
 
-  override def getTCL(moduleName: String): String = {
-    // String preprocessing
+  override def getTCL(): String = {
+    val moduleName = Util.topmodule(this).getName()
+    // String preprocessin
     val portUpper = name.toUpperCase()
     val portLower = name.toLowerCase()
     val domainUpper = domain.toUpperCase()
@@ -87,8 +88,9 @@ class Axi4Mapped(override val config: Axi4Config, name: String, val apertures: S
       throw new Exception(f"No clock associated with ${this.getName()}");
     }
     else {
+      this.clock.get.addAttribute("X_INTERFACE_PARAMETER", f"ASSOCIATED_BUSIF = ${this.getName()}, ASSOCIATED_RESET = ${this.clock.get.reset.getName()}")
       val direction = if (this.isSlaveInterface) "Master" else "Slave"
-      this.addAttribute("X_INTERFACE_PARAMETER", f"XIL_INTERFACENAME ${this.getName()}, PROTOCOL AXI4, MODE ${direction}, ASSOCIATED_BUSIF ${this.getName()}, ASSOCIATED_RESET ${this.clock.get.reset.getName()}, ASSOCIATED_CLOCK ${this.clock.get.clock.getName()}, FREQ_HZ ${this.clock.get.frequency.toLong}, FREQ_TOLERANCE_HZ 0")
+      this.addAttribute("X_INTERFACE_PARAMETER", f"XIL_INTERFACENAME = ${this.getName()}, PROTOCOL = AXI4, MODE = ${direction}, ASSOCIATED_CLOCK = ${this.clock.get.clock.getName()}, FREQ_HZ = ${this.clock.get.frequency.toLong}, FREQ_TOLERANCE_HZ = 0")
       for (channel <- Seq(this.ar, this.r, this.aw, this.w, this.b)) {
         channel.valid.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.getName(), channel.getPartialName(), channel.valid.getPartialName()))
         channel.ready.addAttribute("X_INTERFACE_INFO", this.generateFieldAttribute(this.getName(), channel.getPartialName(), channel.ready.getPartialName()))

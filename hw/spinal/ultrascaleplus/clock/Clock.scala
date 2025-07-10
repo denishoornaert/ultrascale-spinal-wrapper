@@ -25,7 +25,7 @@ case class ClockMapped(source: PllSource, target: HertzNumber) extends Bundle wi
     config    = ClockDomainConfig(resetActiveLevel = HIGH)
   )
 
-  override def getTCL(moduleName: String): String = {
+  override def getTCL(): String = {
     val topmodule = Util.topmodule(this)
     var tcl = ""
     tcl += TCLFactory.netConnection(this.clock.getName(), Seq(f"${topmodule}/${this.clock.getName()}", "reset_system/slowest_sync_clk", f"processing_system/pl_${this.getPartialName()}"))

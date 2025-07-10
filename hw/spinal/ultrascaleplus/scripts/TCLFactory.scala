@@ -16,14 +16,12 @@ import ultrascaleplus.utils.{TCL}
 object TCLFactory {
 
   var target    : String = "vivado/untitled.tcl"
-  var moduleName: String = "untitled"
   var platform  : Option[UltraScalePlus] = None
 
   def apply(platform: UltraScalePlus): Unit = {
     this.platform = Some(platform)
     this.platform.get.setName(this.platform.get.getClass.getSimpleName)
-    this.moduleName = this.platform.get.getName()
-    this.target = f"vivado/${this.moduleName}.tcl"
+    this.target = f"vivado/${this.platform.get.getName()}.tcl"
   }
 
   // Call from inside
@@ -35,7 +33,7 @@ object TCLFactory {
   def createProject(): String = {
     var tcl = ""
     tcl +=  "\n"
-    tcl += f"create_project ${this.moduleName} ./vivado/${this.moduleName} -part ${this.platform.get.boardPart}\n"
+    tcl += f"create_project ${this.platform.get.getName()} ./vivado/${this.platform.get.getName()} -part ${this.platform.get.boardPart}\n"
     tcl +=  "set proj_dir [get_property directory [current_project]]\n"
     tcl +=  "\n"
     tcl +=  "set obj [current_project]\n"
@@ -45,11 +43,11 @@ object TCLFactory {
     tcl +=  setProperty("enable_resource_estimation", "0", "$obj")
     tcl +=  setProperty("enable_vhdl_2008", "1", "$obj")
     tcl +=  setProperty("ip_cache_permissions", "read write", "$obj")
-    tcl +=  setProperty("ip_output_repo", "$proj_dir/"+f"${this.moduleName}.cache/ip", "$obj")
+    tcl +=  setProperty("ip_output_repo", "$proj_dir/"+f"${this.platform.get.getName()}.cache/ip", "$obj")
     tcl +=  setProperty("mem.enable_memory_map_generation", "1", "$obj")
     tcl +=  setProperty("platform.board_id", this.platform.get.board, "$obj")
     tcl +=  setProperty("revised_directory_structure", "1", "$obj")
-    tcl +=  setProperty("sim.central_dir", "$proj_dir/"+f"${this.moduleName}.ip_user_files", "$obj")
+    tcl +=  setProperty("sim.central_dir", "$proj_dir/"+f"${this.platform.get.getName()}.ip_user_files", "$obj")
     tcl +=  setProperty("sim.ip.auto_export_scripts", "1", "$obj")
     tcl +=  setProperty("sim_compile_state", "1", "$obj")
     tcl += "\n"
@@ -72,8 +70,8 @@ object TCLFactory {
 
   def importConstraints(fileset: String): String = {
     var tcl = ""
-    tcl +=  "add_files -fileset constrs_1 -norecurse ./hw/gen/"+this.moduleName+".xdc\n"
-    tcl +=  "import_files -fileset constrs_1 ./hw/gen/"+this.moduleName+".xdc\n"
+    tcl +=  "add_files -fileset constrs_1 -norecurse ./hw/gen/"+this.platform.get.getName()+".xdc\n"
+    tcl +=  "import_files -fileset constrs_1 ./hw/gen/"+this.platform.get.getName()+".xdc\n"
     tcl +=  "\n"
     return tcl
   }
@@ -81,7 +79,7 @@ object TCLFactory {
   def addFileset(fileset: String): String = {
     var tcl = ""
     tcl += f"set obj [get_filesets ${fileset}]\n"
-    tcl +=  "set files [list [file normalize \"./hw/gen/"+this.moduleName+".v\"]]\n"
+    tcl +=  "set files [list [file normalize \"./hw/gen/"+this.platform.get.getName()+".v\"]]\n"
     tcl +=  "add_files -norecurse -fileset $obj $files\n"
     tcl +=  "\n"
     return tcl
@@ -90,8 +88,8 @@ object TCLFactory {
   def addSources(fileset: String): String = {
     val empty = "\"\"" 
     var tcl = ""
-    tcl += f"if { [get_files ${this.moduleName}.v] == ${empty} } {\n"
-    tcl += f"  import_files -quiet -fileset ${fileset} ./hw/gen/${this.moduleName}.v\n"
+    tcl += f"if { [get_files ${this.platform.get.getName()}.v] == ${empty} } {\n"
+    tcl += f"  import_files -quiet -fileset ${fileset} ./hw/gen/${this.platform.get.getName()}.v\n"
     tcl +=  "}\n"
     return tcl
   }
@@ -126,7 +124,7 @@ object TCLFactory {
   def checkModules(): String = {
     var tcl = ""
     tcl +=  "set list_mods_missing \"\"\n"
-    tcl += f"foreach mod_vlnv ${this.moduleName} {\n"
+    tcl += f"foreach mod_vlnv ${this.platform.get.getName()} {\n"
     tcl +=  "  if { [can_resolve_reference $mod_vlnv] == 0 } {\n"
     tcl +=  "    lappend list_mods_missing $mod_vlnv\n"
     tcl +=  "  }\n"
@@ -166,12 +164,12 @@ object TCLFactory {
   def createBlock(): String = {
     val empty = "\"\"" 
     var tcl = ""
-    tcl += f"set block_name ${this.moduleName}\n"
-    tcl += f"if { [catch {set ${this.moduleName} [create_bd_cell -type module -reference ${this.moduleName} ${this.moduleName}] } errmsg] } {\n"
-    tcl +=  "  catch {"+this.print("ERROR", 2095, f"Unable to add referenced block <${this.moduleName}>. Please add the files for ${this.moduleName}'s definition into the project.")+"}\n"
+    tcl += f"set block_name ${this.platform.get.getName()}\n"
+    tcl += f"if { [catch {set ${this.platform.get.getName()} [create_bd_cell -type module -reference ${this.platform.get.getName()} ${this.platform.get.getName()}] } errmsg] } {\n"
+    tcl +=  "  catch {"+this.print("ERROR", 2095, f"Unable to add referenced block <${this.platform.get.getName()}>. Please add the files for ${this.platform.get.getName()}'s definition into the project.")+"}\n"
     tcl +=  "  return 1\n"
-    tcl +=  "} elseif { $"+this.moduleName+f" eq ${empty} } {\n"
-    tcl +=  "  catch {"+this.print("ERROR", 2096, f"Unable to referenced block <${this.moduleName}>. Please add the files for ${this.moduleName}'s definition into the project.")+"}\n"
+    tcl +=  "} elseif { $"+this.platform.get.getName()+f" eq ${empty} } {\n"
+    tcl +=  "  catch {"+this.print("ERROR", 2096, f"Unable to referenced block <${this.platform.get.getName()}>. Please add the files for ${this.platform.get.getName()}'s definition into the project.")+"}\n"
     tcl +=  "  return 1\n"
     tcl +=  "}\n"
     tcl +=  "\n"
@@ -206,7 +204,7 @@ object TCLFactory {
     for ((name, element) <- bundle.elements) {
       // Bundle MUST stay at the last place!
       element match {
-        case _:TCL      => tcl += element.asInstanceOf[TCL].getTCL(this.moduleName) // TODO: must be replace with variable
+        case _:TCL      => tcl += element.asInstanceOf[TCL].getTCL()
         case _:Bundle   => tcl += this.addInterfaces(element.asInstanceOf[Bundle])
         case _          => tcl += ""
       }
@@ -228,7 +226,7 @@ object TCLFactory {
   }
 
   def wrapDesign(fileset: String): String = {
-    val path = f"./vivado/${this.moduleName}/${this.moduleName}.gen/${fileset}/bd/design_1/hdl/design_1_wrapper.v"
+    val path = f"./vivado/${this.platform.get.getName()}/${this.platform.get.getName()}.gen/${fileset}/bd/design_1/hdl/design_1_wrapper.v"
     var tcl = "" 
     tcl +=  "if { [get_property IS_LOCKED [ get_files -norecurse design_1.bd]] == 1 } {\n"
     tcl +=  "  import_files -fileset sources_1 [file normalize \""+path+"\"]\n"
@@ -559,7 +557,7 @@ object TCLFactory {
   }
 
   def getBitstream(fileset: String): String = {
-    return f"file copy -force ./vivado/${this.moduleName}/${this.moduleName}.runs/${fileset}/design_1_wrapper.bit ./${this.moduleName}.bit\n"
+    return f"file copy -force ./vivado/${this.platform.get.getName()}/${this.platform.get.getName()}.runs/${fileset}/design_1_wrapper.bit ./${this.platform.get.getName()}.bit\n"
   }
 
   def script(): String = {
@@ -594,7 +592,7 @@ object TCLFactory {
     tcl += this.createDesign("design_1")
     tcl += this.print("INFO", 2011, "Checking if the selected IPs exist in the project's IP catalog.")+"\n"
     tcl += this.checkIPs()
-    tcl += this.print("INFO", 2020, f"Checking if the following modules exist in the project's sources: ${this.moduleName}.")+"\n"
+    tcl += this.print("INFO", 2020, f"Checking if the following modules exist in the project's sources: ${this.platform.get.getName()}.")+"\n"
     tcl += this.checkModules()
     tcl += this.createHierarchy()
     tcl += this.createBlock()
