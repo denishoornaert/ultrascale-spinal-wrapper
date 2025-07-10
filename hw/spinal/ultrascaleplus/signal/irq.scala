@@ -11,7 +11,7 @@ import ultrascaleplus.scripts.TCLFactory
 
 case class IRQ(amount: Int = 8) extends Bits() with TCL {
 
-  override def getTCL(moduleName: String, clock: String): String = {
+  override def getTCL(moduleName: String): String = {
     val index = this.getPartialName().takeRight(1)
     var tcl = ""
     tcl += TCLFactory.netConnection(f"${moduleName}_${this.getName()}", Seq(f"${moduleName}/${this.getName()}", f"processing_system/ps_pl_irq${index}"))

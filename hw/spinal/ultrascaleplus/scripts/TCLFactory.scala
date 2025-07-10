@@ -21,7 +21,8 @@ object TCLFactory {
 
   def apply(platform: UltraScalePlus): Unit = {
     this.platform = Some(platform)
-    this.moduleName = platform.getClass.getSimpleName
+    this.platform.get.setName(this.platform.get.getClass.getSimpleName)
+    this.moduleName = this.platform.get.getName()
     this.target = f"vivado/${this.moduleName}.tcl"
   }
 
@@ -205,7 +206,7 @@ object TCLFactory {
     for ((name, element) <- bundle.elements) {
       // Bundle MUST stay at the last place!
       element match {
-        case _:TCL      => tcl += element.asInstanceOf[TCL].getTCL(this.moduleName, "pl_clk0") // TODO: must be replace with variable
+        case _:TCL      => tcl += element.asInstanceOf[TCL].getTCL(this.moduleName) // TODO: must be replace with variable
         case _:Bundle   => tcl += this.addInterfaces(element.asInstanceOf[Bundle])
         case _          => tcl += ""
       }
@@ -600,12 +601,6 @@ object TCLFactory {
     tcl += this.instantiateResetSystem()
     tcl += this.platform.get.getTCL()
     //// Connections
-    ////// Clock and reset
-    tcl += this.netConnection("pl_clk0", Seq(f"${this.moduleName}/clk", "reset_system/slowest_sync_clk", "processing_system/pl_clk0"))
-    tcl += this.netConnection("periph_reset", Seq("reset_system/peripheral_reset", f"${this.moduleName}/reset"))
-    tcl += this.netConnection("pl_resetn", Seq("processing_system/pl_resetn0", "reset_system/ext_reset_in"))
-    tcl += "\n"
-    ////// Buses
     tcl += this.addInterfaces(this.platform.get.io)
     //// Save, validate, and wrap
     tcl += this.saveAndValidate()

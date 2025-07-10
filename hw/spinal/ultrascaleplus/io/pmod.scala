@@ -26,7 +26,7 @@ class PMOD(pins: Seq[String]) extends Vec[Bool](Bool, Vector.fill(pins.length)(B
 
   val pinNames = pins
 
-  override def getTCL(moduleName: String, clock: String): String = {
+  override def getTCL(moduleName: String): String = {
     var tcl = ""
     for (pin <- 0 until pinNames.length) {
       tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/io_${this.getPartialName()}_${pin}]\n"
