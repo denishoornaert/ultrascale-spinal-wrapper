@@ -9,6 +9,9 @@ import spinal.lib._
 import spinal.lib.bus.misc.SizeMapping
 
 
+import ultrascaleplus.clock.{ClockMapped, ClockResetMapped}
+
+
 /**
  * Trait for all elments interfacing the PS and PL sides.
  */
@@ -51,6 +54,57 @@ trait XDC {
 
 }
 
+/**
+ * Trait for clock associated construct (Component or Bundle)
+ */
+trait hasClock {
+
+  /* [[ClockMapped]] associated */
+  var clock: Option[ClockMapped] = None
+
+  /** Set the associated clock with interface or component.
+   *
+   *  @parameter that [[ClockMapped]] to associate.
+   */
+  def associate(that: ClockMapped): Unit = {
+    this.clock = Some(that)
+  }
+
+  /** Check status of clock association.
+   *
+   *  @return status Inidcates whether a clock is associated with the construct.
+   */
+  def clockAssociated: Boolean = {
+    return this.clock.isDefined
+  }
+
+}
+
+/**
+ * Trait for clock associated construct (Component or Bundle)
+ */
+trait hasClockReset {
+
+  /* [[ClockResetMapped]] associated */
+  var clock: Option[ClockResetMapped] = None
+
+  /** Set the associated clock with interface or component.
+   *
+   *  @parameter that [[ClockResetMapped]] to associate.
+   */
+  def associate(that: ClockResetMapped): Unit = {
+    this.clock = Some(that)
+  }
+
+  /** Check status of clock association.
+   *
+   *  @return status Inidcates whether a clock is associated with the construct.
+   */
+  def clockAssociated: Boolean = {
+    return this.clock.isDefined
+  }
+
+}
 
 class Aperture(val name: String, base: BigInt, size: BigInt) extends SizeMapping(base, size) {}
 
