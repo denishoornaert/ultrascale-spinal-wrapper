@@ -65,9 +65,9 @@ abstract class ChannelDriver[T <: Data](val channel: Stream[T], cd: ClockDomain)
   }
 
   /**
-   * Internal StreamDriver in charge of placing signals on the channel.
-   * The driver also looks after schedulable jobs when the previous has been 
-   * performed (or if none where previously scheduled).
+   *  Internal StreamDriver in charge of placing signals on the channel.
+   *  The driver also looks after schedulable jobs when the previous has been 
+   *  performed (or if none where previously scheduled).
    */
   private val ctrl = StreamDriver(channel, cd) { p =>
     var status = false
@@ -108,10 +108,10 @@ abstract class ChannelDriver[T <: Data](val channel: Stream[T], cd: ClockDomain)
 
 
 /** 
- * Specialized version of the channel driver serving pending transactions
- * out-of-order (i.e., randomly) amongst pending transactions marked as ready.
+ *  Specialized version of the channel driver serving pending transactions
+ *  out-of-order (i.e., randomly) amongst pending transactions marked as ready.
  *
- * @constructor Creates an AXI4 channel driver with an AXI4 channel and a clock domain.
+ *  @constructor Creates an AXI4 channel driver with an AXI4 channel and a clock domain.
  */
 class ChannelDriverRandom[T <: Data](stream: Stream[T], cd: ClockDomain) extends ChannelDriver(stream, cd) {
 
@@ -128,7 +128,7 @@ class ChannelDriverRandom[T <: Data](stream: Stream[T], cd: ClockDomain) extends
 
 
 /** 
- * Companion object of [[ultrascaleplus.bus.amba.axi4.sim.ChannelDriverRandom]] class.
+ *  Companion object of [[ultrascaleplus.bus.amba.axi4.sim.ChannelDriverRandom]] class.
  */
 object ChannelDriverRandom {
   
@@ -138,10 +138,10 @@ object ChannelDriverRandom {
 
 
 /** 
- * Specialized version of the channel driver serving pending transactions
- * in-order (i.e., in the order they arrived).
+ *  Specialized version of the channel driver serving pending transactions
+ *  in-order (i.e., in the order they arrived).
  *
- * @constructor Creates an AXI4 channel driver with an AXI4 channel and a clock domain.
+ *  @constructor Creates an AXI4 channel driver with an AXI4 channel and a clock domain.
  */
 class ChannelDriverInOrder[T <: Data](stream: Stream[T], cd: ClockDomain) extends ChannelDriver(stream, cd) {
 

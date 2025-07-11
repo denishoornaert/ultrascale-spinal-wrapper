@@ -495,10 +495,20 @@ class Axi4BJob(
 }
 
 
+/** Specialized queue that filters out candidate jobs for scheduling and 
+ *  updating transactions age.
+ *
+ *  @constructor Construct self managed queue.
+ *  @param cd The associated clock domain.
+ */
 class Axi4JobQueue(
   cd: ClockDomain
 ) extends mutable.Queue[Axi4Job]() {
 
+  /** Inidicate whether job candidate for scheduling exists in the queue.
+   *
+   *  @return status Yes/no.
+   */
   def hasCandidate(): Boolean = {
     return super.nonEmpty && this.map(p => p.ready()).reduce(_ || _)
   }
@@ -519,8 +529,15 @@ class Axi4JobQueue(
 }
 
 
+/** Specialized StreamMonitor that count all handshakes occuring on a given bus.
+ *
+ *  @constructor Requires a stream and a clock domain.
+ *  @param stream Stream to be monitored.
+ *  @param clockdomain Clock domain associated with the stream.
+ */
 class Axi4BeatCounter[T <: Data](stream: Stream[T], clockdomain: ClockDomain) extends StreamMonitor(stream, clockdomain) {
 
+  /** Amount of handshake that occured ont he stream. */
   var count: Int = 0
 
   this.addCallback({ _ =>
@@ -529,9 +546,16 @@ class Axi4BeatCounter[T <: Data](stream: Stream[T], clockdomain: ClockDomain) ex
 
 }
 
-
+/** Construct monitoring amount of in flight transaction.
+ *
+ *  @constructor Create in-fligt monitor.
+ *  @param increment Sequence ([[Seq]]) of streams for which the counter is incremented upon handshake.
+ *  @param decrement Sequence([[Seq]]) of streams for whicht he counter is decremented upon handshake.
+ *  @param clockdomain Clock domain associated with ALL stream (i.e., [[increment]] and [[decrement]])
+ */
 class Axi4InFlightCounter[T1 <: Data, T2 <: Data](increment: Seq[Stream[T1]], decrement: Seq[Stream[T2]], clockdomain: ClockDomain) {
 
+  /** Amount of on-going (i.e., in-flight) transactions. */
   var count: Int = 0
 
   for (stream <- increment) {
