@@ -1,6 +1,9 @@
 package ultrascaleplus.utils
 
 
+import Console.{RESET, YELLOW}
+
+
 import spinal.lib.bus.misc.SizeMapping
 
 
@@ -48,3 +51,12 @@ trait XDC {
 
 
 class Aperture(val name: String, base: BigInt, size: BigInt) extends SizeMapping(base, size) {}
+
+
+object Log {
+
+  def info(message: String): Unit = {
+    println(f"${RESET}${YELLOW}[UltraScale+] ${message}${RESET}")
+  }
+
+}

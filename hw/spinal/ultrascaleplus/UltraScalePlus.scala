@@ -12,8 +12,6 @@ package ultrascaleplus
   */
  package object scaladoc {}
 
-import Console.{RESET, YELLOW}
-
 
 import spinal.core._
 import spinal.lib._
@@ -49,7 +47,8 @@ class UltraScalePlusConfig(
   val withDBG_CTO2   : Boolean = false,
   val withDBG_CTO3   : Boolean = false,
   val withPL_PS_IRQ0 : Int     =     0,
-  val withPL_PS_IRQ1 : Int     =     0
+  val withPL_PS_IRQ1 : Int     =     0,
+  val withTRACE      : Boolean = false
   ) {
 }
 
@@ -85,12 +84,13 @@ class UltraScalePlusIO(config: UltraScalePlusConfig) extends Bundle {
     val toPS0 = (config.withPL_PS_IRQ0 > 0) generate (out(IRQ(config.withPL_PS_IRQ0)))
     val toPS1 = (config.withPL_PS_IRQ1 > 0) generate (out(IRQ(config.withPL_PS_IRQ1)))
   }
+  val trace = (config.withTRACE         ) generate ( in(Trace(32)))
 }
 
 
 abstract class UltraScalePlus (
-  var frequency: HertzNumber          = 99.999001 MHz,
-  val config   : UltraScalePlusConfig = new UltraScalePlusConfig()
+  var frequency    : HertzNumber          = 99.999001 MHz,
+  val config       : UltraScalePlusConfig = new UltraScalePlusConfig()
 ) extends Component with TCL {
 
   // List of IOPLL clocks available for UltraScale+
@@ -99,7 +99,7 @@ abstract class UltraScalePlus (
   val differences = availableFrequencies.map(x => (x-frequency).toDouble).map(x => if (x > 0) -1.0/0 else x)
   val index       = differences.indexOf(differences.max)
   frequency       = availableFrequencies(index)
-  println(f"${RESET}${YELLOW}[UltraScale+ Wrapper] Actual frequency set is ${frequency}.${RESET}")
+  Log.info(f"Actual frequency set is ${frequency}.")
   
   // Components name for TCL
   val board: String
@@ -108,7 +108,7 @@ abstract class UltraScalePlus (
 
   def getTCL(): String = {
     var tcl = ""
-    tcl += "set processing_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.4 processing_system ]\n"
+    tcl +=f"set processing_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:${Vivado.getIPVersion("zynq_ultra_ps_e")} processing_system ]\n"
     tcl += "set_property -dict [list \\\n"
     tcl += "  CONFIG.PSU_BANK_0_IO_STANDARD {LVCMOS18} \\\n"
     tcl += "  CONFIG.PSU_BANK_1_IO_STANDARD {LVCMOS18} \\\n"
@@ -503,6 +503,12 @@ abstract class UltraScalePlus (
     tcl += "  CONFIG.PSU__SWDT1__CLOCK__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__SWDT1__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__SWDT1__RESET__ENABLE {0} \\\n"
+    if (this.config.withTRACE) {
+      tcl += "  CONFIG.PSU__TRACE__INTERNAL_WIDTH {32} \\\n"
+      tcl += "  CONFIG.PSU__TRACE__PERIPHERAL__ENABLE {1} \\\n"
+      tcl += "  CONFIG.PSU__TRACE__PERIPHERAL__IO {EMIO} \\\n"
+      tcl += "  CONFIG.PSU__TRACE__WIDTH {32Bit} \\\n"
+    }
     tcl += "  CONFIG.PSU__TTC0__CLOCK__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__TTC0__PERIPHERAL__ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__TTC0__WAVEOUT__ENABLE {0} \\\n"

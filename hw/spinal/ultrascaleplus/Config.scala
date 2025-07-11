@@ -1,4 +1,4 @@
-package example
+package ultrascaleplus
 
 import spinal.core._
 import spinal.core.sim._
@@ -13,4 +13,9 @@ object Config {
   )
 
   def sim = SimConfig.withConfig(spinal).withFstWave
+
+  /**
+   * Desired vivado version
+   */
+  var vivado = "auto"
 }
