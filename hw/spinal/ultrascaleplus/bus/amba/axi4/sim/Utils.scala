@@ -266,7 +266,7 @@ class Axi4AWJob(
    *  Accordingly, no data can be stored and captured as it would have to be
    *  accumulated. This can be done after facts.
    *
-   *  @param channel [[Axi4Aw]] channel we want to capture the content.
+   *  @param channel Axi4Aw channel we want to capture the content.
    */
   def this(channel: Axi4Aw) = this(
     channel,
@@ -282,7 +282,7 @@ class Axi4AWJob(
    *  Accordingly, no data can be stored and captured as it would have to be
    *  accumulated. This can be done after facts.
    *
-   *  @param axi Full [[spinal.lib.bus.amba4.axi.Axi4]] bus from which the channel we want to capture
+   *  @param axi Full Axi4 bus from which the channel we want to capture
    *  the content can be extracted.
    */
   def this(axi: Axi4) = this(axi.aw)
@@ -324,7 +324,7 @@ class Axi4ARJob(
    *  Accordingly, no data can be stored and captured as it would have to be
    *  accumulated. This can be done after facts.
    *
-   *  @param channel [[Axi4Ar]] channel we want to capture the content.
+   *  @param channel Axi4Ar channel we want to capture the content.
    */
   def this(channel: Axi4Ar) = this(
     channel,
@@ -340,7 +340,7 @@ class Axi4ARJob(
    *  Accordingly, no data can be stored and captured as it would have to be
    *  accumulated. This can be done after facts.
    *
-   *  @param axi Full [[spinal.lib.bus.amba4.axi.Axi4]] bus from which the channel we want to capture
+   *  @param axi Full Axi4 bus from which the channel we want to capture
    *  the content can be extracted.
    */
   def this(axi: Axi4) = this(axi.ar)
@@ -351,10 +351,10 @@ class Axi4ARJob(
  *
  *  **NOTE:** constructed job assumes the burst type to be [[Axi4Sim.burst.INCR]].
  *  
- *  @constructor Creates a [[spinal.lib.bus.amba4.axi.Axi4]] job for the write data phase.
- *  @param channel [[spinal.lib.bus.amba4.axi.Axi4]] channel the [[Axi4WJob]] is associated to.
- *  @param data Sequence of the [[BigInt]] representing the data to be written.
- *  @param strb Sequence of [[BigInt]] representing the valid bytes in each beats.
+ *  @constructor Creates a Axi4 job for the write data phase.
+ *  @param channel Axi4 channel the [[Axi4WJob]] is associated to.
+ *  @param data Sequence of the BigInt representing the data to be written.
+ *  @param strb Sequence of BigInt representing the valid bytes in each beats.
  *  @param parent Reference to the associated AW job.
  */
 class Axi4WJob(
@@ -396,8 +396,8 @@ class Axi4WJob(
 
 /** Specialized class if the Axi4 job for read data phase.
  *
- *  @constructor Creates a [[spinal.lib.bus.amba4.axi.Axi4]] job for the read data phase.
- *  @param channel [[spinal.lib.bus.amba4.axi.Axi4]] channel the [[Axi4RJob]] is associated to.
+ *  @constructor Creates a Axi4 job for the read data phase.
+ *  @param channel Axi4 channel the [[Axi4RJob]] is associated to.
  *  @param id transaction ID.
  *  @param resp transaction response status (default [[Axi4Sim.resp.OKAY]]).
  */
@@ -418,29 +418,29 @@ class Axi4RJob(
    */
   private val data: mutable.Queue[() => BigInt] = new mutable.Queue[() => BigInt]()
 
-  /** Creates a [[spinal.lib.bus.amba4.axi.Axi4]] job for read data phase by capturing the ID set on a 
-   *  [[Axi4Ar]].
+  /** Creates a Axi4 job for read data phase by capturing the ID set on a 
+   *  Axi4Ar.
    *
-   *  @param channel [[spinal.lib.bus.amba4.axi.Axi4]] channel the [[Axi4RJob]] is associated to.
+   *  @param channel Axi4 channel the [[Axi4RJob]] is associated to.
    */
   def this(channel: Axi4R, context: Axi4Ar) = this(channel, context.id.toInt)
 
-  /** Creates a [[spinal.lib.bus.amba4.axi.Axi4]] job for read data phase by capturing the content of 
-   *  the [[Axi4R]] channel in simulation.
+  /** Creates a Axi4 job for read data phase by capturing the content of 
+   *  the Axi4R channel in simulation.
    *
-   *  @param channel [[Axi4R]] channel the [[Axi4RJob]] is associated to.
+   *  @param channel Axi4R channel the [[Axi4RJob]] is associated to.
    */
   def this(channel: Axi4R) = this(channel, channel.id.toInt)
 
   /**
-   *  Enqueue burst beat data as a [[BigInt]] returning function.
+   *  Enqueue burst beat data as a BigInt returning function.
    */
   def enqueue(func: () => BigInt): Unit = {
     this.data.enqueue(func)
   }
 
   /**
-   *  Enqueue burst beat data as a fixed [[BigInt]].
+   *  Enqueue burst beat data as a fixed BigInt.
    */
   def enqueue(value: BigInt): Unit = {
     this.enqueue(() => value)
@@ -463,8 +463,8 @@ class Axi4RJob(
 
 /** Specialized class if the Axi4 job for read data phase.
  *
- *  @constructor Creates a [[spinal.lib.bus.amba4.axi.Axi4]] job for the write response phase.
- *  @param channel [[spinal.lib.bus.amba4.axi.Axi4]] channel the [[Axi4BJob]] is associated to.
+ *  @constructor Creates a Axi4 job for the write response phase.
+ *  @param channel Axi4 channel the [[Axi4BJob]] is associated to.
  *  @param id transaction ID.
  *  @param resp transaction response status (default [[Axi4Sim.resp.OKAY]]).
  */
@@ -475,10 +475,10 @@ class Axi4BJob(
 ) extends Axi4Job() {
 
   /** 
-   *  Creates a [[spinal.lib.bus.amba4.axi.Axi4]] job for hte write response phase.
+   *  Creates a Axi4 job for hte write response phase.
    *  TODO: resp can be deduced from the [[Axi4AWJob]]!
    *
-   *  @param channel [[spinal.lib.bus.amba4.axi.Axi4]] channel the [[Axi4BJob]] is associated to.
+   *  @param channel Axi4 channel the [[Axi4BJob]] is associated to.
    *  @param job Original [[Axi4AWJob]] address phase to which the created 
    *  [[Axi4BJob]] corresponds.  
    */
@@ -549,9 +549,9 @@ class Axi4BeatCounter[T <: Data](stream: Stream[T], clockdomain: ClockDomain) ex
 /** Construct monitoring amount of in flight transaction.
  *
  *  @constructor Create in-fligt monitor.
- *  @param increment Sequence ([[Seq]]) of streams for which the counter is incremented upon handshake.
- *  @param decrement Sequence([[Seq]]) of streams for whicht he counter is decremented upon handshake.
- *  @param clockdomain Clock domain associated with ALL stream (i.e., [[increment]] and [[decrement]])
+ *  @param increment Sequence (Seq) of streams for which the counter is incremented upon handshake.
+ *  @param decrement Sequence(Seq) of streams for whicht he counter is decremented upon handshake.
+ *  @param clockdomain Clock domain associated with ALL stream (i.e., increment and decrement)
  */
 class Axi4InFlightCounter[T1 <: Data, T2 <: Data](increment: Seq[Stream[T1]], decrement: Seq[Stream[T2]], clockdomain: ClockDomain) {
 

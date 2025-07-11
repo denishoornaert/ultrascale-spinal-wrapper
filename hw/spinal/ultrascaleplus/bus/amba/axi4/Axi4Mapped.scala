@@ -80,7 +80,7 @@ class Axi4Mapped(override val config: Axi4Config, name: String, val apertures: S
     }
   }
 
-  /** Required for connection with [[Axi4]] buses.
+  /** Required for connection with Axi4 buses.
    *
    *  @return A 1:1 copy of the [[Axi4Mapped]].
    */

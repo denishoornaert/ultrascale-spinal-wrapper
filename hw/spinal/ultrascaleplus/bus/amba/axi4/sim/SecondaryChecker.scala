@@ -15,7 +15,7 @@ import spinal.lib.bus.amba4.axi._
  *  transaction emission, and basic protocol checks.
  *
  *  @constructor Creates an Axi4 secondary checker/handler
- *  @param axi The [[spinal.lib.bus.amba4.axi.Axi4]] bus to handle and check.
+ *  @param axi The Axi4 bus to handle and check.
  *  @param clockDomain The clock domain associated with the bus.
  */
 class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
