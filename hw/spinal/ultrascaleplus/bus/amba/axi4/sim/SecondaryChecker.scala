@@ -23,10 +23,13 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   /** Simulated memory block */
   private val memory = SparseMemory()
 
+  // AR
+  private val ARCounter = new Axi4InFlightCounter(Seq(axi.ar), Seq(axi.r), clockDomain)
   // R
   private val RDriver = ChannelDriverRandom(axi.r, clockDomain)
   // AW
   private val AWQueue = new mutable.Queue[Axi4AWJob]()
+  private val AWCounter = new Axi4InFlightCounter(Seq(axi.aw), Seq(axi.b), clockDomain)
   // W
   private var wBeatCount = 0
   // B
@@ -38,8 +41,7 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
    *  @return notFull `true` if place is still available in the target.
    */
   private def readNotInFullCapacity(): Boolean = {
-    // Add scheduled entry if relevant (i.e., not done)
-    return RDriver.storage.length+(!RDriver.isDone()).toInt < axi.config.readIssuingCapability
+    return ARCounter.count < axi.config.readIssuingCapability
   }
 
   /** Method indicating whether the simulatated secondary target has reached 
@@ -48,11 +50,11 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
    *  @return notFull `true` if place is still available in the target.
    */
   private def writeNotInFullCapacity(): Boolean = {
-    return AWQueue.length < axi.config.writeIssuingCapability
+    return AWCounter.count < axi.config.writeIssuingCapability
   }
   
   /** AXI AR: Random drive for AR ready signal. */
-  StreamReadyRandomizer(axi.ar, clockDomain, readNotInFullCapacity).setFactor(1.0f)
+  StreamReadyRandomizer(axi.ar, clockDomain, readNotInFullCapacity).setFactor(1.1f)
 
   /** AXI AR: Catches and handles handshakes on AR channel.
    *
@@ -75,7 +77,7 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   }
 
   /** AXI AW: Random drive for AW ready signal. */
-  StreamReadyRandomizer(axi.aw, clockDomain, writeNotInFullCapacity).setFactor(1.0f)
+  StreamReadyRandomizer(axi.aw, clockDomain, writeNotInFullCapacity).setFactor(1.1f)
 
   /** AXI AW: Enqueue write address phase job upon reception. */
   StreamMonitor(axi.aw, clockDomain) { payload =>
@@ -83,7 +85,7 @@ class Axi4CheckerSecondary(axi: Axi4, clockDomain: ClockDomain) {
   }
 
   /** AXI W: Random drive for W ready signal. */
-  StreamReadyRandomizer(axi.w, clockDomain).setFactor(1.0f)
+  StreamReadyRandomizer(axi.w, clockDomain).setFactor(1.1f)
 
   /** AXI W: Check whether write data phase has the proper length and last is 
    *  asserted at expected time.

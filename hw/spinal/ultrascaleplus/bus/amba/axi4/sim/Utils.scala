@@ -7,7 +7,7 @@ import scala.collection.mutable
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
-import spinal.lib.sim.StreamDriver
+import spinal.lib.sim.{StreamDriver, StreamMonitor}
 import spinal.lib.bus.amba4.axi._
 
 
@@ -64,6 +64,12 @@ abstract class Axi4Job (
   /** Keep track of the job age. Monotonously increases. */
   private var age: Int = 0
 
+  /** Status marker */
+  protected var done: Boolean = false
+
+  /** Status marker */
+  protected var placed: Boolean = false
+
   /** Increase age of job by one step. */
   def makeOlder(): Unit = {
     age += 1
@@ -84,12 +90,22 @@ abstract class Axi4Job (
    *
    *  @return `true` if the job as completed.
    */
-  def isDone(): Boolean
+  def isDone(): Boolean = {
+    return this.done
+  }
+
+  def markAsDone(): Unit = {
+    this.done = true
+  }
 
   /**
    *  Abstract method in charge of placing signals on the channel.
    */
   def place(): Unit
+
+  def wasPlaced(): Boolean = {
+    return this.placed
+  }
 
 }
 
@@ -130,8 +146,6 @@ abstract class Axi4AXJob(
   private val lowerWrapBoundary   : BigInt = (aligned/dataTransactionSize)*dataTransactionSize
   /** End of the wrap transaction as an aligned bus width address */
   private val upperWrapBoundary   : BigInt = lowerWrapBoundary+dataTransactionSize
-  /** Track whether the transaction/job has already been placed on its channel */
-  private var placed: Boolean = false
 
   // check for read/write over 4k boundary
   if (burst == 1) {
@@ -189,10 +203,6 @@ abstract class Axi4AXJob(
    */
   def alignedNextAddress(i : BigInt, maxBurstSize : Int): BigInt = {
     return (nextAddress(i) >> maxBurstSize) << maxBurstSize
-  }
-
-  override def isDone(): Boolean = {
-    return this.placed
   }
 
   override def place(): Unit = {
@@ -345,11 +355,13 @@ class Axi4ARJob(
  *  @param channel [[spinal.lib.bus.amba4.axi.Axi4]] channel the [[Axi4WJob]] is associated to.
  *  @param data Sequence of the [[BigInt]] representing the data to be written.
  *  @param strb Sequence of [[BigInt]] representing the valid bytes in each beats.
+ *  @param parent Reference to the associated AW job.
  */
 class Axi4WJob(
-  channel : Axi4W,
-  val data: Seq[BigInt],
-  val strb: Seq[BigInt]
+  channel   : Axi4W,
+  val data  : Seq[BigInt],
+  val strb  : Seq[BigInt],
+  parent: Axi4AWJob
 ) extends Axi4Job(
   delay = () => 20+simRandom.nextInt(20)
 ) {
@@ -362,6 +374,10 @@ class Axi4WJob(
   /** Starts at one because var will be compared to data length during the creation of a last signals. */
   private var beat: Int = 0
 
+  override def ready(): Boolean = {
+    return parent.isDone() && super.ready()
+  }
+
   override def isDone(): Boolean = {
     return (this.beat == this.data.length)
   }
@@ -370,10 +386,10 @@ class Axi4WJob(
     this.channel.data #= this.data(this.beat)
     if (this.channel.config.useStrb)
       this.channel.strb #= this.strb(this.beat)
-    if (this.channel.config.useLast)
-      this.channel.last #= (this.beat == this.data.length-1)
     // Must be at the end to retrieve data correctly
     this.beat += 1
+    if (this.channel.config.useLast)
+      this.channel.last #= this.isDone()
   }
 
 }
@@ -435,14 +451,13 @@ class Axi4RJob(
   }
 
   override def place(): Unit = {
-    this.channel.data #= this.data.front()
+    this.channel.data #= (this.data.dequeue())()
     if (this.channel.config.useId)
       this.channel.id #= this.id
     if (this.channel.config.useResp)
       this.channel.resp #= this.resp
     if (this.channel.config.useLast)
-      this.channel.last #= (this.data.length == 1)
-    this.data.dequeue
+      this.channel.last #= this.data.isEmpty
   }
 }
 
@@ -459,9 +474,6 @@ class Axi4BJob(
   val resp: Int
 ) extends Axi4Job() {
 
-  /** Track whether the transaction/job has already been placed on its channel */
-  private var placed: Boolean = false
-
   /** 
    *  Creates a [[spinal.lib.bus.amba4.axi.Axi4]] job for hte write response phase.
    *  TODO: resp can be deduced from the [[Axi4AWJob]]!
@@ -471,10 +483,6 @@ class Axi4BJob(
    *  [[Axi4BJob]] corresponds.  
    */
   def this(channel: Axi4B, job: Axi4AWJob) = this(channel, job.id, Axi4Sim.resp.OKAY)
-
-  override def isDone(): Boolean = {
-    return placed
-  }
 
   override def place(): Unit = {
     if (this.channel.config.useId)
@@ -495,6 +503,10 @@ class Axi4JobQueue(
     return super.nonEmpty && this.map(p => p.ready()).reduce(_ || _)
   }
 
+  /** Request candidates for scheduling.
+   *
+   *  @return indexes List of indexes of job ready for selection.
+   */
   def getCandidates(): Seq[Int] = {
     return this.zipWithIndex.filter(_._1.ready()).map(_._2).toSeq
   }
@@ -503,5 +515,35 @@ class Axi4JobQueue(
   cd.onRisingEdges({
     this.foreach({ p => p.makeOlder() })
   })
+
+}
+
+
+class Axi4BeatCounter[T <: Data](stream: Stream[T], clockdomain: ClockDomain) extends StreamMonitor(stream, clockdomain) {
+
+  var count: Int = 0
+
+  this.addCallback({ _ =>
+    this.count += 1
+  })
+
+}
+
+
+class Axi4InFlightCounter[T1 <: Data, T2 <: Data](increment: Seq[Stream[T1]], decrement: Seq[Stream[T2]], clockdomain: ClockDomain) {
+
+  var count: Int = 0
+
+  for (stream <- increment) {
+    StreamMonitor(stream, clockdomain) { _ =>
+      this.count += 1
+    }
+  }
+
+  for (stream <- decrement) {
+    StreamMonitor(stream, clockdomain) { _ =>
+      this.count -= 1
+    }
+  }
 
 }

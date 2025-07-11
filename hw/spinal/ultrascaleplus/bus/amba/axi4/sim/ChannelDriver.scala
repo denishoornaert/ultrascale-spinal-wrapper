@@ -7,7 +7,7 @@ import scala.collection.mutable
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
-import spinal.lib.sim.StreamDriver
+import spinal.lib.sim.{StreamDriver, StreamMonitor}
 import spinal.lib.bus.amba4.axi._
 
 
@@ -38,14 +38,30 @@ abstract class ChannelDriver[T <: Data](val channel: Stream[T], cd: ClockDomain)
    */
   protected def next(): Int
 
-  /** Method picking the next job to be scheduled and placed on the channel. */
-  private def schedule(): Unit = {
+  /** Method picking the next job to be scheduled and placed on the channel.
+   *
+   *  @return scheduled Indicate if a transactions has been selected for scheduling.
+   */
+  private def schedule(): Boolean = {
     val pick = this.next()
     // If no candidate, skip replacement
     if (pick != -1) {
       this.scheduled = this.storage(pick)
       this.storage.remove(pick)
     }
+    return (pick != -1)
+  }
+
+  def isScheduledDone(): Boolean = {
+    return (this.scheduled != null) && this.scheduled.isDone()
+  }
+
+  def isScheduledBusy(): Boolean = {
+    return (this.scheduled != null) && (!this.scheduled.isDone())
+  }
+
+  def isScheduledAvailable(): Boolean = {
+    return (this.scheduled == null) || this.isScheduledDone()
   }
 
   /**
@@ -54,27 +70,38 @@ abstract class ChannelDriver[T <: Data](val channel: Stream[T], cd: ClockDomain)
    * performed (or if none where previously scheduled).
    */
   private val ctrl = StreamDriver(channel, cd) { p =>
-    // Schedule new job if any available AND ready
-    if (this.storage.hasCandidate() && ((this.scheduled == null) || this.scheduled.isDone())) {
-      this.schedule()
+    var status = false
+    // If we are back in and the current scheduled is marked as placed, it must be done...
+    if ((this.scheduled != null) && this.scheduled.wasPlaced()) {
+      this.scheduled.markAsDone()
     }
-    // If job scheduled and the job is not done, place on bus
-    if ((this.scheduled != null) && !this.scheduled.isDone()) {
-      this.scheduled.place()
-      true
+    // Schedule new job if any available AND ready
+    if (this.isScheduledAvailable()) {
+      if (this.storage.hasCandidate()) {
+        status = this.schedule()
+        // If job scheduled and the job is not done, place on bus
+        if (status) {
+          this.scheduled.place()
+        }
+      }
     }
     else {
-      false
+      // For handling bursts
+      if (this.isScheduledBusy()) {
+        status = true
+        this.scheduled.place()
+      }
     }
+    status
   }
 
   // Explicitly set control over StreamDriver's flow
   this.ctrl.delay = 0
-  this.ctrl.setFactor(1)
+  this.ctrl.setFactor(1.1f)
 
   /** Indicates whether there are pending transactions. */
   def isDone(): Boolean = {
-    return this.storage.isEmpty && (this.scheduled == null || this.scheduled.isDone())
+    return this.storage.isEmpty && this.isScheduledAvailable()
   }
 
 }
