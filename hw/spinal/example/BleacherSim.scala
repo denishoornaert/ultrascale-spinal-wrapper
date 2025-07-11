@@ -57,21 +57,21 @@ object BleacherSim extends App {
     dut.clockDomain.forkStimulus(period = 10)
 
     // DUMP DATA
-    for (t <- 0 until 8) {
-      primary.addWrite(
-        new Axi4AWJob(
-          channel = dut.io.fpd.hpm0.aw,
-          addr    = AddressMap.FPD_HPM0.base+(t*64),
-          id      = 0x6800+(t*0x0020),
-          len     = expectedData.length-1,
-          size    = log2Up(dut.io.fpd.hpm0.aw.config.bytePerWord)
-        ),
-        new Axi4WJob(
-          channel = dut.io.fpd.hpm0.w,
-          data    = expectedData,
-          strb    = strobeBits
-        )
+    for (t <- 0 until 32) {
+      val aw = new Axi4AWJob(
+        channel = dut.io.fpd.hpm0.aw,
+        addr    = AddressMap.FPD_HPM0.base+(t*64),
+        id      = 0x6800+(t*0x0020),
+        len     = expectedData.length-1,
+        size    = log2Up(dut.io.fpd.hpm0.aw.config.bytePerWord)
       )
+      val w = new Axi4WJob(
+        channel = dut.io.fpd.hpm0.w,
+        data    = expectedData,
+        strb    = strobeBits,
+        parent  = aw
+      )
+      primary.addWrite(aw, w)
     }
 
     primary.startWrite()
@@ -81,7 +81,7 @@ object BleacherSim extends App {
     println(s"Write performed at ${writeBW} bytes per clock cycle.")
 
     // FETCH DATA
-    for (t <- 0 until 8) {
+    for (t <- 0 until 32) {
       primary.addRead(
         new Axi4ARJob(
           channel = dut.io.fpd.hpm0.ar,
@@ -98,5 +98,6 @@ object BleacherSim extends App {
     primary.stopRead()
     val readBW = primary.getReadBandwidth()
     println(s"Read performed at ${readBW} bytes per clock cycle.")
+
   }
 }
