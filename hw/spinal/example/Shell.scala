@@ -11,6 +11,9 @@ import kv260._
 case class Shell() extends KV260(
   config    = new KV260Config(
     withPL_CLK0    = 332 MHz,
+    withPL_CLK1    = 332 MHz,
+    withPL_CLK2    = 332 MHz,
+    withPL_CLK3    = 332 MHz,
     withLPD_HPM0   =    true,
     withLPD_HP0    =    true,
     withFPD_HPM0   =    true,
@@ -52,6 +55,24 @@ case class Shell() extends KV260(
   io.fpd.acp.associate(io.pl.clk0)
 
   plclk0.rework{
+    // Create dummy register to force instantiation of cock and reset I/O
+    val clock_count = Reg(UInt(64 bits)) init(0)
+    clock_count := clock_count+1
+  }
+
+  plclk1.rework{
+    // Create dummy register to force instantiation of cock and reset I/O
+    val clock_count = Reg(UInt(64 bits)) init(0)
+    clock_count := clock_count+1
+  }
+
+  plclk2.rework{
+    // Create dummy register to force instantiation of cock and reset I/O
+    val clock_count = Reg(UInt(64 bits)) init(0)
+    clock_count := clock_count+1
+  }
+
+  plclk3.rework{
     // Create dummy register to force instantiation of cock and reset I/O
     val clock_count = Reg(UInt(64 bits)) init(0)
     clock_count := clock_count+1
