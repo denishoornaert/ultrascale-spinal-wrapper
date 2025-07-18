@@ -199,6 +199,19 @@ object TCLFactory {
     return f"assign_bd_address -offset 0x${addressBase.toString(16)} -range 0x${rangeSize.toString(16)} -target_address_space [get_bd_addr_spaces ${port}] [get_bd_addr_segs ${target}] -force\n"
   }
   
+  def addXilinxIPs(component: Component): String = {
+    var tcl = ""
+    for (element <- component.children) {
+      // Bundle MUST stay at the last place!
+      element match {
+        case _:TCL       => tcl += element.asInstanceOf[TCL].getTCL()
+        case _:Component => tcl += this.addXilinxIPs(element.asInstanceOf[Component])
+        case _           => tcl += ""
+      }
+    }
+    return tcl
+  }
+
   def addInterfaces(bundle: Bundle): String = {
     var tcl = ""
     for ((name, element) <- bundle.elements) {
@@ -596,10 +609,12 @@ object TCLFactory {
     tcl += this.checkModules()
     tcl += this.createHierarchy()
     tcl += this.createBlock()
-    tcl += this.instantiateResetSystem()
+
+    // Instantiate IPs and interconnect them
     tcl += this.platform.get.getTCL()
-    //// Connections
+    tcl += this.addXilinxIPs(this.platform.get)
     tcl += this.addInterfaces(this.platform.get.io)
+
     //// Save, validate, and wrap
     tcl += this.saveAndValidate()
     tcl += this.wrapDesign("sources_1")
