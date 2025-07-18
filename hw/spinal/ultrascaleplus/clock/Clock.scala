@@ -37,7 +37,7 @@ class ClockMapped(val source: PllSource, val target: HertzNumber) extends Bundle
   override def getTCL(): String = {
     val topmodule = Util.topmodule(this)
     var tcl = ""
-    tcl += TCLFactory.netConnection(this.clock.getName(), Seq(f"${topmodule}/${this.clock.getName()}", "reset_system/slowest_sync_clk", f"processing_system/pl_${this.getPartialName()}"))
+    tcl += TCLFactory.netConnection(this.clock.getName(), Seq(f"${topmodule}/${this.clock.getName()}", f"processing_system/pl_${this.getPartialName()}"))
     tcl += "\n"
     return tcl
   }
@@ -62,7 +62,7 @@ object ClockResetMapped {
  *  @parameter source PLL clock source.
  *  @parameter target Target frequency desired.
  */
-class ClockResetMapped(source: PllSource, target: HertzNumber) extends ClockMapped(source: PllSource, target: HertzNumber) {
+class ClockResetMapped(source: PllSource, target: HertzNumber) extends ClockMapped(source: PllSource, target: HertzNumber) with TCL {
   
   val reset = in(Bool())
 
@@ -75,10 +75,13 @@ class ClockResetMapped(source: PllSource, target: HertzNumber) extends ClockMapp
 
   override def getTCL(): String = {
     val topmodule = Util.topmodule(this)
+    val index = this.getPartialName().takeRight(1)
     var tcl = ""
     tcl += super.getTCL()
-    tcl += TCLFactory.netConnection("periph_reset", Seq("reset_system/peripheral_reset", f"${topmodule}/${this.reset.getName()}"))
-    tcl += TCLFactory.netConnection(this.reset.getName(), Seq(f"processing_system/pl_resetn${this.getPartialName().takeRight(1)}", "reset_system/ext_reset_in"))
+    tcl +=f"set reset_system_${index} [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 reset_system_${index} ]\n"
+    tcl += TCLFactory.netConnection(this.clock.getName(), Seq(f"reset_system_${index}/slowest_sync_clk"))
+    tcl += TCLFactory.netConnection(f"periph_reset_${index}", Seq(f"reset_system_${index}/peripheral_reset", f"${topmodule}/${this.reset.getName()}"))
+    tcl += TCLFactory.netConnection(this.reset.getName(), Seq(f"processing_system/pl_resetn${index}", f"reset_system_${index}/ext_reset_in"))
     tcl += "\n"
     return tcl
   }
