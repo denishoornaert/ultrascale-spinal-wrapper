@@ -372,7 +372,21 @@ abstract class UltraScalePlus (
       tcl +=f"  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ {${this.io.pl.clk0.frequency.decompose._1}} \\\n"
       tcl +=f"  CONFIG.PSU__CRL_APB__PL0_REF_CTRL__SRCSEL {${this.io.pl.clk0.source.name}} \\\n"
     }
-    tcl += "  CONFIG.PSU__CRL_APB__PL1_REF_CTRL__ACT_FREQMHZ {99.999001} \\\n"
+    if (config.withPL_CLK1 > (0 MHz)) {
+      tcl +=f"  CONFIG.PSU__CRL_APB__PL1_REF_CTRL__ACT_FREQMHZ {${this.io.pl.clk1.frequency.decompose._1}} \\\n"
+      tcl +=f"  CONFIG.PSU__CRL_APB__PL1_REF_CTRL__FREQMHZ {${this.io.pl.clk1.frequency.decompose._1}} \\\n"
+      tcl +=f"  CONFIG.PSU__CRL_APB__PL1_REF_CTRL__SRCSEL {${this.io.pl.clk1.source.name}} \\\n"
+    }
+    if (config.withPL_CLK2 > (0 MHz)) {
+      tcl +=f"  CONFIG.PSU__CRL_APB__PL2_REF_CTRL__ACT_FREQMHZ {${this.io.pl.clk2.frequency.decompose._1}} \\\n"
+      tcl +=f"  CONFIG.PSU__CRL_APB__PL2_REF_CTRL__FREQMHZ {${this.io.pl.clk2.frequency.decompose._1}} \\\n"
+      tcl +=f"  CONFIG.PSU__CRL_APB__PL2_REF_CTRL__SRCSEL {${this.io.pl.clk2.source.name}} \\\n"
+    }
+    if (config.withPL_CLK3 > (0 MHz)) {
+      tcl +=f"  CONFIG.PSU__CRL_APB__PL3_REF_CTRL__ACT_FREQMHZ {${this.io.pl.clk3.frequency.decompose._1}} \\\n"
+      tcl +=f"  CONFIG.PSU__CRL_APB__PL3_REF_CTRL__FREQMHZ {${this.io.pl.clk3.frequency.decompose._1}} \\\n"
+      tcl +=f"  CONFIG.PSU__CRL_APB__PL3_REF_CTRL__SRCSEL {${this.io.pl.clk3.source.name}} \\\n"
+    }
     tcl += "  CONFIG.PSU__CRL_APB__QSPI_REF_CTRL__ACT_FREQMHZ {124.998749} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__QSPI_REF_CTRL__FREQMHZ {125} \\\n"
     tcl += "  CONFIG.PSU__CRL_APB__QSPI_REF_CTRL__SRCSEL {IOPLL} \\\n"
@@ -422,8 +436,10 @@ abstract class UltraScalePlus (
     tcl += "  CONFIG.PSU__DDR_HIGH_ADDRESS_GUI_ENABLE {1} \\\n"
     tcl += "  CONFIG.PSU__DDR__INTERFACE__FREQMHZ {600.000} \\\n"
     tcl += "  CONFIG.PSU__FPD_SLCR__WDT1__ACT_FREQMHZ {99.999001} \\\n"
-    tcl += "  CONFIG.PSU__FPGA_PL0_ENABLE {1} \\\n"
-    tcl += "  CONFIG.PSU__FPGA_PL1_ENABLE {0} \\\n"
+    tcl +=f"  CONFIG.PSU__FPGA_PL0_ENABLE {${(config.withPL_CLK0 > (0 MHz)).toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FPGA_PL1_ENABLE {${(config.withPL_CLK1 > (0 MHz)).toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FPGA_PL2_ENABLE {${(config.withPL_CLK2 > (0 MHz)).toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__FPGA_PL3_ENABLE {${(config.withPL_CLK3 > (0 MHz)).toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__FTM__CTI_IN_0 {${config.withDBG_CTI0.toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__FTM__CTI_IN_1 {${config.withDBG_CTI1.toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__FTM__CTI_IN_2 {${config.withDBG_CTI2.toInt}} \\\n"
@@ -455,8 +471,12 @@ abstract class UltraScalePlus (
       tcl += "  CONFIG.PSU__MAXIGP1__DATA_WIDTH {128} \\\n"
     if (this.config.withLPD_HPM0)
       tcl += "  CONFIG.PSU__MAXIGP2__DATA_WIDTH {128} \\\n"
+    tcl += "  CONFIG.PSU__NUM_FABRIC_RESETS {4} \\\n"
     tcl += "  CONFIG.PSU__OVERRIDE__BASIC_CLOCK {0} \\\n"
-    tcl += "  CONFIG.PSU__PL_CLK0_BUF {TRUE} \\\n"
+    tcl += "  CONFIG.PSU__PL_CLK0_BUF {"+(if (config.withPL_CLK0 > (0 MHz)) "True" else "False")+"} \\\n"
+    tcl += "  CONFIG.PSU__PL_CLK1_BUF {"+(if (config.withPL_CLK1 > (0 MHz)) "True" else "False")+"} \\\n"
+    tcl += "  CONFIG.PSU__PL_CLK2_BUF {"+(if (config.withPL_CLK2 > (0 MHz)) "True" else "False")+"} \\\n"
+    tcl += "  CONFIG.PSU__PL_CLK3_BUF {"+(if (config.withPL_CLK3 > (0 MHz)) "True" else "False")+"} \\\n"
     tcl += "  CONFIG.PSU__PMU_COHERENCY {0} \\\n"
     tcl += "  CONFIG.PSU__PMU__AIBACK__ENABLE {0} \\\n"
     tcl += "  CONFIG.PSU__PMU__EMIO_GPI__ENABLE {0} \\\n"
