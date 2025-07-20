@@ -107,6 +107,10 @@ abstract class Axi4Job (
     return this.placed
   }
 
+  def isPlaced(): Boolean = {
+    return wasPlaced()
+  }
+
 }
 
 
@@ -375,7 +379,7 @@ class Axi4WJob(
   private var beat: Int = 0
 
   override def ready(): Boolean = {
-    return parent.isDone() && super.ready()
+    return (parent.isPlaced() || parent.wasPlaced()) && super.ready()
   }
 
   override def isDone(): Boolean = {
