@@ -41,7 +41,8 @@ class ZCU102Config(
   withDBG_CTO3   : Boolean     = false,
   withPL_PS_IRQ0 : Int         =     0,
   withPL_PS_IRQ1 : Int         =     0,
-  withTRACE      : Boolean     = false
+  withTRACE      : Boolean     = false,
+  withSI570_MGT  : HertzNumber =   0 MHz
   ) extends UltraScalePlusConfig(
     withPL_CLK0    = withPL_CLK0   ,
     withPL_CLK1    = withPL_CLK1   ,
@@ -74,6 +75,11 @@ class ZCU102Config(
 }
 
 class ZCU102IO(config: ZCU102Config) extends UltraScalePlusIO(config) {
+  val user = new Bundle {
+    val si570 = new Bundle {
+      val mgt = (withSI570_MGT > (0 MHz)) generate DiffClock(withSI570_MGT, "C8")
+    } 
+  }
 }
 
 
