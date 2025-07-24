@@ -9,6 +9,18 @@ import ultrascaleplus.utils.{TCL, XDC, PSPLInterface, Log, Util}
 import ultrascaleplus.scripts.{TCLFactory}
 
 
+object DiffClockMapped {
+
+  def apply(frequency; HertzNumber, pin: String): DiffClockMapped = new DiffClockMapped(frequency, pin)
+  
+}
+
+/** Mappable differential clock (p & n)
+ *  
+ *  @constructor Creates a mappable differential clock.
+ *  @parameter frequency Traget frequency for the clock.
+ *  @parameter pin Physical board depend pin driving the clock.
+ */
 class DiffClockMapped(val frequency: HertzNumber, val pin: String) extends Bundle with TCL with XDC with PSPLInterface {
 
   val clock = new Bundle {
