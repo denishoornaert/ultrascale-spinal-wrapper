@@ -8,6 +8,7 @@ import upickle.default._
 import scala.collection.mutable
 import scala.collection.immutable 
 
+import ultrascaleplus.scripts.TCLFactory
 import ultrascaleplus.utils.Log
 import scala.io.Source
 import scala.tools.nsc.doc.html.HtmlTags.P
@@ -257,5 +258,47 @@ object Vivado {
    *  @return version Version of the board requested.
    */
   def getBoardVersion(board: String): String = catalog.getBoardVersion(board).getOrElse(throw new RuntimeException(s"Board ${board} does not exist in the catalog"))
+
+  private class Properties(private val target: String, val name: String) {
+
+    private var propertities = Map[String, String]()
+
+    def getTCL(): String = {
+      var tcl = ""
+      for (property <- this.propertities) {
+        tcl += TCLFactory.setProperty(property._1, property._2, "$obj")
+      }
+      return tcl
+    }
+
+    def setMode(mode: String): Unit = {
+      this.propertities = read[Map[String, String]](os.read(os.pwd / "hw" / "ext" / "Vivado" / f"${target}" / f"${mode}.json"))
+    }
+  }
+
+  abstract class Run(target: String, name: String) {
+
+    private val properties = new Properties(target, name)
+    
+    // Is set to deafult by default...
+    this.properties.setMode("default")
+
+    def getTCL(): String = {
+      var tcl = f"set obj [get_runs ${this.name}]\n"
+      tcl += TCLFactory.setProperty("flow", f"Vivado ${this.target} ${Vivado.year}", "$obj")
+      tcl += this.properties.getTCL()
+      tcl += "\n"
+      return tcl
+    }
+
+    def setMode(mode: String): Unit = {
+      this.properties.setMode(mode)
+    }
+
+  }
+
+  object Synthesis extends Run("Synthesis", "synth_1")
+  
+  object Implementation extends Run("Implementation", "impl_1")
 
 }
