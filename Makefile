@@ -11,6 +11,7 @@ library:
 
 documentation:
 	sbt doc
+	cp -r target/scala-2.13/api/* docs/
 
 bitstream:
 	bash -c '\
