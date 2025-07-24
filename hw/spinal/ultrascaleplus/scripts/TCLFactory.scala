@@ -57,6 +57,13 @@ object TCLFactory {
     // TODO implement version/properties map
     if (Vivado.version != "2019.2")
       tcl +=  setProperty("sim_compile_state", "1", "$obj")
+    tcl +=  setProperty("sim_compile_state"               , "1"                                                                                            , "$obj")
+    tcl +=  setProperty("webtalk.activehdl_export_sim"    , "1"                                                                                            , "$obj")
+    tcl +=  setProperty("webtalk.modelsim_export_sim"     , "1"                                                                                            , "$obj")
+    tcl +=  setProperty("webtalk.questa_export_sim"       , "1"                                                                                            , "$obj")
+    tcl +=  setProperty("webtalk.riviera_export_sim"      , "1"                                                                                            , "$obj")
+    tcl +=  setProperty("webtalk.vcs_export_sim"          , "1"                                                                                            , "$obj")
+    tcl +=  setProperty("webtalk.xsim_export_sim"         , "1"                                                                                            , "$obj")
     tcl += "\n"
     return tcl
   }
@@ -261,22 +268,15 @@ object TCLFactory {
     return tcl
   }
 
-  def createSynthesis(fileset: String, constraintFileset: String): String = {
-    val strategy = "\"Vivado Synthesis Defaults\""
-    val flow = f"\"Vivado Synthesis ${Vivado.year}\""
+  def reportSynthesisUtilization(fileset: String): String = {
     var tcl = ""
-    tcl += f"set_property strategy ${strategy} [get_runs ${fileset}]\n"
-    tcl += f"set_property flow ${flow} [get_runs ${fileset}]\n"
-    tcl += f"set obj [get_runs ${fileset}]\n"
-    tcl +=  "set_property set_report_strategy_name 1 $obj\n"
-    tcl +=  "set_property report_strategy {Vivado Synthesis Default Reports} $obj\n"
-    tcl +=  "set_property set_report_strategy_name 0 $obj\n"
-    tcl +=  "\n"
     tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_synth_report_utilization_0]\n"
-    tcl += f"set obj [get_runs ${fileset}]\n"
-    tcl +=  "set_property -name \"auto_incremental_checkpoint\" -value \"1\" -objects $obj\n"
-    tcl +=  "set_property -name \"strategy\" -value \"Vivado Synthesis Defaults\" -objects $obj\n"
     tcl +=  "\n"
+    return tcl
+  }
+
+  def setSynthesisAsCurrentStep(fileset: String): String = {
+    var tcl = ""
     tcl += f"current_run -synthesis [get_runs ${fileset}]\n"
     tcl +=  "\n"
     return tcl
@@ -623,10 +623,14 @@ object TCLFactory {
     tcl += this.disableIDRFlow()
 
     // Setup synthesis
-    tcl += this.createSynthesis("synth_1", "constrs_1")
+    Vivado.Synthesis.setMode("default")
+    tcl += Vivado.Synthesis.getTCL()
+    tcl += this.reportSynthesisUtilization("synth_1")
+    tcl += this.setSynthesisAsCurrentStep("synth_1")
 
     // Setup implementation
-    tcl += this.createImplementation("impl_1")
+    Vivado.Implementation.setMode("default")
+    tcl += Vivado.Implementation.getTCL()
 
     // Setup reports
     tcl += this.reportTiming("impl_1")
