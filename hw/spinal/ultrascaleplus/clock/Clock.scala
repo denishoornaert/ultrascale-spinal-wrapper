@@ -65,9 +65,9 @@ class DiffClockMapped(val frequency: HertzNumber, val pin: String) extends Bundl
   override def getTCL(): String = {
     var tcl = ""
     tcl += f"set ${this.clock.getName()}_external [ create_bd_intf_port -mode Slave -vlnv ${this.xilinxInterfaceName} ${this.clock.getName()}_external ]"
-    tcl +=  "set_property -dict [ list \\"
-    tcl += f"  CONFIG.FREQ_HZ {${this.frequency.toBigDecimal}} \\"
-    tcl +=  "] $"+f"${this.clock.getName()}_external"
+    tcl +=  "set_property -dict [ list \\\n"
+    tcl += f"  CONFIG.FREQ_HZ {${this.frequency.toBigDecimal}} \\\n"
+    tcl +=  "] $"+f"${this.clock.getName()}_external\n"
     tcl +=  "\n"
     tcl += TCLFactory.interfaceConnection(f"${this.clock.getName()}_intermediate", Seq(this.clock.getName(), f"${this.clock.getName()}_external"))
     tcl +=  "\n"
