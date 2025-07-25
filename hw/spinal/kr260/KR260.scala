@@ -98,22 +98,6 @@ class KR260(
   override val version = "1.1"
   override val boardPart = "xck26-sfvc784-2LV-c"
 
-  override def generate(): Unit = {
-    if (this.config.withIO_PMOD0) {
-      Constraints.add(io.pmod0.getXDC())
-    }
-    if (this.config.withIO_PMOD1) {
-      Constraints.add(io.pmod1.getXDC())
-    }
-    if (this.config.withIO_PMOD2) {
-      Constraints.add(io.pmod2.getXDC())
-    }
-    if (this.config.withIO_PMOD3) {
-      Constraints.add(io.pmod3.getXDC())
-    }
-    super.generate()
-  }
-
   override val io = new KR260IO(config)
 
   override val plclk0 = (config.withPL_CLK0 > (0 MHz)) generate new ClockingArea(io.pl.clk0.domain)
