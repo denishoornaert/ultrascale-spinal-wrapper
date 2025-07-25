@@ -1,4 +1,4 @@
-package example
+package example.kv260
 
 import spinal.core._
 import spinal.lib._
