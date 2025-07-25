@@ -9,10 +9,19 @@ import ultrascaleplus.utils.{TCL, XDC, PSPLInterface, Log, Util}
 import ultrascaleplus.scripts.{TCLFactory}
 
 
+abstract class DiffClockTemplate {
+
+  val pin: String
+
+}
+
+
 object DiffClockMapped {
 
-  def apply(frequency; HertzNumber, pin: String): DiffClockMapped = new DiffClockMapped(frequency, pin)
-  
+  def apply(frequency: HertzNumber, pin: String): DiffClockMapped = new DiffClockMapped(frequency, pin)
+ 
+  def apply(frequency: HertzNumber, template: DiffClockTemplate) = new DiffClockMapped(frequency, template.pin)
+
 }
 
 /** Mappable differential clock (p & n)
@@ -49,7 +58,7 @@ class DiffClockMapped(val frequency: HertzNumber, val pin: String) extends Bundl
 
   override def getXDC(): String = {
     var constraint = ""
-    constraint += f"set_property PACKAGE_PIN ${this.pin} [get_ports ${this.clock.p.getName()}_external_clk_p]"
+    constraint += f"set_property PACKAGE_PIN ${this.pin} [get_ports ${this.clock.p.getName()}_external_clk_p]\n"
     constraint += f"create_clock -period ${this.frequency.toTime.toBigDecimal} -name ${this.clock.getName()}_external [get_ports ${this.clock.getName()}_external_clk_p]"
     constraint +=  "\n"
     return constraint
