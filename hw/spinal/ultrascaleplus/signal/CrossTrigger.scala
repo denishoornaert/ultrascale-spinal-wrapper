@@ -19,13 +19,15 @@ case class CrossTrigger() extends Bundle with IMasterSlave with PSPLInterface wi
     in(ps_pl_trigack)
   }
 
-  override def getTCL(moduleName: String, clock: String): String = {
+  override def getTCL(): String = {
+    val moduleName = Util.topmodule(this).getName()
     val index = this.getPartialName().takeRight(1)
     var tcl = ""
     if (this.isMasterInterface)
       tcl += TCLFactory.interfaceConnection(this.getPartialName(), Seq(f"${moduleName}/${this.getPartialName()}", f"processing_system/PL_PS_TRIGGER_${index}"))
     else
       tcl += TCLFactory.interfaceConnection(f"processing_system_PS_PL_TRIGGER_${index}", Seq(f"${moduleName}/${this.getPartialName()}", f"processing_system/PS_PL_TRIGGER_${index}"))
+    tcl += "\n"
     return tcl
   }
 
