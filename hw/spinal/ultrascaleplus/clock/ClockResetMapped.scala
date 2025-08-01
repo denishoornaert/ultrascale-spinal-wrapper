@@ -30,7 +30,11 @@ class ClockResetMapped(source: PllSource, target: HertzNumber) extends ClockMapp
     clock     = this.clock,
     reset     = this.reset,
     frequency = FixedFrequency(this.frequency), 
-    config    = ClockDomainConfig(resetActiveLevel = HIGH)
+    config    = ClockDomainConfig(
+      clockEdge        = RISING,
+      resetKind        = ASYNC,
+      resetActiveLevel = HIGH
+    )
   )
 
   override def getTCL(): String = {

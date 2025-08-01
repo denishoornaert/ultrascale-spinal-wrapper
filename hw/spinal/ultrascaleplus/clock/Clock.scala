@@ -32,6 +32,9 @@ class ClockMapped(val source: PllSource, val target: HertzNumber) extends Bundle
   val domain = ClockDomain(
     clock     = this.clock,
     frequency = FixedFrequency(this.frequency), 
+    config    = ClockDomainConfig(
+      clockEdge        = RISING
+    )
   )
 
   override def getTCL(): String = {
@@ -46,4 +49,4 @@ class ClockMapped(val source: PllSource, val target: HertzNumber) extends Bundle
     this.clock.addAttribute("X_INTERFACE_INFO", f"xilinx.com:signal:clock:1.0 ${this.clock.getName()} CLK")
   }
 
-}
+} 
