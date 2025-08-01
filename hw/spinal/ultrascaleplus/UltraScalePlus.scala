@@ -21,7 +21,7 @@ import spinal.lib.bus.amba4.axi._
 import ultrascaleplus.signal.crosstrigger._
 import ultrascaleplus.signal.irq._
 import ultrascaleplus.bus.amba.axi4._
-import ultrascaleplus.clock.ClockResetMapped
+import ultrascaleplus.clock.{ClockResetMapped, PLClockingArea}
 import ultrascaleplus.clock.pll._
 import ultrascaleplus.scripts._
 import ultrascaleplus.utils._
@@ -112,12 +112,6 @@ abstract class UltraScalePlus (
   // Abstractt IO
   val io: UltraScalePlusIO
   
-  // Clock domains
-  val plclk0: ClockingArea
-  val plclk1: ClockingArea
-  val plclk2: ClockingArea
-  val plclk3: ClockingArea
-
   
   override def getTCL(): String = {
     var tcl = ""

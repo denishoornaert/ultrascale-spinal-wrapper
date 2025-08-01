@@ -12,6 +12,7 @@ import ultrascaleplus.signal.crosstrigger._
 import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.io.pmod._
 import ultrascaleplus.scripts._
+import ultrascaleplus.clock.PLClockingArea
 
 import zcu102.io.pmod._
 import zcu102.clock._
@@ -99,10 +100,4 @@ class ZCU102(
   override val boardPart = "xczu9eg-ffvb1156-2-e"
 
   override val io = new ZCU102IO(config)
-  
-  override val plclk0 = (config.withPL_CLK0 > (0 MHz)) generate new ClockingArea(io.pl.clk0.domain)
-  override val plclk1 = (config.withPL_CLK1 > (0 MHz)) generate new ClockingArea(io.pl.clk1.domain)
-  override val plclk2 = (config.withPL_CLK2 > (0 MHz)) generate new ClockingArea(io.pl.clk2.domain)
-  override val plclk3 = (config.withPL_CLK3 > (0 MHz)) generate new ClockingArea(io.pl.clk3.domain)
-
 }

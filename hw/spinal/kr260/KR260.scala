@@ -11,6 +11,7 @@ import ultrascaleplus.signal.crosstrigger._
 import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.io.pmod._
 import ultrascaleplus.scripts._
+import ultrascaleplus.clock.PLClockingArea
 import kr260.io.pmod._
 
 
@@ -99,9 +100,4 @@ class KR260(
   override val boardPart = "xck26-sfvc784-2LV-c"
 
   override val io = new KR260IO(config)
-
-  override val plclk0 = (config.withPL_CLK0 > (0 MHz)) generate new ClockingArea(io.pl.clk0.domain)
-  override val plclk1 = (config.withPL_CLK1 > (0 MHz)) generate new ClockingArea(io.pl.clk1.domain)
-  override val plclk2 = (config.withPL_CLK2 > (0 MHz)) generate new ClockingArea(io.pl.clk2.domain)
-  override val plclk3 = (config.withPL_CLK3 > (0 MHz)) generate new ClockingArea(io.pl.clk3.domain)
 }
