@@ -1,4 +1,4 @@
-ThisBuild / version := "0.1"
+ThisBuild / version := "1.0"
 ThisBuild / scalaVersion := "2.13.16"
 ThisBuild / organization := "de.tum"
 
@@ -8,7 +8,6 @@ val spinalLib = "com.github.spinalhdl" %% "spinalhdl-lib" % spinalVersion
 val spinalIdslPlugin = compilerPlugin("com.github.spinalhdl" %% "spinalhdl-idsl-plugin" % spinalVersion)
 
 libraryDependencies += "org.scala-lang" %% "toolkit" % "0.7.0"
-// libraryDependencies += "com.lihaoyi" %% "upickle" % "4.1.0"
 
 lazy val lib = (project in file("."))
   .settings(
