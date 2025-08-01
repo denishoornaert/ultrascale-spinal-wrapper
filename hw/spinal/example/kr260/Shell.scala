@@ -5,6 +5,9 @@ import spinal.core._
 import spinal.lib._
 
 
+import ultrascaleplus.clock._
+
+
 import kr260._
 
 
@@ -57,25 +60,25 @@ case class Shell() extends KR260(
   io.fpd.hpc1.associate(io.pl.clk0)
   io.fpd.acp.associate(io.pl.clk0)
 
-  plclk0.rework{
+  val plclk0 = new PLClockingArea(io.pl.clk0) {
     // Create dummy register to force instantiation of cock and reset I/O
     val clock_count = Reg(UInt(64 bits)) init(0)
     clock_count := clock_count+1
   }
 
-  plclk1.rework{
+  val plclk1 = new PLClockingArea(io.pl.clk1) {
     // Create dummy register to force instantiation of cock and reset I/O
     val clock_count = Reg(UInt(64 bits)) init(0)
     clock_count := clock_count+1
   }
 
-  plclk2.rework{
+  val plclk2 = new PLClockingArea(io.pl.clk2) {
     // Create dummy register to force instantiation of cock and reset I/O
     val clock_count = Reg(UInt(64 bits)) init(0)
     clock_count := clock_count+1
   }
 
-  plclk3.rework{
+  val plclk3 = new PLClockingArea(io.pl.clk3) {
     // Create dummy register to force instantiation of cock and reset I/O
     val clock_count = Reg(UInt(64 bits)) init(0)
     clock_count := clock_count+1
