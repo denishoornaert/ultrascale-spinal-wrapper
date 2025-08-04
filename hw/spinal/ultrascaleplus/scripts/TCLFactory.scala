@@ -31,43 +31,6 @@ object TCLFactory {
     return "set_property -name \""+name+"\" -value \""+value+"\" -object "+obj+"\n"
   }
   
-  def createProject(): String = {
-    var tcl = ""
-    tcl +=  "\n"
-    tcl += f"create_project ${this.moduleName} ./vivado/${this.moduleName} -part ${this.platform.get.boardPart}\n"
-    tcl +=  "set proj_dir [get_property directory [current_project]]\n"
-    tcl +=  "\n"
-    tcl +=  "set obj [current_project]\n"
-    tcl +=  setProperty("board_part_repo_paths", f"[file normalize \"~/.Xilinx/Vivado/${Vivado.version}/xhub/board_store/xilinx_board_store\"]" , "$obj")
-    tcl +=  setProperty("board_part", f"xilinx.com:${this.platform.get.board}:part0:${Vivado.getBoardVersion(this.platform.get.board)}", "$obj")
-    tcl +=  setProperty("default_lib", "xil_defaultlib", "$obj")
-    // TODO implement version/properties map
-    if (Vivado.version != "2019.2")
-      tcl +=  setProperty("enable_resource_estimation", "0", "$obj")
-    tcl +=  setProperty("enable_vhdl_2008", "1", "$obj")
-    tcl +=  setProperty("ip_cache_permissions", "read write", "$obj")
-    tcl +=  setProperty("ip_output_repo", "$proj_dir/"+f"${this.moduleName}.cache/ip", "$obj")
-    tcl +=  setProperty("mem.enable_memory_map_generation", "1", "$obj")
-    tcl +=  setProperty("platform.board_id", this.platform.get.board, "$obj")
-    // TODO implement version/properties map
-    if (Vivado.version != "2019.2")
-      tcl +=  setProperty("revised_directory_structure", "1", "$obj")
-    tcl +=  setProperty("sim.central_dir", "$proj_dir/"+f"${this.moduleName}.ip_user_files", "$obj")
-    tcl +=  setProperty("sim.ip.auto_export_scripts", "1", "$obj")
-    // TODO implement version/properties map
-    if (Vivado.version != "2019.2")
-      tcl +=  setProperty("sim_compile_state", "1", "$obj")
-    tcl +=  setProperty("sim_compile_state"               , "1"                                                                                            , "$obj")
-    tcl +=  setProperty("webtalk.activehdl_export_sim"    , "1"                                                                                            , "$obj")
-    tcl +=  setProperty("webtalk.modelsim_export_sim"     , "1"                                                                                            , "$obj")
-    tcl +=  setProperty("webtalk.questa_export_sim"       , "1"                                                                                            , "$obj")
-    tcl +=  setProperty("webtalk.riviera_export_sim"      , "1"                                                                                            , "$obj")
-    tcl +=  setProperty("webtalk.vcs_export_sim"          , "1"                                                                                            , "$obj")
-    tcl +=  setProperty("webtalk.xsim_export_sim"         , "1"                                                                                            , "$obj")
-    tcl += "\n"
-    return tcl
-  }
-
   def checkAndCreateFileset(fileset: String, filesetType: String): String = {
     val empty = "\"\""
     var tcl = ""
@@ -575,7 +538,13 @@ object TCLFactory {
     var tcl = ""
 
     // Create project
-    tcl += this.createProject()
+    Vivado.Project.fill("default")
+    Vivado.Project.add("board_part_repo_paths", f"[file normalize \"~/.Xilinx/Vivado/${Vivado.version}/xhub/board_store/xilinx_board_store\"]")
+    Vivado.Project.add("board_part"           , f"xilinx.com:${this.platform.get.board}:part0:${Vivado.getBoardVersion(this.platform.get.board)}")
+    Vivado.Project.add("ip_output_repo"       , "$proj_dir/"+f"${this.moduleName}.cache/ip")
+    Vivado.Project.add("platform.board_id"    , this.platform.get.board)
+    Vivado.Project.add("sim.central_dir"      , "$proj_dir/"+f"${this.moduleName}.ip_user_files")
+    tcl += Vivado.Project.getTCL()
 
     // Setup project
     //// Sources
@@ -623,13 +592,13 @@ object TCLFactory {
     tcl += this.disableIDRFlow()
 
     // Setup synthesis
-    Vivado.Synthesis.setMode("default")
+    Vivado.Synthesis.fill("default")
     tcl += Vivado.Synthesis.getTCL()
     tcl += this.reportSynthesisUtilization("synth_1")
     tcl += this.setSynthesisAsCurrentStep("synth_1")
 
     // Setup implementation
-    Vivado.Implementation.setMode("default")
+    Vivado.Implementation.fill("default")
     tcl += Vivado.Implementation.getTCL()
 
     // Setup reports

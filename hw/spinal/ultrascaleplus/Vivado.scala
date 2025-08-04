@@ -9,7 +9,7 @@ import scala.collection.mutable
 import scala.collection.immutable 
 
 import ultrascaleplus.scripts.TCLFactory
-import ultrascaleplus.utils.Log
+import ultrascaleplus.utils.{TCL,Log}
 import scala.io.Source
 import scala.tools.nsc.doc.html.HtmlTags.P
 
@@ -259,9 +259,11 @@ object Vivado {
    */
   def getBoardVersion(board: String): String = catalog.getBoardVersion(board).getOrElse(throw new RuntimeException(s"Board ${board} does not exist in the catalog"))
 
-  private class Properties(private val target: String, val name: String) {
+  class Properties(val target: String) extends TCL {
 
     private var propertities = Map[String, String]()
+
+    this.fill("default")
 
     def getTCL(): String = {
       var tcl = ""
@@ -271,34 +273,68 @@ object Vivado {
       return tcl
     }
 
-    def setMode(mode: String): Unit = {
-      this.propertities = read[Map[String, String]](os.read(os.pwd / "hw" / "ext" / "Vivado" / f"${target}" / f"${mode}.json"))
+    def fill(filepath: os.ReadablePath): Unit = {
+      this.propertities = read[Map[String, String]](os.read(filepath))
+    }
+    
+    def fill(mode: String): Unit = {
+      this.fill(os.pwd / "hw" / "ext" / "Vivado" / Vivado.year / f"${this.target}" / f"${mode}.json")
+    }
+
+    /**
+     * Note that if a property entry already exists, it will be 
+     * update/overwritten.
+     */
+    def add(name: String, value: String): Unit = {
+      this.propertities += (name -> value)
+    }
+
+    /**
+     * Note that if a property entry already exists, it will be 
+     * update/overwritten.
+     */
+    def add(another: Properties): Unit = {
+      this.propertities ++= another.propertities
     }
   }
 
-  abstract class Run(target: String, name: String) {
+  object Project extends Properties("Project") {
 
-    private val properties = new Properties(target, name)
+    override def getTCL(): String = {
+      var tcl = ""
+      tcl += f"create_project ${TCLFactory.moduleName} ./vivado/${TCLFactory.moduleName} -part ${TCLFactory.platform.get.boardPart}\n"
+      tcl +=  "set proj_dir [get_property directory [current_project]]\n"
+      tcl +=  "\n"
+      tcl +=  "set obj [current_project]\n"
+      tcl +=  super.getTCL()
+      tcl +=  "\n"
+      return tcl
+    }
+
+  }
+
+  object Synthesis extends Properties("Synthesis") {
     
-    // Is set to deafult by default...
-    this.properties.setMode("default")
-
-    def getTCL(): String = {
-      var tcl = f"set obj [get_runs ${this.name}]\n"
+    override def getTCL(): String = {
+      var tcl = f"set obj [get_runs synth_1]\n"
       tcl += TCLFactory.setProperty("flow", f"Vivado ${this.target} ${Vivado.year}", "$obj")
-      tcl += this.properties.getTCL()
+      tcl += super.getTCL()
       tcl += "\n"
       return tcl
     }
 
-    def setMode(mode: String): Unit = {
-      this.properties.setMode(mode)
+  }
+  
+  object Implementation extends Properties("Implementation") {
+    
+    override def getTCL(): String = {
+      var tcl = f"set obj [get_runs impl_1]\n"
+      tcl += TCLFactory.setProperty("flow", f"Vivado ${this.target} ${Vivado.year}", "$obj")
+      tcl += super.getTCL()
+      tcl += "\n"
+      return tcl
     }
 
   }
-
-  object Synthesis extends Run("Synthesis", "synth_1")
-  
-  object Implementation extends Run("Implementation", "impl_1")
 
 }
