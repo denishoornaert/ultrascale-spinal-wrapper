@@ -31,6 +31,11 @@ object TCLFactory {
     return "set_property -name \""+name+"\" -value \""+value+"\" -object "+obj+"\n"
   }
   
+  def ifObjectExists(codeBlock: String): String = {
+    val tabversion = codeBlock.linesIterator.map("\t" + _).mkString("\n")
+    return if (codeBlock.trim.nonEmpty) "if { $obj != \"\" } {\n"+tabversion+"\n}\n" else ""
+  }
+
   def checkAndCreateFileset(fileset: String, filesetType: String): String = {
     val empty = "\"\""
     var tcl = ""
@@ -41,8 +46,8 @@ object TCLFactory {
     return tcl
   }
 
-  def setObject(fileset: String): String = {
-    return f"set obj [get_filesets ${fileset}]\n\n"
+  def setObject(source: String): String = {
+    return f"set obj [${source}]\n"
   }
 
   def importConstraints(fileset: String): String = {
@@ -72,7 +77,6 @@ object TCLFactory {
   }
 
   def print(level: String, id: Int, message: String): String = {
-
     return Vivado.version match {
       case "2019.2" => f"common::send_msg_id \"BD_TCL-${id}\" \"${level}\" \"${message}\""
       case _        => f"common::send_gid_msg -ssname BD::TCL -id ${id} -severity \"${level}\" \"${message}\""
@@ -231,231 +235,8 @@ object TCLFactory {
     return tcl
   }
 
-  def reportSynthesisUtilization(fileset: String): String = {
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_synth_report_utilization_0]\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
   def setSynthesisAsCurrentStep(fileset: String): String = {
-    var tcl = ""
-    tcl += f"current_run -synthesis [get_runs ${fileset}]\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def createImplementation(fileset: String): String = {
-    val strategy = "\"Vivado Implementation Defaults\""
-    val flow = f"\"Vivado Implementation ${Vivado.year}\""
-    var tcl = ""
-    tcl += f"set_property strategy ${strategy} [get_runs ${fileset}]\n"
-    tcl += f"set_property flow ${flow} [get_runs ${fileset}]\n"
-    tcl += f"set obj [get_runs ${fileset}]\n"
-    tcl +=  "set_property set_report_strategy_name 1 $obj\n"
-    tcl +=  "set_property report_strategy {Vivado Implementation Default Reports} $obj\n"
-    tcl +=  "set_property set_report_strategy_name 0 $obj\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_init_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  set_property -name \"is_enabled\" -value \"0\" -objects $obj\n"
-    tcl +=  "  set_property -name \"options.max_paths\" -value \"10\" -objects $obj\n"
-    tcl +=  "  set_property -name \"options.report_unconstrained\" -value \"1\" -objects $obj\n"
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportDRC(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_opt_report_drc_0]\n\n"
-  }
-
-  def reportOptTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_opt_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportOptPower(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_power_opt_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def reportPlaceIO(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_io_0]\n\n"
-  }
-
-  def reportPlaceUtilization(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_utilization_0]\n\n"
-  }
-
-  def reportPlaceControlSets(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_control_sets_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("options.verbose", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportPlaceIncremental(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_incremental_reuse_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "}\n"
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_incremental_reuse_1]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportPlaceTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_place_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def reportPostPlacePower(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_post_place_power_opt_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def reportPhysTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_phys_opt_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("is_enabled", "0", "$obj")
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def reportRouteDRC(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_drc_0]\n\n"
-  }
-
-  def reportRouteMethodology(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_methodology_0]\n\n"
-  }
-
-  def reportRoutePower(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_power_0]\n\n"
-  }
-
-  def reportRouteStatus(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_status_0]\n\n"
-  }
-
-  def reportRouteTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportRouteIncremental(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_incremental_reuse_0]\n"
-  }
-
-  def reportRouteClockUtilization(fileset: String): String = {
-    return f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_clock_utilization_0]\n"
-  }
-
-  def reportRouteBusSkew(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_route_report_bus_skew_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("options.warn_on_violation", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-  
-  def reportPostRoutePhysTiming(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_post_route_phys_opt_report_timing_summary_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("options.max_paths", "10", "$obj")
-    tcl +=  "  "+this.setProperty("options.report_unconstrained", "1", "$obj")
-    tcl +=  "  "+this.setProperty("options.warn_on_violation", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def reportPostRoutePhysBusSkew(fileset: String): String = {
-    val empty = "\"\""
-    val obj = "$obj"
-    var tcl = ""
-    tcl += f"set obj [get_report_configs -of_objects [get_runs ${fileset}] ${fileset}_post_route_phys_opt_report_bus_skew_0]\n"
-    tcl += f"if { ${obj} != ${empty} } {\n"
-    tcl +=  "  "+this.setProperty("options.warn_on_violation", "1", "$obj")
-    tcl +=  "}\n"
-    tcl +=  "\n"
-    return tcl
+    return f"current_run -synthesis [get_runs ${fileset}]\n\n"
   }
   
   def setImplmentationStrategy(fileset: String): String = {
@@ -553,18 +334,18 @@ object TCLFactory {
     tcl += this.setProperty("top", "design_1_wrapper", "$obj")
     //// Constraint
     tcl += this.checkAndCreateFileset("constrs_1", "constrset")
-    tcl += this.setObject("constrs_1")
+    tcl += this.setObject("get_filesets constrs_1")
     if (Constraints.mustImportConstraints())
       tcl += this.importConstraints("constrs_1")
-    tcl += this.setObject("constrs_1")
+    tcl += this.setObject("get_filesets constrs_1")
     //// Sim
     tcl += this.checkAndCreateFileset("sim_1", "simset")
-    tcl += this.setObject("sim_1")
+    tcl += this.setObject("get_filesets sim_1")
     tcl += this.setProperty("top", "design_1_wrapper", "$obj")
     tcl += this.setProperty("top_lib", "xil_defaultlib", "$obj")
     //// Uilization
-    tcl += this.setObject("utils_1")
-    tcl += this.setObject("utils_1")
+    tcl += this.setObject("get_filesets utils_1")
+    tcl += this.setObject("get_filesets utils_1")
     tcl += this.addSources("sources_1")
     
     // Block design
@@ -594,35 +375,11 @@ object TCLFactory {
     // Setup synthesis
     Vivado.Synthesis.fill("default")
     tcl += Vivado.Synthesis.getTCL()
-    tcl += this.reportSynthesisUtilization("synth_1")
     tcl += this.setSynthesisAsCurrentStep("synth_1")
 
     // Setup implementation
     Vivado.Implementation.fill("default")
     tcl += Vivado.Implementation.getTCL()
-
-    // Setup reports
-    tcl += this.reportTiming("impl_1")
-    tcl += this.reportDRC("impl_1")
-    tcl += this.reportOptTiming("impl_1")
-    tcl += this.reportOptPower("impl_1")
-    tcl += this.reportPlaceIO("impl_1")
-    tcl += this.reportPlaceUtilization("impl_1")
-    tcl += this.reportPlaceControlSets("impl_1")
-    tcl += this.reportPlaceIncremental("impl_1")
-    tcl += this.reportPlaceTiming("impl_1")
-    tcl += this.reportPostPlacePower("impl_1")
-    tcl += this.reportPhysTiming("impl_1")
-    tcl += this.reportRouteDRC("impl_1")
-    tcl += this.reportRouteMethodology("impl_1")
-    tcl += this.reportRoutePower("impl_1")
-    tcl += this.reportRouteStatus("impl_1")
-    tcl += this.reportRouteTiming("impl_1")
-    tcl += this.reportRouteIncremental("impl_1")
-    tcl += this.reportRouteClockUtilization("impl_1")
-    tcl += this.reportRouteBusSkew("impl_1")
-    tcl += this.reportPostRoutePhysTiming("impl_1")
-    tcl += this.reportPostRoutePhysBusSkew("impl_1")
 
     // vivado setup
     tcl += this.setImplmentationStrategy("impl_1")

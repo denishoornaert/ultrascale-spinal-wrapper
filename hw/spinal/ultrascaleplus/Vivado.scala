@@ -259,25 +259,26 @@ object Vivado {
    */
   def getBoardVersion(board: String): String = catalog.getBoardVersion(board).getOrElse(throw new RuntimeException(s"Board ${board} does not exist in the catalog"))
 
-  class Properties(val target: String) extends TCL {
+  class Properties(val target: String, mode: String = "default") extends TCL {
 
-    private var propertities = Map[String, String]()
+    private var properties = Map[String, String]()
 
-    this.fill("default")
+    this.fill(mode)
 
     def getTCL(): String = {
       var tcl = ""
-      for (property <- this.propertities) {
+      for (property <- this.properties) {
         tcl += TCLFactory.setProperty(property._1, property._2, "$obj")
       }
       return tcl
     }
 
-    def fill(filepath: os.ReadablePath): Unit = {
-      this.propertities = read[Map[String, String]](os.read(filepath))
+    private def fill(filepath: os.ReadablePath): Unit = {
+      this.properties = read[Map[String, String]](os.read(filepath))
     }
     
     def fill(mode: String): Unit = {
+      println(f"${this.target}/${mode}.json")
       this.fill(os.pwd / "hw" / "ext" / "Vivado" / Vivado.year / f"${this.target}" / f"${mode}.json")
     }
 
@@ -286,7 +287,7 @@ object Vivado {
      * update/overwritten.
      */
     def add(name: String, value: String): Unit = {
-      this.propertities += (name -> value)
+      this.properties += (name -> value)
     }
 
     /**
@@ -294,9 +295,23 @@ object Vivado {
      * update/overwritten.
      */
     def add(another: Properties): Unit = {
-      this.propertities ++= another.propertities
+      this.properties ++= another.properties
     }
   }
+
+  class Report(runName: String, detailedReportName: String) extends TCL {
+
+    private val properties = new Properties("Report", detailedReportName)
+
+    def getTCL(): String = {
+      var tcl = ""
+      tcl += TCLFactory.setObject(f"get_report_configs -of_objects [get_runs ${this.runName}] ${this.runName}_${this.detailedReportName}")
+      tcl += TCLFactory.ifObjectExists(this.properties.getTCL())
+      tcl += "\n"
+      return tcl
+    }
+
+  } 
 
   object Project extends Properties("Project") {
 
@@ -313,26 +328,71 @@ object Vivado {
 
   }
 
-  object Synthesis extends Properties("Synthesis") {
+  object Synthesis extends TCL {
+
+    private val properties = new Properties("Synthesis")
+
+    private val reports = Seq[Report](
+      new Report("synth_1", "synth_report_utilization_0")
+    )
     
-    override def getTCL(): String = {
+    def getTCL(): String = {
       var tcl = f"set obj [get_runs synth_1]\n"
-      tcl += TCLFactory.setProperty("flow", f"Vivado ${this.target} ${Vivado.year}", "$obj")
-      tcl += super.getTCL()
+      tcl += TCLFactory.setProperty("flow", f"Vivado Synthesis ${Vivado.year}", "$obj")
+      tcl += this.properties.getTCL()
       tcl += "\n"
+      for (report <- this.reports)
+        tcl += report.getTCL()
       return tcl
+    }
+
+    def fill(mode: String): Unit = {
+      this.properties.fill(mode)
     }
 
   }
   
-  object Implementation extends Properties("Implementation") {
+  object Implementation extends TCL {
+
+    private val properties = new Properties("Implementation")
     
-    override def getTCL(): String = {
+    private val reports = Seq[Report](
+      new Report("impl_1", "init_report_timing_summary_0"),
+      new Report("impl_1", "opt_report_drc_0"),
+      new Report("impl_1", "opt_report_timing_summary_0"),
+      new Report("impl_1", "power_opt_report_timing_summary_0"),
+      new Report("impl_1", "place_report_io_0"),
+      new Report("impl_1", "place_report_utilization_0"),
+      new Report("impl_1", "place_report_control_sets_0"),
+      new Report("impl_1", "place_report_incremental_reuse_0"),
+      new Report("impl_1", "place_report_incremental_reuse_1"),
+      new Report("impl_1", "place_report_timing_summary_0"),
+      new Report("impl_1", "post_place_power_opt_report_timing_summary_0"),
+      new Report("impl_1", "phys_opt_report_timing_summary_0"),
+      new Report("impl_1", "route_report_drc_0"),
+      new Report("impl_1", "route_report_methodology_0"),
+      new Report("impl_1", "route_report_power_0"),
+      new Report("impl_1", "route_report_status_0"),
+      new Report("impl_1", "route_report_timing_summary_0"),
+      new Report("impl_1", "route_report_incremental_reuse_0"),
+      new Report("impl_1", "route_report_clock_utilization_0"),
+      new Report("impl_1", "route_report_bus_skew_0"),
+      new Report("impl_1", "post_route_phys_opt_report_timing_summary_0"),
+      new Report("impl_1", "post_route_phys_opt_report_bus_skew_0")
+    )
+    
+    def getTCL(): String = {
       var tcl = f"set obj [get_runs impl_1]\n"
-      tcl += TCLFactory.setProperty("flow", f"Vivado ${this.target} ${Vivado.year}", "$obj")
-      tcl += super.getTCL()
+      tcl += TCLFactory.setProperty("flow", f"Vivado Implementation ${Vivado.year}", "$obj")
+      tcl += this.properties.getTCL()
       tcl += "\n"
+      for (report <- this.reports)
+        tcl += report.getTCL()
       return tcl
+    }
+
+    def fill(mode: String): Unit = {
+      this.properties.fill(mode)
     }
 
   }
