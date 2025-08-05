@@ -313,17 +313,31 @@ object Vivado {
 
   } 
 
-  object Project extends Properties("Project") {
+  object Project extends TCL {
 
-    override def getTCL(): String = {
+    private val properties = new Properties("Project")
+
+    def getTCL(): String = {
       var tcl = ""
       tcl += f"create_project ${TCLFactory.moduleName} ./vivado/${TCLFactory.moduleName} -part ${TCLFactory.platform.get.boardPart}\n"
       tcl +=  "set proj_dir [get_property directory [current_project]]\n"
       tcl +=  "\n"
       tcl +=  "set obj [current_project]\n"
-      tcl +=  super.getTCL()
+      tcl +=  this.properties.getTCL()
       tcl +=  "\n"
       return tcl
+    }
+
+    /**
+     * Note that if a property entry already exists, it will be 
+     * update/overwritten.
+     */
+    def add(name: String, value: String): Unit = {
+      this.properties.add(name, value)
+    }
+
+    def fill(mode: String): Unit = {
+      this.properties.fill(mode)
     }
 
   }
