@@ -8,6 +8,7 @@ import spinal.lib.bus.amba4.axilite._
 import spinal.lib.bus.amba4.axis._
 
 
+import ultrascaleplus.types.DiffBool
 import ultrascaleplus.io.gt._
 
 
@@ -20,8 +21,8 @@ object Ethernet {
       val ctl_tx_send_lfi_0            =  in(Bool())
       val ctl_tx_send_rfi_0            =  in(Bool())
   //    val dclk                         =  in(Bool()) // clock 75 MHz
-  //    val gt_refclk_n                  =  in(Bool()) // Comes from the constraint. SI570User (dtb). Specified in constraints
-  //    val gt_refclk_p                  =  in(Bool()) // Comes from the constraint. SI570User (dtb). Specified in constraints
+      val gt_refclk_n                  =  in(Bool()) // Comes from the constraint. SI570User (dtb). Specified in constraints
+      val gt_refclk_p                  =  in(Bool()) // Comes from the constraint. SI570User (dtb). Specified in constraints
       val gt_rxn_in                    =  in(Bool())
       val gt_rxp_in                    =  in(Bool())
       val gt_txn_out                   = out(Bool())
@@ -43,6 +44,7 @@ object Ethernet {
       val rxoutclksel_in_0             =  in(UInt(3 bits))
   //    val s_axi_aclk_0                 =  in(Bool()) // in patrick's design same as 75 MHz (TODO: check if must be the same or different)
   //    val s_axi_aresetn_0              =  in(Bool())
+  /*
       val s_axi_arvalid_0              =  in(Bool())
       val s_axi_arready_0              = out(Bool())
       val s_axi_araddr_0               =  in(UInt(32 bits))
@@ -72,6 +74,7 @@ object Ethernet {
       val tx_axis_tkeep_0              =  in(Bits( 4 bits))
       val tx_axis_tlast_0              =  in(Bool())
       val tx_axis_tuser_0              =  in(Bits( 4 bits))
+  */
     }
   
   }
@@ -128,7 +131,9 @@ object Ethernet {
  */
 case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
 
-  override def getTCL(moduleName: String, clock: String): String = {
+  this.setName("ethernet")
+
+  override def getTCL(): String = {
     var tcl = ""
     tcl += "set_property -dict [list\n"
     tcl += "  CONFIG.BASE_R_KR {BASE-R}\n"
@@ -136,7 +141,7 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
     tcl += "  CONFIG.INCLUDE_AXI4_INTERFACE {1}\n"
     tcl += "  CONFIG.INCLUDE_STATISTICS_COUNTERS {1}\n"
     tcl += "  CONFIG.LANE1_GT_LOC {"+this.config.lane+"}\n"
-    tcl += "] ${"+this.blackbox.getName()+"}\n"
+    tcl += "] ${"+this.getName()+"}\n"
     tcl += "\n"
     return tcl
   }
@@ -146,14 +151,16 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
   /*
   this.afterElaboration({
     assert(
-      assertion = (this.clockDomain.get.frequency.getValue == (74.99252 MHz)),
+      assertion = (this.clockDomain.get.frequency.getValue == (74.999252 MHz)),
       message   = f"Xilinx ethernet IP (${this.getName()}) requires a frequency of 75 MHz (i.e., 74.99252 MHz) but ${this.clockDomain.get.frequency.getValue} is provided."
     )
   })
   */
 
   val io = new Bundle{
-    val gt  = master(GT())
+    val refclk = slave(DiffBool())
+    val gt     = master(GT())
+    /*
     val axi = slave(AxiLite4(Ethernet.AxiPortConfig))
     val tx  = new Bundle {
       val axis = slave(Axi4Stream(Ethernet.AxiTXConfig))
@@ -161,6 +168,7 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
     val stat = new Bundle {
       val tx = out(Ethernet.StatInterface())
     }
+    */
   }
 
   // Hardcoded io connections
@@ -175,6 +183,9 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
   blackbox.io.txoutclksel_in_0    <> 0
   blackbox.io.rxoutclksel_in_0    <> 0
   blackbox.io.rx_clk_out_0        <> blackbox.io.rx_core_clk_0
+  //// REFCLK
+  io.refclk.p                     <> blackbox.io.gt_refclk_p
+  io.refclk.n                     <> blackbox.io.gt_refclk_n
   //// GT
   io.gt.tx.n                      <> blackbox.io.gt_txn_out
   io.gt.tx.p                      <> blackbox.io.gt_txp_out
@@ -182,6 +193,7 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
   io.gt.rx.p                      <> blackbox.io.gt_rxp_in
   io.gt.sfp.dis                   <> False
   //// AXI 
+  /*
   blackbox.io.s_axi_arvalid_0     <> io.axi.ar.valid
   io.axi.ar.ready                 <> blackbox.io.s_axi_arready_0
   blackbox.io.s_axi_araddr_0      <> io.axi.ar.addr
@@ -213,5 +225,6 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
   io.stat.tx.packet_large_0       <> blackbox.io.stat_tx_packet_large_0
   io.stat.tx.packet_small_0       <> blackbox.io.stat_tx_packet_small_0
   io.stat.tx.total_good_packets_0 <> blackbox.io.stat_tx_total_good_packets_0
+  */
 
 }
