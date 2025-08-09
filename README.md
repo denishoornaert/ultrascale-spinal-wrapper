@@ -60,11 +60,11 @@ To add it as a dependency:
 
 1. Directly add it with following line in the project settings
 ```scala
-    libraryDependencies += "de.tum" %% "ultrascale-spinal-wrapper" % "0.1"
+    libraryDependencies += "de.tum" %% "ultrascale-spinal-wrapper" % "1.0"
 ```
 2. Create a variable for the dependency, after the SpinalHDL ones
 ```scala
-val ultrascaleLib = "de.tum" %% "ultrascale-spinal-wrapper" % "0.1"
+val ultrascaleLib = "de.tum" %% "ultrascale-spinal-wrapper" % "1.0"
 ```
 and add it to the main list of dependencies
 ```scala
