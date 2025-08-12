@@ -349,6 +349,14 @@ object Vivado {
     private val reports = Seq[Report](
       new Report("synth_1", "synth_report_utilization_0")
     )
+
+    def do(): String = {
+      var tcl = ""
+      tcl += f"launch_runs synth_1 -jobs 4\n"
+      tcl += f"wait_on_run synth_1\n"
+      tcl +=  "\n"
+      return tcl
+    }
     
     def getTCL(): String = {
       var tcl = f"set obj [get_runs synth_1]\n"
@@ -357,6 +365,8 @@ object Vivado {
       tcl += "\n"
       for (report <- this.reports)
         tcl += report.getTCL()
+      tcl += "\n"
+      tcl += "current_run -synthesis [get_runs synth_1]\n\n"
       return tcl
     }
 
@@ -395,6 +405,18 @@ object Vivado {
       new Report("impl_1", "post_route_phys_opt_report_bus_skew_0")
     )
     
+    def do(): String = {
+      var tcl = ""
+      tcl += f"launch_runs impl_1 -to_step write_bitstream -jobs 4\n"
+      tcl += f"wait_on_run impl_1\n"
+      tcl +=  "\n"
+      return tcl
+    }
+
+    def bitstream(); String = {
+      return f"file copy -force ./vivado/${Vivado.moduleName}/${Vivado.moduleName}.runs/impl_1/design_1_wrapper.bit ./${this.moduleName}.bit\n"
+    }
+
     def getTCL(): String = {
       var tcl = f"set obj [get_runs impl_1]\n"
       tcl += TCLFactory.setProperty("flow", f"Vivado Implementation ${Vivado.year}", "$obj")

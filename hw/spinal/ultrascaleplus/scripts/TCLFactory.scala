@@ -235,10 +235,6 @@ object TCLFactory {
     return tcl
   }
 
-  def setSynthesisAsCurrentStep(fileset: String): String = {
-    return f"current_run -synthesis [get_runs ${fileset}]\n\n"
-  }
-  
   def setImplmentationStrategy(fileset: String): String = {
     var tcl = ""
     tcl += f"set obj [get_runs ${fileset}]\n"
@@ -291,22 +287,6 @@ object TCLFactory {
     var tcl = ""
     tcl +=  "set_property top design_1_wrapper [current_fileset]\n"
     tcl += f"update_compile_order -fileset ${fileset}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def synthesize(fileset: String): String = {
-    var tcl = ""
-    tcl += f"launch_runs ${fileset} -jobs 4\n"
-    tcl += f"wait_on_run ${fileset}\n"
-    tcl +=  "\n"
-    return tcl
-  }
-
-  def implement(fileset: String): String = {
-    var tcl = ""
-    tcl += f"launch_runs ${fileset} -to_step write_bitstream -jobs 4\n"
-    tcl += f"wait_on_run ${fileset}\n"
     tcl +=  "\n"
     return tcl
   }
@@ -375,7 +355,6 @@ object TCLFactory {
     // Setup synthesis
     Vivado.Synthesis.fill("default")
     tcl += Vivado.Synthesis.getTCL()
-    tcl += this.setSynthesisAsCurrentStep("synth_1")
 
     // Setup implementation
     Vivado.Implementation.fill("default")
@@ -387,9 +366,9 @@ object TCLFactory {
 
     // Go to bitstream
     tcl += this.setTopModule("sources_1")
-    tcl += this.synthesize("synth_1")
-    tcl += this.implement("impl_1")
-    tcl += this.getBitstream("impl_1")
+    tcl += Vivado.Synthesis.do()
+    tcl += Vivado.Implementation.do()
+    tcl += Vivado.Implementation.bitstream()
 
     return tcl
   }
