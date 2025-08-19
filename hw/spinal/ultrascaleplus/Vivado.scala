@@ -39,43 +39,44 @@ object VivadoCatalogItem {
   }
 }
 
+/**
+ * Collect the vendor and version of available IPs and Boards, and list of the available parts for the currently sourced Vivado version.
+ *
+ * @param ips dictionary with name index of ips found in the sourced Vivado version
+ * @param boards dictionary with name index of boards found in the sourced Vivado version
+ * @param parts list of available parts in the sourced Vivado version
+ */
+private class VivadoCatalog (
+  private val ips: Map[String, VivadoCatalogItem],
+  private val boards: Map[String, VivadoCatalogItem],
+  private val parts: List[String]
+) {
+  
   /**
-    * Collect the vendor and version of available IPs and Boards, and list of the available parts for the currently sourced Vivado version.
-    *
-    * @param ips dictionary with name index of ips found in the sourced Vivado version
-    * @param boards dictionary with name index of boards found in the sourced Vivado version
-    * @param parts list of available parts in the sourced Vivado version
-    */
-  private class VivadoCatalog (
-    private val ips: Map[String, VivadoCatalogItem],
-    private val boards: Map[String, VivadoCatalogItem],
-    private val parts: List[String]
-  ) {
-    
-    /**
-      * Return the version of the passed IP, if present in the catalog
-      *
-      * @param ipName The name of the IP of interest
-      * @return Option object containing the version if IP found
-      */
-    def getIpVersion(ipName: String) : Option[String] = return ips.get(ipName).map(i => i.version)
+   * Return the version of the passed IP, if present in the catalog
+   *
+   * @param ipName The name of the IP of interest
+   * @return Option object containing the version if IP found
+   */
+  def getIpVersion(ipName: String) : Option[String] = return ips.get(ipName).map(i => i.version)
 
-    /**
-      * Return the version of the passed Board, if present in the catalog
-      *
-      * @param boardName The name of the Board of interest
-      * @return Option object containing the version if Board found
-      */
-    def getBoardVersion(boardName: String) : Option[String] = return boards.get(boardName).map(i => i.version)
+  /**
+   * Return the version of the passed Board, if present in the catalog
+   *
+   * @param boardName The name of the Board of interest
+   * @return Option object containing the version if Board found
+   */
+  def getBoardVersion(boardName: String) : Option[String] = return boards.get(boardName).map(i => i.version)
 
-    /**
-      * Check if the passed part is present in the catalog
-      *
-      * @param partName Name of the part of interest
-      * @return [[True]] if present, false otherwise
-      */
-    def isPartPresent(partName: String) : Boolean = parts.contains(partName)
-  }
+  /**
+   * Check if the passed part is present in the catalog
+   *
+   * @param partName Name of the part of interest
+   * @return [[True]] if present, false otherwise
+   */
+  def isPartPresent(partName: String) : Boolean = parts.contains(partName)
+
+}
 
 
 /** Object storing and referencing all things Vivado.
