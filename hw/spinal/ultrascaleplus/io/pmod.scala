@@ -5,7 +5,7 @@ import spinal.core._
 import spinal.lib._
 
 
-import ultrascaleplus.utils._
+import ultrascaleplus.utils.{TCL, XDC, Util}
 
 
 object PMOD {
@@ -26,7 +26,8 @@ class PMOD(pins: Seq[String]) extends Vec[Bool](Bool, Vector.fill(pins.length)(B
 
   val pinNames = pins
 
-  override def getTCL(moduleName: String, clock: String): String = {
+  override def getTCL(): String = {
+    val moduleName = Util.topmodule(this).getName()
     var tcl = ""
     for (pin <- 0 until pinNames.length) {
       tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/io_${this.getPartialName()}_${pin}]\n"

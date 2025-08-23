@@ -1,4 +1,4 @@
-package example
+package example.kv260
 
 import spinal.core._
 import spinal.lib._
@@ -50,6 +50,9 @@ case class Bleacher() extends KV260(
   }
 
   connect(io.fpd.hpm0, io.fpd.hp0)
+  
+  io.fpd.hpm0.associate(io.pl.clk0)
+  io.fpd.hp0.associate(io.pl.clk0)
 
   KernelModule.add(io.fpd.hpm0)
   KernelModule.generate()
