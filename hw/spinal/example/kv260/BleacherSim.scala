@@ -1,11 +1,15 @@
 package example.kv260
 
 
+import scala.collection.mutable
+
+
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib.bus.amba4.axi._
 import spinal.lib.bus.misc.SizeMapping
 import spinal.sim._
+import spinal.lib.sim._
 
 
 import kv260._
@@ -13,72 +17,87 @@ import ultrascaleplus.parameters._
 import ultrascaleplus.bus.amba.axi4.sim._
 
 
-
-class Primary(axi: Axi4, clock: ClockDomain) extends Axi4CheckerPrimary(axi, clock) {
-  
-  // Hardcoded template data
-  val expectedData = Seq(
-    BigInt("01010101010101010101010101010101", 16),
-    BigInt("02020202020202020202020202020202", 16),
-    BigInt("03030303030303030303030303030303", 16),
-    BigInt("04040404040404040404040404040404", 16)
-  )
-
-  var readTransactionsCreated: Int = 0
-  override val readTransactionsCap: Int = 8
-
-  override def genReadCmd(): Unit = {
-    if (this.readInProgress & (readTransactionsCreated < readTransactionsCap)) {
-      this.ARQueue += new Axi4RJob(axi.ar, AddressMap.FPD_HPM0.base+(readTransactionsCreated*64), 0x6800+(readTransactionsCreated*0x0020), 4-1)
-      readTransactionsCreated += 1
-    }
-  }
-
-  override def readDataAssertionFunction(id: Int, data: List[BigInt]): Unit = {
-    for (b <- 0 until 4) {
-      assert(
-        assertion = (data(b) == expectedData(b)),
-        message   = s"Data mismatch for read transaction ID = 0x${id.toHexString} at beat #${b}. Expected 0x${expectedData(b).toString(16)} but 0x${data(b).toString(16)} obtained."
-      )
-    }
-  }
-  
-  var writeTransactionsCreated: Int = 0
-  override val writeTransactionsCap: Int = 8
-
-  override def genWriteCmd(): Unit = {
-    if (this.writeInProgress & (writeTransactionsCreated < writeTransactionsCap)) {
-      this.AWQueue += new Axi4WJob(axi.aw, AddressMap.FPD_HPM0.base+(writeTransactionsCreated*64), 0x6800+(writeTransactionsCreated*0x0020), 4-1, expectedData)
-      writeTransactionsCreated += 1
-    }
-  }
-
-}
-
-class Secondary(axi: Axi4, clock: ClockDomain) extends Axi4CheckerSecondary(axi, clock) {}
-
-
 object BleacherSim extends App {
   Config.sim.compile{
       val dut = new Bleacher()
       dut
     }.doSim { dut =>
+
+    val primary = new Axi4CheckerPrimary(dut.io.fpd.hpm0, dut.clockDomain)
+    val secondary = new Axi4CheckerSecondary(dut.io.fpd.hp0, dut.clockDomain)
+
+    val expectedData = Seq(
+      BigInt("01010101010101010101010101010101", 16),
+      BigInt("02020202020202020202020202020202", 16),
+      BigInt("03030303030303030303030303030303", 16),
+      BigInt("04040404040404040404040404040404", 16)
+    )
+
+    val strobeBits = Seq(
+      BigInt("FFFF", 16),
+      BigInt("FFFF", 16),
+      BigInt("FFFF", 16),
+      BigInt("FFFF", 16)
+    )
+
+    var burstBeatCounter: Int = 0
+    StreamMonitor(dut.io.fpd.hpm0.r, dut.clockDomain) { payload =>
+      assert(
+        assertion = (payload.data.toBigInt == expectedData(burstBeatCounter)),
+        message   = s"Data mismatch for read transaction ID = 0x${payload.id.toBigInt.toString(16)} at beat #${burstBeatCounter}. Expected 0x${expectedData(burstBeatCounter).toString(16)} but 0x${payload.data.toBigInt.toString(16)} obtained."
+      )
+      // Reset for next transaction
+      if (burstBeatCounter == 4-1)
+        burstBeatCounter = 0
+      else
+        burstBeatCounter += 1
+    }
+
+    // Actually starts
     dut.clockDomain.forkStimulus(period = 10)
 
-    val primary = new Primary(dut.io.fpd.hpm0, dut.clockDomain)
-    val secondary = new Secondary(dut.io.fpd.hp0, dut.clockDomain)
+    // DUMP DATA
+    for (t <- 0 until 32) {
+      val aw = new Axi4AWJob(
+        channel = dut.io.fpd.hpm0.aw,
+        addr    = AddressMap.FPD_HPM0.base+(t*64),
+        id      = 0x6800+(t*0x0020),
+        len     = expectedData.length-1,
+        size    = log2Up(dut.io.fpd.hpm0.aw.config.bytePerWord)
+      )
+      val w = new Axi4WJob(
+        channel = dut.io.fpd.hpm0.w,
+        data    = expectedData,
+        strb    = strobeBits,
+        parent  = aw
+      )
+      primary.addWrite(aw, w)
+    }
 
-    dut.clockDomain.waitSampling(50) // Arbitrary
-    
     primary.startWrite()
-    primary.waitForAllWriteCompleted()
-
-    primary.startRead()
-    primary.waitForAllReadCompleted()
-    
-    val readBW = primary.getReadBandwidth()
-    println(s"Read performed at ${readBW} bytes per clock cycle.")
+    dut.clockDomain.waitRisingEdgeWhere(primary.allWritesCompleted())
+    primary.stopWrite()
     val writeBW = primary.getWriteBandwidth()
     println(s"Write performed at ${writeBW} bytes per clock cycle.")
+
+    // FETCH DATA
+    for (t <- 0 until 32) {
+      primary.addRead(
+        new Axi4ARJob(
+          channel = dut.io.fpd.hpm0.ar,
+          addr    = AddressMap.FPD_HPM0.base+(t*64),
+          id      = 0x6800+(t*0x0020),
+          len     = 4-1,
+          size    = log2Up(dut.io.fpd.hpm0.ar.config.dataWidth/8)
+        )
+      )
+    }
+
+    primary.startRead()
+    dut.clockDomain.waitRisingEdgeWhere(primary.allReadsCompleted())
+    primary.stopRead()
+    val readBW = primary.getReadBandwidth()
+    println(s"Read performed at ${readBW} bytes per clock cycle.")
+
   }
 }
