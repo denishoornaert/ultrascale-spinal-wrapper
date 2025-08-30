@@ -1,0 +1,5 @@
+{
+  "is_enabled": "0",
+  "options.max_paths": "10",
+  "options.report_unconstrained": "1"
+}

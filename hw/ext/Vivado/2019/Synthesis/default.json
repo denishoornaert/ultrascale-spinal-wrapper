@@ -1,0 +1,7 @@
+{
+  "strategy": "Vivado Synthesis Defaults",
+  "auto_incremental_checkpoint": "1",
+  "set_report_strategy_name": "1",
+  "report_strategy": "Vivado Synthesis Default Reports",
+  "set_report_strategy_name": "0"
+}

@@ -1,0 +1,28 @@
+# .github/workflows/fpga.yml
+# # Generated with ChatGPT
+name: FPGA CI
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [self-hosted, vivado]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Bitstream generation 2022.2
+        shell: bash
+        run: make VIVADO_PATH=~/../vivado/Vivado/ VIVADO_VERSION=2022.2 TARGET_DESIGN=ConfigPortTest bitstream
+
+      - name: Bitstream generation 2023.2
+        shell: bash
+        run: make VIVADO_PATH=~/../vivado/Vivado/ VIVADO_VERSION=2023.2 TARGET_DESIGN=ConfigPortTest bitstream
+
+      - name: Bitstream generation 2024.1
+        shell: bash
+        run: make VIVADO_PATH=~/../vivado/Vivado/ VIVADO_VERSION=2024.1 TARGET_DESIGN=ConfigPortTest bitstream
+

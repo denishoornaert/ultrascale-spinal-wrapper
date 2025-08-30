@@ -1,0 +1,17 @@
+{
+  "default_lib": "xil_defaultlib",
+  "enable_resource_estimation": "0",
+  "enable_vhdl_2008": "1",
+  "ip_cache_permissions": "read write",
+  "mem.enable_memory_map_generation": "1",
+  "revised_directory_structure": "1",
+  "sim.ip.auto_export_scripts": "1",
+  "sim_compile_state": "1",
+  "sim_compile_state": "1",
+  "webtalk.activehdl_export_sim": "1",
+  "webtalk.modelsim_export_sim": "1",
+  "webtalk.questa_export_sim": "1",
+  "webtalk.riviera_export_sim": "1",
+  "webtalk.vcs_export_sim": "1",
+  "webtalk.xsim_export_sim": "1"
+}
