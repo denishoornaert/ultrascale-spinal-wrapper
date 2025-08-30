@@ -19,7 +19,8 @@ case class Trace(width: Int = 32) extends Bundle with PSPLInterface with TCL {
   val ctl = Bool()
   val data = UInt(this.width bits)
 
-  override def getTCL(moduleName: String, clock: String): String = {
+  override def getTCL(): String = {
+    val moduleName = Util.topmodule(this).getName()
     var tcl = ""
     tcl += TCLFactory.netConnection("processing_system_trace_clk_out", Seq("processing_system/trace_clk_out", "processing_system/pl_ps_trace_clk"))
     tcl += TCLFactory.interfaceConnection(f"processing_system_TRACE_0", Seq(f"${moduleName}/${this.getPartialName()}", f"processing_system/TRACE_0"))
