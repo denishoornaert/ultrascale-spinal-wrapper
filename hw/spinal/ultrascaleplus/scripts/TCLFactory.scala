@@ -315,9 +315,9 @@ object TCLFactory {
     Vivado.Project.fill("default")
     Vivado.Project.add("board_part_repo_paths", f"[file normalize \"~/.Xilinx/Vivado/${Vivado.version}/xhub/board_store/xilinx_board_store\"]")
     Vivado.Project.add("board_part"           , f"xilinx.com:${this.platform.get.board}:part0:${Vivado.getBoardVersion(this.platform.get.board)}")
-    Vivado.Project.add("ip_output_repo"       , "$proj_dir/"+f"${this.moduleName}.cache/ip")
+    Vivado.Project.add("ip_output_repo"       , "$proj_dir/"+f"${this.platform.get.getName()}.cache/ip")
     Vivado.Project.add("platform.board_id"    , this.platform.get.board)
-    Vivado.Project.add("sim.central_dir"      , "$proj_dir/"+f"${this.moduleName}.ip_user_files")
+    Vivado.Project.add("sim.central_dir"      , "$proj_dir/"+f"${this.platform.get.getName()}.ip_user_files")
     tcl += Vivado.Project.getTCL()
 
     // Setup project
@@ -375,8 +375,8 @@ object TCLFactory {
 
     // Go to bitstream
     tcl += this.setTopModule("sources_1")
-    tcl += Vivado.Synthesis.do()
-    tcl += Vivado.Implementation.do()
+    tcl += Vivado.Synthesis.perform()
+    tcl += Vivado.Implementation.perform()
     tcl += Vivado.Implementation.bitstream()
 
     return tcl

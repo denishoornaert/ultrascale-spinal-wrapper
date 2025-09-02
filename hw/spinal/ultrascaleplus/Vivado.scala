@@ -265,7 +265,7 @@ object Vivado {
 
     this.fill(mode)
 
-    def getTCL(): String = {
+    override def getTCL(): String = {
       var tcl = ""
       for (property <- this.properties) {
         tcl += TCLFactory.setProperty(property._1, property._2, "$obj")
@@ -303,7 +303,7 @@ object Vivado {
 
     private val properties = new Properties("Report", detailedReportName)
 
-    def getTCL(): String = {
+    override def getTCL(): String = {
       var tcl = ""
       tcl += TCLFactory.setObject(f"get_report_configs -of_objects [get_runs ${this.runName}] ${this.runName}_${this.detailedReportName}")
       tcl += TCLFactory.ifObjectExists(this.properties.getTCL())
@@ -317,9 +317,9 @@ object Vivado {
 
     private val properties = new Properties("Project")
 
-    def getTCL(): String = {
+    override def getTCL(): String = {
       var tcl = ""
-      tcl += f"create_project ${TCLFactory.moduleName} ./vivado/${TCLFactory.moduleName} -part ${TCLFactory.platform.get.boardPart}\n"
+      tcl += f"create_project ${TCLFactory.platform.get.getName()} ./vivado/${TCLFactory.platform.get.getName()} -part ${TCLFactory.platform.get.boardPart}\n"
       tcl +=  "set proj_dir [get_property directory [current_project]]\n"
       tcl +=  "\n"
       tcl +=  "set obj [current_project]\n"
@@ -350,7 +350,7 @@ object Vivado {
       new Report("synth_1", "synth_report_utilization_0")
     )
 
-    def do(): String = {
+    def perform(): String = {
       var tcl = ""
       tcl += f"launch_runs synth_1 -jobs 4\n"
       tcl += f"wait_on_run synth_1\n"
@@ -358,7 +358,7 @@ object Vivado {
       return tcl
     }
     
-    def getTCL(): String = {
+    override def getTCL(): String = {
       var tcl = f"set obj [get_runs synth_1]\n"
       tcl += TCLFactory.setProperty("flow", f"Vivado Synthesis ${Vivado.year}", "$obj")
       tcl += this.properties.getTCL()
@@ -405,7 +405,7 @@ object Vivado {
       new Report("impl_1", "post_route_phys_opt_report_bus_skew_0")
     )
     
-    def do(): String = {
+    def perform(): String = {
       var tcl = ""
       tcl += f"launch_runs impl_1 -to_step write_bitstream -jobs 4\n"
       tcl += f"wait_on_run impl_1\n"
@@ -413,11 +413,11 @@ object Vivado {
       return tcl
     }
 
-    def bitstream(); String = {
-      return f"file copy -force ./vivado/${Vivado.moduleName}/${Vivado.moduleName}.runs/impl_1/design_1_wrapper.bit ./${this.moduleName}.bit\n"
+    def bitstream(): String = {
+      return f"file copy -force ./vivado/${TCLFactory.platform.get.getName()}/${TCLFactory.platform.get.getName()}.runs/impl_1/design_1_wrapper.bit ./${TCLFactory.platform.get.getName()}.bit\n"
     }
 
-    def getTCL(): String = {
+    override def getTCL(): String = {
       var tcl = f"set obj [get_runs impl_1]\n"
       tcl += TCLFactory.setProperty("flow", f"Vivado Implementation ${Vivado.year}", "$obj")
       tcl += this.properties.getTCL()
