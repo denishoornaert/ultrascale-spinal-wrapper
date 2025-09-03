@@ -417,6 +417,10 @@ object Vivado {
       return f"file copy -force ./vivado/${TCLFactory.platform.get.getName()}/${TCLFactory.platform.get.getName()}.runs/impl_1/design_1_wrapper.bit ./${TCLFactory.platform.get.getName()}.bit\n"
     }
 
+    def xsa(): String = {
+      return f"write_hw_platform -fixed -include_bit -force -file ./${TCLFactory.platform.get.getName()}.xsa\n"
+    }
+
     override def getTCL(): String = {
       var tcl = f"set obj [get_runs impl_1]\n"
       tcl += TCLFactory.setProperty("flow", f"Vivado Implementation ${Vivado.year}", "$obj")

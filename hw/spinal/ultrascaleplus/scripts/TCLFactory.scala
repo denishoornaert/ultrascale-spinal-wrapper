@@ -89,6 +89,7 @@ object TCLFactory {
 
   def checkIPs(): String = {
     var tcl = ""
+    tcl += this.print("INFO", 2011, "Checking if the selected IPs exist in the project's IP catalog.")+"\n"
     tcl +=f"set list_check_ips \"xilinx.com:ip:proc_sys_reset:5.0 xilinx.com:ip:zynq_ultra_ps_e:${Vivado.getIPVersion("zynq_ultra_ps_e")}\"\n"
     tcl += "set list_ips_missing \"\"\n"
     tcl += "foreach ip_vlnv $list_check_ips {\n"
@@ -108,6 +109,7 @@ object TCLFactory {
 
   def checkModules(): String = {
     var tcl = ""
+    tcl += this.print("INFO", 2020, f"Checking if the following modules exist in the project's sources: ${this.platform.get.getName()}.")+"\n"
     tcl +=  "set list_mods_missing \"\"\n"
     tcl += f"foreach mod_vlnv ${this.platform.get.getName()} {\n"
     tcl +=  "  if { [can_resolve_reference $mod_vlnv] == 0 } {\n"
@@ -229,10 +231,10 @@ object TCLFactory {
     tcl +=  "if { [get_property IS_LOCKED [ get_files -norecurse design_1.bd]] == 1 } {\n"
     tcl +=  "  import_files -fileset sources_1 [file normalize \""+path+"\"]\n"
     tcl +=  "} else {\n"
-    tcl += f"set wrapper_path [make_wrapper -fileset ${fileset} -files [ get_files -norecurse design_1.bd] -top]\n"
-    tcl += f"add_files -norecurse -fileset ${fileset} "+"$wrapper_path\n"
-    tcl += "}\n"
-    tcl += "\n"
+    tcl += f"  set wrapper_path [make_wrapper -fileset ${fileset} -files [ get_files -norecurse design_1.bd] -top]\n"
+    tcl += f"  add_files -norecurse -fileset ${fileset} "+"$wrapper_path\n"
+    tcl +=  "}\n"
+    tcl +=  "\n"
     return tcl
   }
 
@@ -304,10 +306,6 @@ object TCLFactory {
     return tcl
   }
 
-  def getBitstream(fileset: String): String = {
-    return f"file copy -force ./vivado/${this.platform.get.getName()}/${this.platform.get.getName()}.runs/${fileset}/design_1_wrapper.bit ./${this.platform.get.getName()}.bit\n"
-  }
-
   def script(): String = {
     var tcl = ""
 
@@ -342,9 +340,7 @@ object TCLFactory {
     tcl += this.addSources("sources_1")
     
     // Block design
-    tcl += this.print("INFO", 2010, "Currently there is no design <design_1> in project, so creating one...")+"\n"
     tcl += this.createDesign("design_1")
-    tcl += this.print("INFO", 2011, "Checking if the selected IPs exist in the project's IP catalog.")+"\n"
     tcl += this.checkIPs()
     tcl += this.print("INFO", 2020, f"Checking if the following modules exist in the project's sources: ${this.platform.get.getName()}.")+"\n"
     tcl += this.checkModules()
@@ -378,6 +374,7 @@ object TCLFactory {
     tcl += Vivado.Synthesis.perform()
     tcl += Vivado.Implementation.perform()
     tcl += Vivado.Implementation.bitstream()
+    tcl += Vivado.Implementation.xsa()
 
     return tcl
   }
