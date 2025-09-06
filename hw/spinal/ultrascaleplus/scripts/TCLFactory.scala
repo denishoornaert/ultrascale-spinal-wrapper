@@ -189,7 +189,8 @@ object TCLFactory {
   def addXilinxIPs(component: Component): String = {
     var tcl = ""
     for (element <- component.children) {
-      // Bundle MUST stay at the last place!
+      // Component MUST stay at the last place!
+      // TODO: TCL could also be a component with children...
       element match {
         case _:TCL       => tcl += element.asInstanceOf[TCL].getTCL()
         case _:Component => tcl += this.addXilinxIPs(element.asInstanceOf[Component])
