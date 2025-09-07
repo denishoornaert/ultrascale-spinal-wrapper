@@ -20,8 +20,9 @@ import spinal.lib.bus.amba4.axi._
 
 import ultrascaleplus.signal.crosstrigger._
 import ultrascaleplus.signal.irq._
+import ultrascaleplus.signal.trace._
 import ultrascaleplus.bus.amba.axi4._
-import ultrascaleplus.clock.{ClockResetMapped, PLClockingArea}
+import ultrascaleplus.clock.{ClockResetMapped, PLClockingArea, TraceClockMapped}
 import ultrascaleplus.clock.pll._
 import ultrascaleplus.scripts._
 import ultrascaleplus.utils._
@@ -96,7 +97,10 @@ class UltraScalePlusIO(config: UltraScalePlusConfig) extends Bundle {
     val toPS0 = (config.withPL_PS_IRQ0 > 0  ) generate (out(IRQ(config.withPL_PS_IRQ0)))
     val toPS1 = (config.withPL_PS_IRQ1 > 0  ) generate (out(IRQ(config.withPL_PS_IRQ1)))
   }
-  val trace = (config.withTRACE             ) generate ( in(Trace(32)))
+  val trace = new Bundle {
+    val clk = (config.withTRACE             ) generate ( in(TraceClockMapped()))
+    val bus = (config.withTRACE             ) generate ( in(Trace(32)))
+  }
 }
 
 
