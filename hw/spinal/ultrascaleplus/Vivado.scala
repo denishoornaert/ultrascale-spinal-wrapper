@@ -87,6 +87,7 @@ private class VivadoCatalog (
  */
 object Vivado {
 
+  this.setVersionIfNotDefined()
 
   /**
    * Populate a singleton object [[VivadoCatalog]]
@@ -94,13 +95,11 @@ object Vivado {
    **/
   private var catalog: VivadoCatalog = {
 
-    setVersionIfNotDefined()
-
     val resource_url = getClass.getResource("/vivado_catalog_scan.tcl")
     val content = Source.fromURL(resource_url).mkString
 
     var path: os.Path = os.temp.dir() / "vivado_catalog_scan.tcl"
-
+    
     os.write(path, content)
 
     val res = os.proc("vivado", "-nolog", "-nojournal", "-notrace", "-mode", "batch", "-source", path).call()
@@ -139,7 +138,7 @@ object Vivado {
     )
   }
 
-  private var versionFound: Array[java.lang.String] = null
+  private var versionFound: Array[java.lang.String] = Array[java.lang.String]("X", "X")
 
   /** 
    *  Nested mapping: Vivado version, Xilinx IP, IP version.
@@ -166,7 +165,7 @@ object Vivado {
    *  can be used (i.e., [[Config.vivado]] == XXXX.X).
    */
   private def setVersionIfNotDefined(): Unit = {
-    if (this.versionFound == null) {
+    if (this.versionFound.exists(_ == "X")) {
       // Report to user on specified version and detected one
       if (Config.vivado == "auto") { 
         versionFound = this.detectVivadoVersion().split('.')
@@ -242,7 +241,6 @@ object Vivado {
    *  @return version [[String]] in the format "year.revision".
    */
   def version: String = {
-    this.setVersionIfNotDefined()
     return f"${this.year}.${this.revision}"
   }
 
