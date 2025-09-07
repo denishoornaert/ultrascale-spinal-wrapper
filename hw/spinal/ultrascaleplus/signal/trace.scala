@@ -1,4 +1,4 @@
-package ultrascaleplus.signal.irq
+package ultrascaleplus.signal.trace
 
 
 import spinal.core._
@@ -22,7 +22,6 @@ case class Trace(width: Int = 32) extends Bundle with PSPLInterface with TCL {
   override def getTCL(): String = {
     val moduleName = Util.topmodule(this).getName()
     var tcl = ""
-    tcl += TCLFactory.netConnection("processing_system_trace_clk_out", Seq("processing_system/trace_clk_out", "processing_system/pl_ps_trace_clk"))
     tcl += TCLFactory.interfaceConnection(f"processing_system_TRACE_0", Seq(f"${moduleName}/${this.getPartialName()}", f"processing_system/TRACE_0"))
     tcl += "\n"
     return tcl
@@ -37,6 +36,13 @@ case class Trace(width: Int = 32) extends Bundle with PSPLInterface with TCL {
     }
     this.ctl.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:zynq_trace:1.0 ${this.getPartialName()} CTL")
     this.data.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:zynq_trace:1.0 ${this.getPartialName()} DATA")
+  }
+
+  def asFlow: Flow[UInt] = {
+    val flow = Flow(UInt(this.width bits))
+    flow.valid := !this.ctl // Control bit must be negated
+    flow.payload := this.data
+    return flow
   }
 
 }
