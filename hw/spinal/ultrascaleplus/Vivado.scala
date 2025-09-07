@@ -8,7 +8,8 @@ import upickle.default._
 import scala.collection.mutable
 import scala.collection.immutable 
 
-import ultrascaleplus.utils.Log
+import ultrascaleplus.scripts.TCLFactory
+import ultrascaleplus.utils.{TCL,Log}
 import scala.io.Source
 import scala.tools.nsc.doc.html.HtmlTags.P
 
@@ -257,5 +258,183 @@ object Vivado {
    *  @return version Version of the board requested.
    */
   def getBoardVersion(board: String): String = catalog.getBoardVersion(board).getOrElse(throw new RuntimeException(s"Board ${board} does not exist in the catalog"))
+
+  class Properties(val target: String, mode: String = "default") extends TCL {
+
+    private var properties = Map[String, String]()
+
+    this.fill(mode)
+
+    override def getTCL(): String = {
+      var tcl = ""
+      for (property <- this.properties) {
+        tcl += TCLFactory.setProperty(property._1, property._2, "$obj")
+      }
+      return tcl
+    }
+
+    private def fill(filepath: os.ReadablePath): Unit = {
+      this.properties = read[Map[String, String]](os.read(filepath))
+    }
+    
+    def fill(mode: String): Unit = {
+      println(f"${this.target}/${mode}.json")
+      this.fill(os.pwd / "hw" / "ext" / "Vivado" / Vivado.year / f"${this.target}" / f"${mode}.json")
+    }
+
+    /**
+     * Note that if a property entry already exists, it will be 
+     * update/overwritten.
+     */
+    def add(name: String, value: String): Unit = {
+      this.properties += (name -> value)
+    }
+
+    /**
+     * Note that if a property entry already exists, it will be 
+     * update/overwritten.
+     */
+    def add(another: Properties): Unit = {
+      this.properties ++= another.properties
+    }
+  }
+
+  class Report(runName: String, detailedReportName: String) extends TCL {
+
+    private val properties = new Properties("Report", detailedReportName)
+
+    override def getTCL(): String = {
+      var tcl = ""
+      tcl += TCLFactory.setObject(f"get_report_configs -of_objects [get_runs ${this.runName}] ${this.runName}_${this.detailedReportName}")
+      tcl += TCLFactory.ifObjectExists(this.properties.getTCL())
+      tcl += "\n"
+      return tcl
+    }
+
+  } 
+
+  object Project extends TCL {
+
+    private val properties = new Properties("Project")
+
+    override def getTCL(): String = {
+      var tcl = ""
+      tcl += f"create_project ${TCLFactory.platform.get.getName()} ./vivado/${TCLFactory.platform.get.getName()} -part ${TCLFactory.platform.get.boardPart}\n"
+      tcl +=  "set proj_dir [get_property directory [current_project]]\n"
+      tcl +=  "\n"
+      tcl +=  "set obj [current_project]\n"
+      tcl +=  this.properties.getTCL()
+      tcl +=  "\n"
+      return tcl
+    }
+
+    /**
+     * Note that if a property entry already exists, it will be 
+     * update/overwritten.
+     */
+    def add(name: String, value: String): Unit = {
+      this.properties.add(name, value)
+    }
+
+    def fill(mode: String): Unit = {
+      this.properties.fill(mode)
+    }
+
+  }
+
+  object Synthesis extends TCL {
+
+    private val properties = new Properties("Synthesis")
+
+    private val reports = Seq[Report](
+      new Report("synth_1", "synth_report_utilization_0")
+    )
+
+    def perform(): String = {
+      var tcl = ""
+      tcl += f"launch_runs synth_1 -jobs 4\n"
+      tcl += f"wait_on_run synth_1\n"
+      tcl +=  "\n"
+      return tcl
+    }
+    
+    override def getTCL(): String = {
+      var tcl = f"set obj [get_runs synth_1]\n"
+      tcl += TCLFactory.setProperty("flow", f"Vivado Synthesis ${Vivado.year}", "$obj")
+      tcl += this.properties.getTCL()
+      tcl += "\n"
+      for (report <- this.reports)
+        tcl += report.getTCL()
+      tcl += "\n"
+      tcl += "current_run -synthesis [get_runs synth_1]\n\n"
+      return tcl
+    }
+
+    def fill(mode: String): Unit = {
+      this.properties.fill(mode)
+    }
+
+  }
+  
+  object Implementation extends TCL {
+
+    private val properties = new Properties("Implementation")
+    
+    private val reports = Seq[Report](
+      new Report("impl_1", "init_report_timing_summary_0"),
+      new Report("impl_1", "opt_report_drc_0"),
+      new Report("impl_1", "opt_report_timing_summary_0"),
+      new Report("impl_1", "power_opt_report_timing_summary_0"),
+      new Report("impl_1", "place_report_io_0"),
+      new Report("impl_1", "place_report_utilization_0"),
+      new Report("impl_1", "place_report_control_sets_0"),
+      new Report("impl_1", "place_report_incremental_reuse_0"),
+      new Report("impl_1", "place_report_incremental_reuse_1"),
+      new Report("impl_1", "place_report_timing_summary_0"),
+      new Report("impl_1", "post_place_power_opt_report_timing_summary_0"),
+      new Report("impl_1", "phys_opt_report_timing_summary_0"),
+      new Report("impl_1", "route_report_drc_0"),
+      new Report("impl_1", "route_report_methodology_0"),
+      new Report("impl_1", "route_report_power_0"),
+      new Report("impl_1", "route_report_status_0"),
+      new Report("impl_1", "route_report_timing_summary_0"),
+      new Report("impl_1", "route_report_incremental_reuse_0"),
+      new Report("impl_1", "route_report_clock_utilization_0"),
+      new Report("impl_1", "route_report_bus_skew_0"),
+      new Report("impl_1", "post_route_phys_opt_report_timing_summary_0"),
+      new Report("impl_1", "post_route_phys_opt_report_bus_skew_0")
+    )
+    
+    def perform(): String = {
+      var tcl = ""
+      tcl += f"launch_runs impl_1 -to_step write_bitstream -jobs 4\n"
+      tcl += f"wait_on_run impl_1\n"
+      tcl +=  "\n"
+      return tcl
+    }
+
+    def bitstream(): String = {
+      return f"file copy -force ./vivado/${TCLFactory.platform.get.getName()}/${TCLFactory.platform.get.getName()}.runs/impl_1/design_1_wrapper.bit ./${TCLFactory.platform.get.getName()}.bit\n"
+    }
+
+    def xsa(): String = {
+      return f"write_hw_platform -fixed -include_bit -force -file ./${TCLFactory.platform.get.getName()}.xsa\n"
+    }
+
+    override def getTCL(): String = {
+      var tcl = f"set obj [get_runs impl_1]\n"
+      tcl += TCLFactory.setProperty("flow", f"Vivado Implementation ${Vivado.year}", "$obj")
+      tcl += this.properties.getTCL()
+      tcl += "\n"
+      for (report <- this.reports)
+        tcl += report.getTCL()
+      return tcl
+    }
+
+    def fill(mode: String): Unit = {
+      this.properties.fill(mode)
+    }
+
+  }
 
 }

@@ -1,0 +1,14 @@
+{
+  "needs_refresh": "1",
+  "strategy": "Performance_ExploreWithRemap",
+  "steps.opt_design.args.directive": "ExploreWithRemap",
+  "steps.place_design.args.directive": "Explore",
+  "steps.phys_opt_design.args.directive": "Explore",
+  "steps.route_design.args.directive": "NoTimingRelaxation",
+  "steps.route_design.args.more options": "{-tns_cleanup}",
+  "steps.post_route_phys_opt_design.is_enabled": "1",
+  "steps.post_route_phys_opt_design.args.directive": "Explore",
+  "steps.write_bitstream.args.bin_file": "1",
+  "steps.write_bitstream.args.readback_file": "0",
+  "steps.write_bitstream.args.verbose": "0"
+}
