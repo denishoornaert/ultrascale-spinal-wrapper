@@ -11,7 +11,7 @@ import ultrascaleplus.clock.DiffClockMapped
 import ultrascaleplus.signal.crosstrigger._
 import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.io.pmod._
-import ultrascaleplus.io.ethernet._
+import ultrascaleplus.io.gt._
 import ultrascaleplus.scripts._
 import ultrascaleplus.clock.PLClockingArea
 
