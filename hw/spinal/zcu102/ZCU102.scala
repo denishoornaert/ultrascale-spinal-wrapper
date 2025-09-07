@@ -11,10 +11,12 @@ import ultrascaleplus.clock.DiffClockMapped
 import ultrascaleplus.signal.crosstrigger._
 import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.io.pmod._
+import ultrascaleplus.io.ethernet._
 import ultrascaleplus.scripts._
 import ultrascaleplus.clock.PLClockingArea
 
 import zcu102.io.pmod._
+import zcu102.io.ethernet._
 import zcu102.clock._
 
 
