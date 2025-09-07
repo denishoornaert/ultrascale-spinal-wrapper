@@ -8,7 +8,7 @@ import spinal.core._
 import spinal.lib.bus.misc.SizeMapping
 
 
-import ultrascaleplus._
+import ultrascaleplus.{Vivado, UltraScalePlus}
 import ultrascaleplus.parameters.AddressMap
 import ultrascaleplus.utils.{TCL}
 
