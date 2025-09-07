@@ -35,8 +35,8 @@ object Ethernet {
       val tx_reset_0                   =  in(Bool())
       val rx_clk_out_0                 = out(Bool())
       val rx_core_clk_0                =  in(Bool())
-  //    val tx_clk_out_0                 = out(Bool()) // Operating clock of the IP; must be fedback to data source
-  //    val user_tx_reset_0              = out(Bool()) // reset associated with tx_clk_out_0
+      val tx_clk_out_0                 = out(Bool()) // Operating clock of the IP; must be fedback to data source
+      val user_tx_reset_0              = out(Bool()) // reset associated with tx_clk_out_0
   //    val sys_reset                    =  in(Bool()) // overall reset of the IP (TODO: to double)
       val tx_preamblein_0              =  in(UInt(56 bits))
   //    val tx_unfout_0                  = out(Bool()) // Not connected (maybe an error signal)
@@ -44,7 +44,6 @@ object Ethernet {
       val rxoutclksel_in_0             =  in(UInt(3 bits))
   //    val s_axi_aclk_0                 =  in(Bool()) // in patrick's design same as 75 MHz (TODO: check if must be the same or different)
   //    val s_axi_aresetn_0              =  in(Bool())
-  /*
       val s_axi_arvalid_0              =  in(Bool())
       val s_axi_arready_0              = out(Bool())
       val s_axi_araddr_0               =  in(UInt(32 bits))
@@ -74,7 +73,6 @@ object Ethernet {
       val tx_axis_tkeep_0              =  in(Bits( 4 bits))
       val tx_axis_tlast_0              =  in(Bool())
       val tx_axis_tuser_0              =  in(Bits( 4 bits))
-  */
     }
   
   }
@@ -159,16 +157,22 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
 
   val io = new Bundle{
     val refclk = slave(DiffBool())
-    val gt     = master(GT())
-    /*
+    val gt = master(GT())
     val axi = slave(AxiLite4(Ethernet.AxiPortConfig))
-    val tx  = new Bundle {
+    val tx = new Bundle {
       val axis = slave(Axi4Stream(Ethernet.AxiTXConfig))
+      val clk = new Bundle {
+        val o = out(Bool())
+      }
+    }
+    val user = new Bundle {
+      val tx = new Bundle {
+        val reset = Bool()
+      }
     }
     val stat = new Bundle {
       val tx = out(Ethernet.StatInterface())
     }
-    */
   }
 
   // Hardcoded io connections
@@ -183,6 +187,9 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
   blackbox.io.txoutclksel_in_0    <> 0
   blackbox.io.rxoutclksel_in_0    <> 0
   blackbox.io.rx_clk_out_0        <> blackbox.io.rx_core_clk_0
+  //// Others
+  io.tx.clk.o                     <> blackbox.io.tx_clk_out_0
+  io.user.tx.reset                <> blackbox.io.user_tx_reset_0
   //// REFCLK
   io.refclk.p                     <> blackbox.io.gt_refclk_p
   io.refclk.n                     <> blackbox.io.gt_refclk_n
@@ -193,7 +200,6 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
   io.gt.rx.p                      <> blackbox.io.gt_rxp_in
   io.gt.sfp.dis                   <> False
   //// AXI 
-  /*
   blackbox.io.s_axi_arvalid_0     <> io.axi.ar.valid
   io.axi.ar.ready                 <> blackbox.io.s_axi_arready_0
   blackbox.io.s_axi_araddr_0      <> io.axi.ar.addr
@@ -225,6 +231,5 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
   io.stat.tx.packet_large_0       <> blackbox.io.stat_tx_packet_large_0
   io.stat.tx.packet_small_0       <> blackbox.io.stat_tx_packet_small_0
   io.stat.tx.total_good_packets_0 <> blackbox.io.stat_tx_total_good_packets_0
-  */
 
 }
