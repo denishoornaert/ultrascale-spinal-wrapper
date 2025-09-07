@@ -5,6 +5,16 @@ import spinal.lib._
 
 import ultrascaleplus.utils._
 
+
+abstract class GTInstanceTemplate() {
+  val TX   : Seq[String]
+  val SFP  : Seq[String]
+  val RX   : Seq[String]
+  val group: String
+  val lane : String
+} 
+
+
 /** GT interface bundle/interface class.
  *
  *  NOTE: extending [[TCL]] and [[XDC]] is not needed as the component do.
@@ -14,7 +24,7 @@ import ultrascaleplus.utils._
  *  @param sfpPins SFP board pins' name for the platform.
  *  @param rxPins RX board pins' name for the platform.
  */
-case class GT(txPins: Seq[String], sfpPins: Seq[String], rxPins: Seq[String]) extends Bundle with PSPLInterface {
+case class GT(config: GTInstanceTemplate) extends Bundle with PSPLInterface {
   
   case class SFP(pins: Seq[String]) extends Bundle with TCL with XDC {
     
@@ -74,8 +84,8 @@ case class GT(txPins: Seq[String], sfpPins: Seq[String], rxPins: Seq[String]) ex
     this.rx.n.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getPartialName()} RXN")
   }
 
-  val tx  = out(DifferentialPaire(txPins))
-  val sfp = out(SFP(sfpPins))
-  val rx  =  in(DifferentialPaire(rxPins))
+  val tx  = out(DifferentialPaire(config.TX))
+  val sfp = out(SFP(config.SFP))
+  val rx  =  in(DifferentialPaire(config.RX))
 
 }
