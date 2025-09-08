@@ -48,6 +48,7 @@ class ZCU102Config(
   withPL_PS_IRQ0   : Int         =     0,
   withPL_PS_IRQ1   : Int         =     0,
   withTRACE        : Boolean     = false,
+  val with_GT0     : Boolean     = false,
   val withSI570_MGT: HertzNumber =   0 MHz
   ) extends UltraScalePlusConfig(
     withPL_CLK0    = withPL_CLK0   ,
@@ -86,6 +87,7 @@ class ZCU102IO(config: ZCU102Config) extends UltraScalePlusIO(config) {
       val mgt = (config.withSI570_MGT > (0 MHz)) generate in(DiffClockMapped(config.withSI570_MGT, SI570_MGT))
     } 
   }
+  val gt0 = (config.with_GT0) generate out(GTMapped(GT0))
 }
 
 
