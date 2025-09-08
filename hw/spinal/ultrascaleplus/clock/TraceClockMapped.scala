@@ -40,8 +40,8 @@ class TraceClockMapped() extends Bundle with PSPLInterface with TCL {
     val topmodule = Util.topmodule(this)
     var tcl = ""
     // Loopback/feedback clock wiring
-    tcl += TCLFactory.netConnection(this.clock.getName(), Seq(f"processing_system/${this.feedbackClock.get.getName()}", f"processing_system/pl_ps_trace_clk"))
-    tcl += TCLFactory.netConnection(this.clock.getName(), Seq(f"${topmodule}/${this.clock.getName()}", f"processing_system/trace_clk_out"))
+    tcl += TCLFactory.netConnection(Seq(f"processing_system/pl_${this.feedbackClock.get.getPartialName()}", f"processing_system/pl_ps_trace_clk"))
+    tcl += TCLFactory.netConnection(Seq(f"${topmodule}/${this.clock.getName()}", f"processing_system/trace_clk_out"))
     tcl += "\n"
     return tcl
   }
