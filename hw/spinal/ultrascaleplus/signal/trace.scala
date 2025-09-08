@@ -10,6 +10,7 @@ import ultrascaleplus.scripts.TCLFactory
 
 
 case class Trace(width: Int = 32) extends Bundle with PSPLInterface with TCL {
+  this.setName("trace")
 
   assert(
     assertion = (Seq[Int](2, 4, 8, 16, 32) contains this.width),
