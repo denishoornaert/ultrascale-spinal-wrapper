@@ -170,19 +170,25 @@ object TCLFactory {
     return "set reset_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 reset_system ]\n\n"
   }
 
-  def anyConnection(netType: String, source: String, targets: Seq[String]): String = {
-    var tcl = f"connect_bd_${netType}net -${netType}net ${source}"
+  def netConnection(source: String, targets: Seq[String]): String = {
+    var tcl = f"connect_bd_net -net ${source}"
     for (target <- targets)
-      tcl += f" [get_bd_${netType}pins ${target}]"
+      tcl += f" [get_bd_pins ${target}]"
     return tcl+"\n"
   }
 
-  def netConnection(source: String, targets: Seq[String]): String = {
-    return this.anyConnection("", source, targets)
+  def netConnection(targets: Seq[String]): String = {
+    var tcl = "connect_bd_net"
+    for (target <- targets)
+      tcl += f" [get_bd_pins ${target}]"
+    return tcl+"\n"
   }
 
   def interfaceConnection(source: String, targets: Seq[String]): String = {
-    return this.anyConnection("intf_", source, targets)
+    var tcl = f"connect_bd_intf_net -intf_net ${source}"
+    for (target <- targets)
+      tcl += f" [get_bd_intf_pins ${target}]"
+    return tcl+"\n"
   }
 
   def addressMap(addressBase: BigInt, rangeSize: BigInt, port: String, target: String): String = {
