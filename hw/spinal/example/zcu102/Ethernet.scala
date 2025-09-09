@@ -8,6 +8,7 @@ import spinal.lib.bus.amba4.axilite.AxiLite4
 import spinal.lib.bus.amba4.axilite.AxiLite4Utils.Axi4Rich
 
 
+import ultrascaleplus.Config
 import ultrascaleplus.clock.PLClockingArea
 import ultrascaleplus.ip.{Ethernet}
 

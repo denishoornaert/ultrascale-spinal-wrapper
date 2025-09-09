@@ -13,6 +13,7 @@ import spinal.lib.sim._
 
 
 import kv260._
+import ultrascaleplus.Config
 import ultrascaleplus.parameters._
 import ultrascaleplus.bus.amba.axi4.sim._
 

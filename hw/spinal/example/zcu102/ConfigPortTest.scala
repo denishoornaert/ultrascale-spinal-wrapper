@@ -6,6 +6,7 @@ import spinal.lib._
 
 
 import zcu102._
+import ultrascaleplus.Config
 import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.scripts._
 import ultrascaleplus.configport._
