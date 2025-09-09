@@ -171,11 +171,11 @@ object Vivado {
         Log.info(f"Vivado version ${this.year}.${this.revision} detected and picked!")
       }
       else if (supportedVivadoVersions contains Config.vivado) {
-        this.versionFound = this.detectVivadoVersion().split('.')
-        Log.info(f"$Vivado version ${this.year}.${this.revision} will be used as specified!")
+        this.versionFound = Config.vivado.split('.')
+        Log.info(f"Vivado version ${this.year}.${this.revision} will be used as specified!")
       }
       else {
-        Log.info(f"Requested vivado version is not supported!")
+        Log.info(f"Requested vivado version (${Config.vivado}) is not supported!")
         System.exit(-1)
       }
     }
