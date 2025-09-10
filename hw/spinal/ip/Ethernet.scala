@@ -20,15 +20,15 @@ object Ethernet {
       val ctl_tx_send_idle_0           =  in(Bool())
       val ctl_tx_send_lfi_0            =  in(Bool())
       val ctl_tx_send_rfi_0            =  in(Bool())
-  //    val dclk                         =  in(Bool()) // clock 75 MHz
+      val dclk                         =  in(Bool()) // clock 75 MHz
       val gt_refclk_n                  =  in(Bool()) // Comes from the constraint. SI570User (dtb). Specified in constraints
       val gt_refclk_p                  =  in(Bool()) // Comes from the constraint. SI570User (dtb). Specified in constraints
       val gt_rxn_in                    =  in(Bool())
       val gt_rxp_in                    =  in(Bool())
       val gt_txn_out                   = out(Bool())
       val gt_txp_out                   = out(Bool())
-  //    val gtwiz_reset_rx_datapath_0    =  in(Bool()) // same reset as everyone
-  //    val gtwiz_reset_tx_datapath_0    =  in(Bool()) // same reset as everyone
+      val gtwiz_reset_rx_datapath_0    =  in(Bool()) // same reset as everyone
+      val gtwiz_reset_tx_datapath_0    =  in(Bool()) // same reset as everyone
       val pm_tick_0                    =  in(Bool())
       val qpllreset_in_0               =  in(Bool())
       val rx_reset_0                   =  in(Bool())
@@ -37,13 +37,13 @@ object Ethernet {
       val rx_core_clk_0                =  in(Bool())
       val tx_clk_out_0                 = out(Bool()) // Operating clock of the IP; must be fedback to data source
       val user_tx_reset_0              = out(Bool()) // reset associated with tx_clk_out_0
-  //    val sys_reset                    =  in(Bool()) // overall reset of the IP (TODO: to double)
+      val sys_reset                    =  in(Bool()) // overall reset of the IP (TODO: to double)
       val tx_preamblein_0              =  in(UInt(56 bits))
   //    val tx_unfout_0                  = out(Bool()) // Not connected (maybe an error signal)
       val txoutclksel_in_0             =  in(UInt(3 bits))
       val rxoutclksel_in_0             =  in(UInt(3 bits))
-  //    val s_axi_aclk_0                 =  in(Bool()) // in patrick's design same as 75 MHz (TODO: check if must be the same or different)
-  //    val s_axi_aresetn_0              =  in(Bool())
+      val s_axi_aclk_0                 =  in(Bool()) // in patrick's design same as 75 MHz (TODO: check if must be the same or different)
+      val s_axi_aresetn_0              =  in(Bool())
       val s_axi_arvalid_0              =  in(Bool())
       val s_axi_arready_0              = out(Bool())
       val s_axi_araddr_0               =  in(UInt(32 bits))
@@ -76,7 +76,6 @@ object Ethernet {
     }
   
   }
-
 
   /** Class structuring/defining the required values for configuring a 
    *  Xilinx ethernet IP.
@@ -144,8 +143,9 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
     return tcl
   }
 
-  override val blackbox = Ethernet.xxv_ethernet()
+  protected override val blackbox = Ethernet.xxv_ethernet()
 
+  // IP is required to run at 75MHz
   /*
   this.afterElaboration({
     assert(
@@ -156,9 +156,9 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
   */
 
   val io = new Bundle{
-    val refclk = slave(DiffBool())
-    val gt = master(GT())
-    val axi = slave(AxiLite4(Ethernet.AxiPortConfig))
+    val refclk =  slave(DiffBool())
+    val gt     = master(GT())
+    val axi    =  slave(AxiLite4(Ethernet.AxiPortConfig))
     val tx = new Bundle {
       val axis = slave(Axi4Stream(Ethernet.AxiTXConfig))
       val clk = new Bundle {
@@ -167,7 +167,7 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
     }
     val user = new Bundle {
       val tx = new Bundle {
-        val reset = Bool()
+        val reset = out(Bool())
       }
     }
     val stat = new Bundle {
@@ -175,61 +175,77 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
     }
   }
 
+  def getClockDomain(): ClockDomain = {
+    return ClockDomain(
+      clock  = io.tx.clk.o,
+      reset  = io.user.tx.reset,
+      config = ClockDomainConfig(
+        clockEdge = RISING
+      )
+    )
+  }
+
   // Hardcoded io connections
-  blackbox.io.ctl_tx_send_idle_0  <> False
-  blackbox.io.ctl_tx_send_lfi_0   <> False
-  blackbox.io.ctl_tx_send_rfi_0   <> False
-  blackbox.io.pm_tick_0           <> False
-  blackbox.io.qpllreset_in_0      <> False
-  blackbox.io.rx_reset_0          <> False
-  blackbox.io.tx_reset_0          <> False
-  blackbox.io.tx_preamblein_0     <> 0
-  blackbox.io.txoutclksel_in_0    <> 0
-  blackbox.io.rxoutclksel_in_0    <> 0
-  blackbox.io.rx_clk_out_0        <> blackbox.io.rx_core_clk_0
+  blackbox.io.ctl_tx_send_idle_0        <> False
+  blackbox.io.ctl_tx_send_lfi_0         <> False
+  blackbox.io.ctl_tx_send_rfi_0         <> False
+  blackbox.io.pm_tick_0                 <> False
+  blackbox.io.qpllreset_in_0            <> False
+  blackbox.io.rx_reset_0                <> False
+  blackbox.io.tx_reset_0                <> False
+  blackbox.io.tx_preamblein_0           <> 0
+  blackbox.io.txoutclksel_in_0          <> 0
+  blackbox.io.rxoutclksel_in_0          <> 0
+  blackbox.io.rx_clk_out_0              <> blackbox.io.rx_core_clk_0
   //// Others
-  io.tx.clk.o                     <> blackbox.io.tx_clk_out_0
-  io.user.tx.reset                <> blackbox.io.user_tx_reset_0
+  io.tx.clk.o                           <> blackbox.io.tx_clk_out_0
+  io.user.tx.reset                      <> blackbox.io.user_tx_reset_0
+  blackbox.io.sys_reset                 <> ClockDomain.current.readResetWire
   //// REFCLK
-  io.refclk.p                     <> blackbox.io.gt_refclk_p
-  io.refclk.n                     <> blackbox.io.gt_refclk_n
+  io.refclk.p                           <> blackbox.io.gt_refclk_p
+  io.refclk.n                           <> blackbox.io.gt_refclk_n
   //// GT
-  io.gt.tx.n                      <> blackbox.io.gt_txn_out
-  io.gt.tx.p                      <> blackbox.io.gt_txp_out
-  io.gt.rx.n                      <> blackbox.io.gt_rxn_in
-  io.gt.rx.p                      <> blackbox.io.gt_rxp_in
-  io.gt.sfp.dis                   <> False
+  blackbox.io.dclk                      <> ClockDomain.current.readClockWire
+  io.gt.tx.n                            <> blackbox.io.gt_txn_out
+  io.gt.tx.p                            <> blackbox.io.gt_txp_out
+  io.gt.rx.n                            <> blackbox.io.gt_rxn_in
+  io.gt.rx.p                            <> blackbox.io.gt_rxp_in
+  io.gt.sfp.dis                         <> False
+  blackbox.io.gtwiz_reset_rx_datapath_0 <> ClockDomain.current.readResetWire
+  blackbox.io.gtwiz_reset_tx_datapath_0 <> ClockDomain.current.readResetWire
   //// AXI 
-  blackbox.io.s_axi_arvalid_0     <> io.axi.ar.valid
-  io.axi.ar.ready                 <> blackbox.io.s_axi_arready_0
-  blackbox.io.s_axi_araddr_0      <> io.axi.ar.addr
-  io.axi.r.valid                  <> blackbox.io.s_axi_rvalid_0
-  blackbox.io.s_axi_rready_0      <> io.axi.r.ready
-  io.axi.r.data                   <> blackbox.io.s_axi_rdata_0
-  io.axi.r.resp                   <> blackbox.io.s_axi_rresp_0
-  blackbox.io.s_axi_awvalid_0     <> io.axi.aw.valid
-  io.axi.aw.ready                 <> blackbox.io.s_axi_awready_0
-  blackbox.io.s_axi_awaddr_0      <> io.axi.aw.addr
-  blackbox.io.s_axi_wvalid_0      <> io.axi.w.valid
-  io.axi.w.ready                  <> blackbox.io.s_axi_wready_0
-  blackbox.io.s_axi_wdata_0       <> io.axi.w.data
-  blackbox.io.s_axi_wstrb_0       <> io.axi.w.strb
-  io.axi.b.valid                  <> blackbox.io.s_axi_bvalid_0
-  blackbox.io.s_axi_bready_0      <> io.axi.b.ready
-  io.axi.b.resp                   <> 0
+  blackbox.io.s_axi_aclk_0              <> ClockDomain.current.readClockWire
+  blackbox.io.s_axi_aresetn_0           <> ClockDomain.current.readResetWire
+  blackbox.io.s_axi_arvalid_0           <> io.axi.ar.valid
+  io.axi.ar.ready                       <> blackbox.io.s_axi_arready_0
+  blackbox.io.s_axi_araddr_0            <> io.axi.ar.addr
+  io.axi.r.valid                        <> blackbox.io.s_axi_rvalid_0
+  blackbox.io.s_axi_rready_0            <> io.axi.r.ready
+  io.axi.r.data                         <> blackbox.io.s_axi_rdata_0
+  io.axi.r.resp                         <> blackbox.io.s_axi_rresp_0
+  blackbox.io.s_axi_awvalid_0           <> io.axi.aw.valid
+  io.axi.aw.ready                       <> blackbox.io.s_axi_awready_0
+  blackbox.io.s_axi_awaddr_0            <> io.axi.aw.addr
+  blackbox.io.s_axi_wvalid_0            <> io.axi.w.valid
+  io.axi.w.ready                        <> blackbox.io.s_axi_wready_0
+  blackbox.io.s_axi_wdata_0             <> io.axi.w.data
+  blackbox.io.s_axi_wstrb_0             <> io.axi.w.strb
+  io.axi.b.valid                        <> blackbox.io.s_axi_bvalid_0
+  blackbox.io.s_axi_bready_0            <> io.axi.b.ready
+  io.axi.b.resp                         <> blackbox.io.s_axi_bresp_0
   //// TX
-  blackbox.io.tx_axis_tvalid_0    <> io.tx.axis.valid
-  io.tx.axis.ready                <> blackbox.io.tx_axis_tready_0
-  blackbox.io.tx_axis_tdata_0     <> io.tx.axis.data
-  blackbox.io.tx_axis_tkeep_0     <> io.tx.axis.keep
-  blackbox.io.tx_axis_tlast_0     <> io.tx.axis.last
-  blackbox.io.tx_axis_tuser_0     <> io.tx.axis.user
+  blackbox.io.tx_axis_tvalid_0          <> io.tx.axis.valid
+  io.tx.axis.ready                      <> blackbox.io.tx_axis_tready_0
+  blackbox.io.tx_axis_tdata_0           <> io.tx.axis.data
+  blackbox.io.tx_axis_tkeep_0           <> io.tx.axis.keep
+  blackbox.io.tx_axis_tlast_0           <> io.tx.axis.last
+  blackbox.io.tx_axis_tuser_0           <> io.tx.axis.user
   //// TX STAT
-  io.stat.tx.bad_fcs_0            <> blackbox.io.stat_tx_bad_fcs_0
-  io.stat.tx.frame_error_0        <> blackbox.io.stat_tx_frame_error_0
-  io.stat.tx.local_fault_0        <> blackbox.io.stat_tx_local_fault_0
-  io.stat.tx.packet_large_0       <> blackbox.io.stat_tx_packet_large_0
-  io.stat.tx.packet_small_0       <> blackbox.io.stat_tx_packet_small_0
-  io.stat.tx.total_good_packets_0 <> blackbox.io.stat_tx_total_good_packets_0
+  io.stat.tx.bad_fcs_0                  <> blackbox.io.stat_tx_bad_fcs_0
+  io.stat.tx.frame_error_0              <> blackbox.io.stat_tx_frame_error_0
+  io.stat.tx.local_fault_0              <> blackbox.io.stat_tx_local_fault_0
+  io.stat.tx.packet_large_0             <> blackbox.io.stat_tx_packet_large_0
+  io.stat.tx.packet_small_0             <> blackbox.io.stat_tx_packet_small_0
+  io.stat.tx.total_good_packets_0       <> blackbox.io.stat_tx_total_good_packets_0
 
 }
