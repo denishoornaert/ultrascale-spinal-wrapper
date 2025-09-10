@@ -26,7 +26,13 @@ class TraceClockMapped() extends Bundle with PSPLInterface with TCL {
 
   def associate(clock: ClockMapped): Unit = {
     this.feedbackClock = Some(clock)
-    this.domain = Some(this.feedbackClock.get.domain)
+    // Create new domain
+    //this.domain = Some(this.feedbackClock.get.domain.config)
+    this.domain = Some(ClockDomain(
+      clock  = this.clock,
+      reset  = this.feedbackClock.get.domain.reset,
+      config = this.feedbackClock.get.domain.config
+    ))
     Log.info(f"[Trace clock] Trace clock operates at ${this.feedbackClock.get.frequency}.")
   }
 
