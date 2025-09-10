@@ -87,7 +87,7 @@ class ZCU102IO(config: ZCU102Config) extends UltraScalePlusIO(config) {
       val mgt = (config.withSI570_MGT > (0 MHz)) generate in(DiffClockMapped(config.withSI570_MGT, SI570_MGT))
     } 
   }
-  val gt0 = (config.with_GT0) generate out(GTMapped(GT0))
+  val gt0 = (config.with_GT0) generate master(GTMapped(GT0))
 }
 
 
