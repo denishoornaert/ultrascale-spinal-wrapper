@@ -16,6 +16,6 @@ import ultrascaleplus.utils._
 abstract class XilinxIPBlackBox() extends Component with TCL {
 
   /** The verilog shell to pretend exists (i.e., black box). */
-  val blackbox: BlackBox
+  protected val blackbox: BlackBox
 
 }
