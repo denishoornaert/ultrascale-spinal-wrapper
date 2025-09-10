@@ -26,7 +26,7 @@ object PLL {
 
     override val name = "IOPLL"
 
-    override val frequencies = Seq(333.329987 MHz, 299.997009 MHz, 249.997498 MHz, 199.998001 MHz, 142.855713 MHz, 99.999001 MHz, 49.999500 MHz)
+    override val frequencies = Seq(333.329987 MHz, 299.997009 MHz, 249.997498 MHz, 199.998001 MHz, 142.855713 MHz, 99.999001 MHz, 76.922310 MHz, 71.427856 MHz, 49.999500 MHz)
 
   }
 
