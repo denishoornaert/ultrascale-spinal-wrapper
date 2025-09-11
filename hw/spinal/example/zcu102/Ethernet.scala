@@ -33,6 +33,7 @@ case class EthernetBB() extends ZCU102(
     ctrl.io.axi <> Axi4Rich(io.lpd.hpm0).toLite(ctrl.io.axi.config)
     ctrl.io.refclk <> io.user.si570.mgt
     ctrl.io.gt <> io.gt0
+    ctrl.io.tx.axis.setIdle()
   }
 
   this.generate()
