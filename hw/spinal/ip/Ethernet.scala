@@ -14,6 +14,47 @@ import ultrascaleplus.io.gt._
 
 object Ethernet {
 
+  /** Class structuring/defining the required values for configuring a 
+   *  Xilinx ethernet IP.
+   *
+   *  @constructor Builds a Xilinx Ethernet IP configuration.
+   *  @param group The GT group selection.
+   *  @param lane The selected lane.
+   */
+  case class Config(group: String, lane: String) {}
+
+  /** Configuration of the Slave/Secondary AxiLite configuration port of the 
+   *  Xilinx Ethenet IP. Mirrors the blackboxed IP; do not modify.
+   */
+  val AxiPortConfig = AxiLite4Config(32, 32)
+
+  /** configuration of the transmission (TX) Axi4Stream port of the Xilinx
+   *  Ethernet IP. Mirrors the blackboxed IP; do not modify.
+   */
+  val AxiTXConfig = Axi4StreamConfig(
+    dataWidth =    8,
+    userWidth =    1,
+    useKeep   = true,
+    useLast   = true,
+    useUser   = true
+  )
+
+  case class StatInterface() extends Bundle with IMasterSlave {
+    // TODO: could be defined as an interface! (xilinx.com:display_xxv_ethernet:statics_port:2.0)
+ 
+    val bad_fcs_0            = out(Bool())
+    val frame_error_0        = out(Bool())
+    val local_fault_0        = out(Bool())
+    val packet_large_0       = out(Bool())
+    val packet_small_0       = out(Bool())
+    val total_good_packets_0 = out(UInt(32 bits))
+
+    override def asMaster(): Unit = {
+      in(bad_fcs_0, frame_error_0, local_fault_0, packet_large_0, packet_small_0, total_good_packets_0)
+    }
+
+  }
+
   case class xxv_ethernet() extends BlackBox() {
   
     val io = new Bundle {
@@ -69,53 +110,12 @@ object Ethernet {
       val stat_tx_total_good_packets_0 = out(UInt(32 bits))
       val tx_axis_tvalid_0             =  in(Bool())
       val tx_axis_tready_0             = out(Bool())
-      val tx_axis_tdata_0              =  in(Bits(32 bits))
-      val tx_axis_tkeep_0              =  in(Bits( 4 bits))
+      val tx_axis_tdata_0              =  in(Bits(AxiTXConfig.dataWidth*8 bits))
+      val tx_axis_tkeep_0              =  in(Bits(AxiTXConfig.dataWidth bits))
       val tx_axis_tlast_0              =  in(Bool())
-      val tx_axis_tuser_0              =  in(Bits( 4 bits))
+      val tx_axis_tuser_0              =  in(Bits(AxiTXConfig.userWidth*AxiTXConfig.dataWidth bits))
     }
   
-  }
-
-  /** Class structuring/defining the required values for configuring a 
-   *  Xilinx ethernet IP.
-   *
-   *  @constructor Builds a Xilinx Ethernet IP configuration.
-   *  @param group The GT group selection.
-   *  @param lane The selected lane.
-   */
-  case class Config(group: String, lane: String) {}
-
-  /** Configuration of the Slave/Secondary AxiLite configuration port of the 
-   *  Xilinx Ethenet IP. Mirrors the blackboxed IP; do not modify.
-   */
-  val AxiPortConfig = AxiLite4Config(32, 32)
-
-  /** configuration of the transmission (TX) Axi4Stream port of the Xilinx
-   *  Ethernet IP. Mirrors the blackboxed IP; do not modify.
-   */
-  val AxiTXConfig = Axi4StreamConfig(
-    dataWidth =    4,
-    userWidth =    1,
-    useKeep   = true,
-    useLast   = true,
-    useUser   = true
-  )
-
-  case class StatInterface() extends Bundle with IMasterSlave {
-    // TODO: could be defined as an interface! (xilinx.com:display_xxv_ethernet:statics_port:2.0)
- 
-    val bad_fcs_0            = out(Bool())
-    val frame_error_0        = out(Bool())
-    val local_fault_0        = out(Bool())
-    val packet_large_0       = out(Bool())
-    val packet_small_0       = out(Bool())
-    val total_good_packets_0 = out(UInt(32 bits))
-
-    override def asMaster(): Unit = {
-      in(bad_fcs_0, frame_error_0, local_fault_0, packet_large_0, packet_small_0, total_good_packets_0)
-    }
-
   }
 
 }
