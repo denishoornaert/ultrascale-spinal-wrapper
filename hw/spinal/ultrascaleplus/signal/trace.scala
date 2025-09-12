@@ -18,7 +18,7 @@ case class Trace(width: Int = 32) extends Bundle with PSPLInterface with TCL {
   )
 
   val ctl = Bool()
-  val data = UInt(this.width bits)
+  val data = Bits(this.width bits)
 
   override def getTCL(): String = {
     val moduleName = Util.topmodule(this).getName()
@@ -39,8 +39,8 @@ case class Trace(width: Int = 32) extends Bundle with PSPLInterface with TCL {
     this.data.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:zynq_trace:1.0 ${this.getPartialName()} DATA")
   }
 
-  def asFlow: Flow[UInt] = {
-    val flow = Flow(UInt(this.width bits))
+  def asFlow: Flow[Bits] = {
+    val flow = Flow(Bits(this.width bits))
     flow.valid := !this.ctl // Control bit must be negated
     flow.payload := this.data
     return flow
