@@ -19,7 +19,7 @@ class PLClockingArea(clockdomain: ClockDomain) extends ClockingArea(clockdomain)
   }
 
   def this(clockdomain: TraceClockMapped) = {
-    this(clockdomain.domain.get)
+    this(clockdomain.domain)
   }
 
 }

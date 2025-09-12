@@ -21,14 +21,20 @@ class TraceClockMapped() extends Bundle with PSPLInterface with TCL {
   
   private val clock = in(Bool())
   private var feedbackClock: Option[ClockMapped] = None
+  private var clockdomain: Option[ClockDomain] = None
 
-  var domain: Option[ClockDomain] = None
+  def domain: ClockDomain = {
+    assert(
+      assertion = (this.clockdomain.isDefined),
+      message   = f"No clock associated with `io.trace.clk`. Do so with `io.trace.clk.associate(<clockdomain>)`."
+    )
+    return this.clockdomain.get
+  }
 
   def associate(clock: ClockMapped): Unit = {
     this.feedbackClock = Some(clock)
     // Create new domain
-    //this.domain = Some(this.feedbackClock.get.domain.config)
-    this.domain = Some(ClockDomain(
+    this.clockdomain = Some(ClockDomain(
       clock  = this.clock,
       reset  = this.feedbackClock.get.domain.reset,
       config = this.feedbackClock.get.domain.config
