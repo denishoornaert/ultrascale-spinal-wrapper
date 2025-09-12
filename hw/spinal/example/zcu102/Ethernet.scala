@@ -5,12 +5,12 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.bus.amba4.axi.Axi4
 import spinal.lib.bus.amba4.axilite.AxiLite4
-import spinal.lib.bus.amba4.axilite.AxiLite4Utils.Axi4Rich
 
 
 import ultrascaleplus.Config
 import ultrascaleplus.clock.PLClockingArea
-import ultrascaleplus.ip.{Ethernet}
+import ultrascaleplus.ip.Ethernet
+import ultrascaleplus.bus.amba.axi4.Axi4toAxiLite4
 
 
 import zcu102._
@@ -30,7 +30,7 @@ case class EthernetBB() extends ZCU102(
 
   val plclk0 = new PLClockingArea(io.pl.clk0) {
     val ctrl = Ethernet(Ethernet0)
-    ctrl.io.axi <> Axi4Rich(io.lpd.hpm0).toLite(ctrl.io.axi.config)
+    ctrl.io.axi <> Axi4toAxiLite4(io.lpd.hpm0, ctrl.io.axi.config)
     ctrl.io.refclk <> io.user.si570.mgt
     ctrl.io.gt <> io.gt0
     ctrl.io.tx.axis.setIdle()
