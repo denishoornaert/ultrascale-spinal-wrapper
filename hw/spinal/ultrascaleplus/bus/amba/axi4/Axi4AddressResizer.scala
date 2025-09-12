@@ -35,9 +35,9 @@ class Axi4WriteOnlyAddressResizer(inputConfig: Axi4Config, outputConfig: Axi4Con
   // Override
   io.output.aw.addr.removeAssignments() := io.input.aw.addr.resized
   if (this.inputConfig.addressWidth > this.outputConfig.addressWidth)
-    Log.info(f"Addrress size mismatch: truncated by ${this.inputConfig.addressWidth-this.outputConfig.addressWidth} bits (${this.inputConfig.addressWidth} bits -> ${this.outputConfig.addressWidth} bits)")
+    Log.info(f"[Axi4 Address Resizing] Addrress size mismatch: truncated by ${this.inputConfig.addressWidth-this.outputConfig.addressWidth} bits (${this.inputConfig.addressWidth} bits -> ${this.outputConfig.addressWidth} bits)")
   if (this.inputConfig.addressWidth < this.outputConfig.addressWidth)
-    Log.info(f"Addrress size mismatch: extended by ${this.outputConfig.addressWidth-this.inputConfig.addressWidth} bits (${this.outputConfig.addressWidth} bits -> ${this.inputConfig.addressWidth} bits)")
+    Log.info(f"[Axi4 Address Resizing] Addrress size mismatch: extended by ${this.outputConfig.addressWidth-this.inputConfig.addressWidth} bits (${this.outputConfig.addressWidth} bits -> ${this.inputConfig.addressWidth} bits)")
   //// W
   io.output.w <> io.input.w
   //// B
