@@ -61,10 +61,10 @@ class UltraScalePlusConfig(
 
 class UltraScalePlusIO(config: UltraScalePlusConfig) extends Bundle {
   val pl = new Bundle {
-    val clk0 = (config.withPL_CLK0 > (0 MHz)) generate (    in(ClockResetMapped(PLL.IO, config.withPL_CLK0)))
-    val clk1 = (config.withPL_CLK1 > (0 MHz)) generate (    in(ClockResetMapped(PLL.IO, config.withPL_CLK1)))
-    val clk2 = (config.withPL_CLK2 > (0 MHz)) generate (    in(ClockResetMapped(PLL.IO, config.withPL_CLK2)))
-    val clk3 = (config.withPL_CLK3 > (0 MHz)) generate (    in(ClockResetMapped(PLL.IO, config.withPL_CLK3)))
+    val clk0 = (config.withPL_CLK0 > (0 MHz)) generate (    in(ClockResetMapped(PLL.IO(config.withPL_CLK0))))
+    val clk1 = (config.withPL_CLK1 > (0 MHz)) generate (    in(ClockResetMapped(PLL.IO(config.withPL_CLK1))))
+    val clk2 = (config.withPL_CLK2 > (0 MHz)) generate (    in(ClockResetMapped(PLL.IO(config.withPL_CLK2))))
+    val clk3 = (config.withPL_CLK3 > (0 MHz)) generate (    in(ClockResetMapped(PLL.IO(config.withPL_CLK3))))
   }
   val lpd = new Bundle {
     val hp0  = (config.withLPD_HP0          ) generate (master(Axi4Mapped(LPD.HP0 )))
