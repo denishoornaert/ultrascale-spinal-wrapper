@@ -132,12 +132,13 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
 
   override def getTCL(): String = {
     var tcl = ""
-    tcl += "set_property -dict [list\n"
-    tcl += "  CONFIG.BASE_R_KR {BASE-R}\n"
-    tcl += "  CONFIG.GT_GROUP_SELECT {"+this.config.group+"}\n"
-    tcl += "  CONFIG.INCLUDE_AXI4_INTERFACE {1}\n"
-    tcl += "  CONFIG.INCLUDE_STATISTICS_COUNTERS {1}\n"
-    tcl += "  CONFIG.LANE1_GT_LOC {"+this.config.lane+"}\n"
+    tcl += "set "+this.getName()+" [ create_bd_cell -type ip -vlnv xilinx.com:ip:xxv_ethernet:3.1 "+this.getName()+" ] \n"
+    tcl += "set_property -dict [list \\\n"
+    tcl += "  CONFIG.BASE_R_KR {BASE-R} \\\n"
+    tcl += "  CONFIG.GT_GROUP_SELECT {"+this.config.group+"} \\\n"
+    tcl += "  CONFIG.INCLUDE_AXI4_INTERFACE {1} \\\n"
+    tcl += "  CONFIG.INCLUDE_STATISTICS_COUNTERS {1} \\\n"
+    tcl += "  CONFIG.LANE1_GT_LOC {"+this.config.lane+"} \\\n"
     tcl += "] ${"+this.getName()+"}\n"
     tcl += "\n"
     return tcl
