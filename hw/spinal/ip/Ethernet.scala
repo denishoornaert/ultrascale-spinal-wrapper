@@ -55,8 +55,8 @@ object Ethernet {
 
   }
 
-  case class xxv_ethernet() extends BlackBox() {
-  
+  case class xxv_ethernet_0() extends BlackBox() {
+
     val io = new Bundle {
       val ctl_tx_send_idle_0           =  in(Bool())
       val ctl_tx_send_lfi_0            =  in(Bool())
@@ -132,18 +132,20 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
 
   override def getTCL(): String = {
     var tcl = ""
+    tcl += "create_ip -name xxv_ethernet -vendor xilinx.com -library ip -version 3.1 -module_name xxv_ethernet_0\n"
     tcl += "set_property -dict [list\n"
     tcl += "  CONFIG.BASE_R_KR {BASE-R}\n"
     tcl += "  CONFIG.GT_GROUP_SELECT {"+this.config.group+"}\n"
     tcl += "  CONFIG.INCLUDE_AXI4_INTERFACE {1}\n"
     tcl += "  CONFIG.INCLUDE_STATISTICS_COUNTERS {1}\n"
     tcl += "  CONFIG.LANE1_GT_LOC {"+this.config.lane+"}\n"
-    tcl += "] ${"+this.getName()+"}\n"
+    tcl += "] [get_ips xxv_ethernet_0]\n"
+    tcl += "generate_target {synthesis simulation} [get_ips xxv_ethernet_0]\n"
     tcl += "\n"
     return tcl
   }
 
-  protected override val blackbox = Ethernet.xxv_ethernet()
+  protected override val blackbox = Ethernet.xxv_ethernet_0()
 
   // IP is required to run at 75MHz
   /*
