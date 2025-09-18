@@ -133,7 +133,6 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
   override def getTCL(): String = {
     var tcl = ""
     tcl += "create_ip -name xxv_ethernet -vendor xilinx.com -library ip -version 3.1 -module_name xxv_ethernet_0\n"
-    tcl += "set "+this.getName()+" [ create_bd_cell -type ip -vlnv xilinx.com:ip:xxv_ethernet:3.1 "+this.getName()+" ] \n"
     tcl += "set_property -dict [list \\\n"
     tcl += "  CONFIG.BASE_R_KR {BASE-R} \\\n"
     tcl += "  CONFIG.GT_GROUP_SELECT {"+this.config.group+"} \\\n"
