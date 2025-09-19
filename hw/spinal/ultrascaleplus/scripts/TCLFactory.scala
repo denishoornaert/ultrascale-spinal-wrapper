@@ -191,6 +191,13 @@ object TCLFactory {
     return tcl+"\n"
   }
 
+  def interfaceConnection(targets: Seq[String]): String = {
+    var tcl = f"connect_bd_intf_net"
+    for (target <- targets)
+      tcl += f" [get_bd_intf_pins ${target}]"
+    return tcl+"\n"
+  }
+
   def addressMap(addressBase: BigInt, rangeSize: BigInt, port: String, target: String): String = {
     return f"assign_bd_address -offset 0x${addressBase.toString(16)} -range 0x${rangeSize.toString(16)} -target_address_space [get_bd_addr_spaces ${port}] [get_bd_addr_segs ${target}] -force\n"
   }
