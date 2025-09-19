@@ -9,10 +9,12 @@
   },
   "2022.2" : {
     "zynq_ultra_ps_e" : "3.4",
-    "proc_sys_reset"  : "5.0"
+    "proc_sys_reset"  : "5.0",
+    "xxv_ethernet"    : "4.1"
   },
   "2019.2" : {
     "zynq_ultra_ps_e" : "3.3",
-    "proc_sys_reset"  : "5.0"
+    "proc_sys_reset"  : "5.0",
+    "xxv_ethernet"    : "3.1"
   }
 }
