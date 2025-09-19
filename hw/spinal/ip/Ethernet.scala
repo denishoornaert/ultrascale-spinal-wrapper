@@ -8,6 +8,7 @@ import spinal.lib.bus.amba4.axilite._
 import spinal.lib.bus.amba4.axis._
 
 
+import ultrascaleplus.Vivado
 import ultrascaleplus.types.DiffBool
 import ultrascaleplus.io.gt._
 
@@ -132,16 +133,16 @@ case class Ethernet(config: Ethernet.Config) extends XilinxIPBlackBox() {
 
   override def getTCL(): String = {
     var tcl = ""
-    tcl += "create_ip -name xxv_ethernet -vendor xilinx.com -library ip -version 3.1 -module_name xxv_ethernet_0\n"
-    tcl += "set_property -dict [list \\\n"
-    tcl += "  CONFIG.BASE_R_KR {BASE-R} \\\n"
-    tcl += "  CONFIG.GT_GROUP_SELECT {"+this.config.group+"} \\\n"
-    tcl += "  CONFIG.INCLUDE_AXI4_INTERFACE {1} \\\n"
-    tcl += "  CONFIG.INCLUDE_STATISTICS_COUNTERS {1} \\\n"
-    tcl += "  CONFIG.LANE1_GT_LOC {"+this.config.lane+"} \\\n"
-    tcl += "] [get_ips xxv_ethernet_0]\n"
-    tcl += "generate_target {synthesis simulation} [get_ips xxv_ethernet_0]\n"
-    tcl += "\n"
+    tcl += f"create_ip -name xxv_ethernet -vendor xilinx.com -library ip -version ${Vivado.getIPVersion("xxv_ethernet")} -module_name xxv_ethernet_0 \n"
+    tcl +=  "set_property -dict [list \\\n"
+    tcl +=  "  CONFIG.BASE_R_KR {BASE-R} \\\n"
+    tcl +=  "  CONFIG.GT_GROUP_SELECT {"+this.config.group+"} \\\n"
+    tcl +=  "  CONFIG.INCLUDE_AXI4_INTERFACE {1} \\\n"
+    tcl +=  "  CONFIG.INCLUDE_STATISTICS_COUNTERS {1} \\\n"
+    tcl +=  "  CONFIG.LANE1_GT_LOC {"+this.config.lane+"} \\\n"
+    tcl +=  "] [get_ips xxv_ethernet_0]\n"
+    tcl +=  "generate_target {synthesis simulation} [get_ips xxv_ethernet_0]\n"
+    tcl +=  "\n"
     return tcl
   }
 
