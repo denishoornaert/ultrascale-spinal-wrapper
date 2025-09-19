@@ -59,8 +59,8 @@ class DiffBoolMapped(pins: Seq[String]) extends DiffBool() with TCL with XDC wit
   }
 
   override def setAttribute(): Unit = {
-    this.p.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getPartialName()} TXP")
-    this.n.addAttribute("X_INTERFACE_INFO", f"xilinx.com;interface:sgmii:1.0 ${this.getPartialName()} TXN")
+    this.p.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getName()} TXP")
+    this.n.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getName()} TXN")
   }
 
 }
