@@ -116,6 +116,9 @@ object Ethernet {
       val tx_axis_tlast_0              =  in(Bool())
       val tx_axis_tuser_0              =  in(Bits(AxiTXConfig.userWidth*AxiTXConfig.dataWidth bits))
     }
+
+    // IMPORTANT
+    noIoPrefix()
   
   }
 
