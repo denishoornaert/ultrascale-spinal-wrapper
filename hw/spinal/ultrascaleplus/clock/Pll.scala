@@ -8,7 +8,13 @@ import spinal.lib._
 import ultrascaleplus.utils.Log
 
 
-case class PLL(name: String, frequency: HertzNumber) {}
+case class PLL(name: String, frequency: HertzNumber) {
+
+  def enabled: Boolean = {
+    return this.frequency > HertzNumber(0)
+  }
+
+}
 
 
 object PLL {
@@ -16,6 +22,10 @@ object PLL {
   case class Config(m: Int, d0: Int, d1: Int, d2: Int, fvco: HertzNumber, fout: HertzNumber) {}
 
   case class Ranges(m: Range, d0: Range, d1: Range) {}
+
+  private def quantize(frequency: HertzNumber, scale: Int = 6): HertzNumber = {
+    return HertzNumber(frequency.toBigDecimal.setScale(scale, BigDecimal.RoundingMode.HALF_UP))
+  }
  
   /**
    * Branch and bound. Looking for best match
@@ -35,7 +45,7 @@ object PLL {
       // Search
       for (d2 <- div2) {
         // Reportedly, there is a fixed /2 factor
-        val fout = fvco/(2*d0*d1*d2)
+        val fout = PLL.quantize(fvco/(2*d0*d1*d2))
         // Note error must be the smallest non strictly positive frequency
         val error = fout-target
         if ((error <= HertzNumber(0)) && (bestError < error)) {
