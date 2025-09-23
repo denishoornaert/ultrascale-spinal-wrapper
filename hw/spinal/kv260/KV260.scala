@@ -12,37 +12,38 @@ import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.io.pmod._
 import ultrascaleplus.scripts._
 import ultrascaleplus.clock.PLClockingArea
+import ultrascaleplus.clock.pll._
 import kv260.io.pmod._
 
 
 class KV260Config(
-  withPL_CLK0    : HertzNumber = 100 MHz,
-  withPL_CLK1    : HertzNumber =   0 MHz,
-  withPL_CLK2    : HertzNumber =   0 MHz,
-  withPL_CLK3    : HertzNumber =   0 MHz,
-  withLPD_HPM0   : Boolean     = false,
-  withLPD_HP0    : Boolean     = false,
-  withFPD_HPM0   : Boolean     = false,
-  withFPD_HPM1   : Boolean     = false,
-  withFPD_HP0    : Boolean     = false,
-  withFPD_HP1    : Boolean     = false,
-  withFPD_HP2    : Boolean     = false,
-  withFPD_HP3    : Boolean     = false,
-  withFPD_HPC0   : Boolean     = false,
-  withFPD_HPC1   : Boolean     = false,
-  withFPD_ACP    : Boolean     = false,
-  withFPD_ACE    : Boolean     = false,
-  withDBG_CTI0   : Boolean     = false,
-  withDBG_CTI1   : Boolean     = false,
-  withDBG_CTI2   : Boolean     = false,
-  withDBG_CTI3   : Boolean     = false,
-  withDBG_CTO0   : Boolean     = false,
-  withDBG_CTO1   : Boolean     = false,
-  withDBG_CTO2   : Boolean     = false,
-  withDBG_CTO3   : Boolean     = false,
-  withPL_PS_IRQ0 : Int         =     0,
-  withPL_PS_IRQ1 : Int         =     0,
-  withTRACE      : Boolean     = false,
+  withPL_CLK0    : PLL      = PLL.IO(100 MHz),
+  withPL_CLK1    : PLL      = PLL.IO(  0 MHz),
+  withPL_CLK2    : PLL      = PLL.IO(  0 MHz),
+  withPL_CLK3    : PLL      = PLL.IO(  0 MHz),
+  withLPD_HPM0   : Boolean  = false,
+  withLPD_HP0    : Boolean  = false,
+  withFPD_HPM0   : Boolean  = false,
+  withFPD_HPM1   : Boolean  = false,
+  withFPD_HP0    : Boolean  = false,
+  withFPD_HP1    : Boolean  = false,
+  withFPD_HP2    : Boolean  = false,
+  withFPD_HP3    : Boolean  = false,
+  withFPD_HPC0   : Boolean  = false,
+  withFPD_HPC1   : Boolean  = false,
+  withFPD_ACP    : Boolean  = false,
+  withFPD_ACE    : Boolean  = false,
+  withDBG_CTI0   : Boolean  = false,
+  withDBG_CTI1   : Boolean  = false,
+  withDBG_CTI2   : Boolean  = false,
+  withDBG_CTI3   : Boolean  = false,
+  withDBG_CTO0   : Boolean  = false,
+  withDBG_CTO1   : Boolean  = false,
+  withDBG_CTO2   : Boolean  = false,
+  withDBG_CTO3   : Boolean  = false,
+  withPL_PS_IRQ0 : Int      =     0,
+  withPL_PS_IRQ1 : Int      =     0,
+  withTRACE      : Boolean  = false,
   // here
   val withIO_PMOD0: Boolean = false
   ) extends UltraScalePlusConfig(
@@ -83,7 +84,7 @@ class KV260IO(config: KV260Config) extends UltraScalePlusIO(config) {
 
 class KV260(
   override val config: KV260Config = new KV260Config(
-    withPL_CLK0 = 100 MHz
+    withPL_CLK0 = PLL.IO(100 MHz)
   )
 ) extends UltraScalePlus(
   config    = config
