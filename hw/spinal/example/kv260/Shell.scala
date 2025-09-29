@@ -17,7 +17,7 @@ case class Shell() extends KV260(
     withPL_CLK0    = PLL.IO(340 MHz),
     withPL_CLK1    = PLL.IO(300 MHz),
     withPL_CLK2    = PLL.IO(250 MHz),
-    withPL_CLK3    = PLL.IO( 75 MHz),
+    withPL_CLK3    = PLL.R( 75 MHz),
     withLPD_HPM0   =    true,
     withLPD_HP0    =    true,
     withFPD_HPM0   =    true,
