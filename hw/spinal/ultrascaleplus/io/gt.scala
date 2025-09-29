@@ -66,9 +66,9 @@ case class GTMapped(config: GTMappedTemplate) extends GT() with PSPLInterface wi
     val moduleName = Util.topmodule(this).getName()
     var tcl = ""
     tcl += f"make_bd_intf_pins_external [get_bd_intf_pins ${moduleName}/${this.getName()}]\n"
-    tcl += f"set_property name ${this.getName()} [get_bd_intf_pins /${this.getName()}_0]\n"
+    tcl += f"set_property name ${this.getName()} [get_bd_intf_ports /${this.getName()}_0]\n"
     tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.sfp.dis.getName()}]\n"
-    tcl += f"set_property name ${this.sfp.dis.getName()} [get_bd_pins /${this.sfp.dis.getName()}_0]\n"
+    tcl += f"set_property name ${this.sfp.dis.getName()} [get_bd_ports /${this.sfp.dis.getName()}_0]\n"
     tcl += "\n"
     return tcl
   }
