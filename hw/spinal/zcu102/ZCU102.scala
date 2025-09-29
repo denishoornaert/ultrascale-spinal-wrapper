@@ -49,6 +49,7 @@ class ZCU102Config(
   withPL_PS_IRQ0    : Int         =     0,
   withPL_PS_IRQ1    : Int         =     0,
   withTRACE         : Boolean     = false,
+  val with_GT0      : Boolean     = false,
   val withSI570_MGT : HertzNumber =   0 MHz
   ) extends UltraScalePlusConfig(
     withPL_CLK0    = withPL_CLK0   ,
