@@ -6,6 +6,7 @@ import spinal.lib._
 
 
 import ultrascaleplus.clock._
+import ultrascaleplus.clock.pll._
 
 
 import kr260._
@@ -13,10 +14,10 @@ import kr260._
 
 case class Shell() extends KR260(
   config    = new KR260Config(
-    withPL_CLK0    = 332 MHz,
-    withPL_CLK1    = 332 MHz,
-    withPL_CLK2    = 332 MHz,
-    withPL_CLK3    = 332 MHz,
+    withPL_CLK0    = PLL.IO(332 MHz),
+    withPL_CLK1    = PLL.IO(332 MHz),
+    withPL_CLK2    = PLL.IO(332 MHz),
+    withPL_CLK3    = PLL.IO(332 MHz),
     withLPD_HPM0   =    true,
     withLPD_HP0    =    true,
     withFPD_HPM0   =    true,

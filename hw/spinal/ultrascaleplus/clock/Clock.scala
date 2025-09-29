@@ -5,14 +5,14 @@ import spinal.core._
 import spinal.lib._
 
 
-import ultrascaleplus.clock.pll.PllSource
+import ultrascaleplus.clock.pll._
 import ultrascaleplus.utils.{TCL, XDC, PSPLInterface, Log, Util}
 import ultrascaleplus.scripts.{TCLFactory}
 
 
 object ClockMapped {
 
-  def apply(source: PllSource, target: HertzNumber): ClockMapped = new ClockMapped(source, target)
+  def apply(source: PLL): ClockMapped = new ClockMapped(source)
 
 }
 
@@ -20,22 +20,23 @@ object ClockMapped {
  *
  *  @constructor Creates a mappable clock source.
  *  @parameter source PLL clock source.
- *  @parameter target Target frequency desired.
  */
-class ClockMapped(val source: PllSource, val target: HertzNumber) extends Bundle with PSPLInterface with TCL {
+class ClockMapped(val source: PLL) extends Bundle with PSPLInterface with TCL {
 
   val clock = in(Bool())
 
-  val frequency = source.round(target)
-  Log.info(f"[${this.source.name}] ${this.target} requested but ${this.frequency} selected.")
-
   val domain = ClockDomain(
     clock     = this.clock,
-    frequency = FixedFrequency(this.frequency), 
+    frequency = FixedFrequency(source.frequency), 
     config    = ClockDomainConfig(
       clockEdge        = RISING
     )
   )
+
+  /**
+   * Abstracts access to the PLL source frequency.
+   */
+  def frequency: HertzNumber = source.frequency
 
   override def getTCL(): String = {
     val topmodule = Util.topmodule(this)
