@@ -18,20 +18,22 @@ import ultrascaleplus.parameters._
 import ultrascaleplus.bus.amba.axi4.sim._
 
 
-object BleacherSim extends App {
+object Axi4ToAxiLite4ConfigPortSim extends App {
   Config.sim.compile{
-      val dut = new Bleacher()
+      val dut = new Axi4ToAxiLite4ConfigPort()
       dut
     }.doSim { dut =>
 
-    val primary = new Axi4CheckerPrimary(dut.io.fpd.hpm0, dut.clockDomain)
-    val secondary = new Axi4CheckerSecondary(dut.io.fpd.hp0, dut.clockDomain)
+    dut.clockDomain.forkStimulus(period = 10)
+
+    val plclk0 = new ClockDomain(dut.io.pl.clk0.clock, dut.io.pl.clk0.reset)
+    val primary = new Axi4CheckerPrimary(dut.io.lpd.hpm0, plclk0)
 
     val expectedData = Seq(
-      BigInt("01010101010101010101010101010101", 16),
-      BigInt("02020202020202020202020202020202", 16),
-      BigInt("03030303030303030303030303030303", 16),
-      BigInt("04040404040404040404040404040404", 16)
+      BigInt("AAAAAAAAAAAAAAAA9999999999999999", 16),
+      BigInt("33333333333333332222222222222222", 16),
+      BigInt("55555555555555554444444444444444", 16),
+      BigInt("77777777777777776666666666666666", 16)
     )
 
     val strobeBits = Seq(
@@ -42,7 +44,7 @@ object BleacherSim extends App {
     )
 
     var burstBeatCounter: Int = 0
-    StreamMonitor(dut.io.fpd.hpm0.r, dut.clockDomain) { payload =>
+    StreamMonitor(dut.io.lpd.hpm0.r, plclk0) { payload =>
       assert(
         assertion = (payload.data.toBigInt == expectedData(burstBeatCounter)),
         message   = s"Data mismatch for read transaction ID = 0x${payload.id.toBigInt.toString(16)} at beat #${burstBeatCounter}. Expected 0x${expectedData(burstBeatCounter).toString(16)} but 0x${payload.data.toBigInt.toString(16)} obtained."
@@ -55,47 +57,43 @@ object BleacherSim extends App {
     }
 
     // Actually starts
-    dut.clockDomain.forkStimulus(period = 10)
+    plclk0.forkStimulus(period = 10)
 
     // DUMP DATA
-    for (t <- 0 until 32) {
-      val aw = new Axi4AWJob(
-        channel = dut.io.fpd.hpm0.aw,
-        addr    = AddressMap.FPD_HPM0.base+(t*64),
-        id      = 0x6800+(t*0x0020),
-        len     = expectedData.length-1,
-        size    = log2Up(dut.io.fpd.hpm0.aw.config.bytePerWord)
-      )
-      val w = new Axi4WJob(
-        channel = dut.io.fpd.hpm0.w,
-        data    = expectedData,
-        strb    = strobeBits,
-        parent  = aw
-      )
-      primary.addWrite(aw, w)
-    }
+    val aw = new Axi4AWJob(
+      channel = dut.io.lpd.hpm0.aw,
+      addr    = AddressMap.LPD_HPM0.base,
+      id      = 0x6800,
+      len     = expectedData.length-1,
+      size    = log2Up(dut.io.lpd.hpm0.aw.config.bytePerWord)
+    )
+    val w = new Axi4WJob(
+      channel = dut.io.lpd.hpm0.w,
+      data    = expectedData,
+      strb    = strobeBits,
+      parent  = aw
+    )
+    primary.addWrite(aw, w)
 
     primary.startWrite()
-    dut.clockDomain.waitRisingEdgeWhere(primary.allWritesCompleted())
+    plclk0.waitRisingEdgeWhere(primary.allWritesCompleted())
     primary.stopWrite()
     val writeBW = primary.getWriteBandwidth()
     println(s"Write performed at ${writeBW} bytes per clock cycle.")
 
     // FETCH DATA
-    for (t <- 0 until 32) {
-      primary.addRead(
-        new Axi4ARJob(
-          channel = dut.io.fpd.hpm0.ar,
-          addr    = AddressMap.FPD_HPM0.base+(t*64),
-          id      = 0x6800+(t*0x0020),
-          len     = 4-1,
-          size    = log2Up(dut.io.fpd.hpm0.ar.config.dataWidth/8)
-        )
+    primary.addRead(
+      new Axi4ARJob(
+        channel = dut.io.lpd.hpm0.ar,
+        addr    = AddressMap.LPD_HPM0.base,
+        id      = 0x6800,
+        len     = 4-1,
+        size    = log2Up(dut.io.lpd.hpm0.ar.config.dataWidth/8)
       )
-    }
+    )
 
     primary.startRead()
-    dut.clockDomain.waitRisingEdgeWhere(primary.allReadsCompleted())
+    plclk0.waitRisingEdgeWhere(primary.allReadsCompleted())
     primary.stopRead()
     val readBW = primary.getReadBandwidth()
     println(s"Read performed at ${readBW} bytes per clock cycle.")

@@ -5,6 +5,7 @@ import spinal.lib._
 import spinal.lib.bus.amba4.axi._
 
 import kv260._
+import ultrascaleplus.Config
 import ultrascaleplus.scripts._
 
 import example.plim._

@@ -2,13 +2,16 @@ package ultrascaleplus.scripts
 
 
 import java.io._
+import scala.io.Source
+import sys.process._
+import upickle.default._
 
 
 import spinal.core._
 import spinal.lib.bus.misc.SizeMapping
 
 
-import ultrascaleplus._
+import ultrascaleplus.{Vivado, UltraScalePlus}
 import ultrascaleplus.parameters.AddressMap
 import ultrascaleplus.utils.{TCL}
 
@@ -167,19 +170,32 @@ object TCLFactory {
     return "set reset_system [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 reset_system ]\n\n"
   }
 
-  def anyConnection(netType: String, source: String, targets: Seq[String]): String = {
-    var tcl = f"connect_bd_${netType}net -${netType}net ${source}"
+  def netConnection(source: String, targets: Seq[String]): String = {
+    var tcl = f"connect_bd_net -net ${source}"
     for (target <- targets)
-      tcl += f" [get_bd_${netType}pins ${target}]"
+      tcl += f" [get_bd_pins ${target}]"
     return tcl+"\n"
   }
 
-  def netConnection(source: String, targets: Seq[String]): String = {
-    return this.anyConnection("", source, targets)
+  def netConnection(targets: Seq[String]): String = {
+    var tcl = "connect_bd_net"
+    for (target <- targets)
+      tcl += f" [get_bd_pins ${target}]"
+    return tcl+"\n"
   }
 
   def interfaceConnection(source: String, targets: Seq[String]): String = {
-    return this.anyConnection("intf_", source, targets)
+    var tcl = f"connect_bd_intf_net -intf_net ${source}"
+    for (target <- targets)
+      tcl += f" [get_bd_intf_pins ${target}]"
+    return tcl+"\n"
+  }
+
+  def interfaceConnection(targets: Seq[String]): String = {
+    var tcl = f"connect_bd_intf_net"
+    for (target <- targets)
+      tcl += f" [get_bd_intf_pins ${target}]"
+    return tcl+"\n"
   }
 
   def addressMap(addressBase: BigInt, rangeSize: BigInt, port: String, target: String): String = {
@@ -307,17 +323,195 @@ object TCLFactory {
     return tcl
   }
 
+
+  class Properties(val target: String, mode: String = "default") extends TCL {
+
+    private var properties = Map[String, String]()
+
+    this.fill(mode)
+
+    override def getTCL(): String = {
+      var tcl = ""
+      for (property <- this.properties) {
+        tcl += TCLFactory.setProperty(property._1, property._2, "$obj")
+      }
+      return tcl
+    }
+
+    private def fill(filepath: java.net.URL): Unit = {
+      this.properties = read[Map[String, String]](Source.fromURL(filepath).mkString)
+    }
+    
+    def fill(mode: String): Unit = {
+      this.fill(getClass.getResource(f"/Vivado/${Vivado.year}/${this.target}/${mode}.json"))
+    }
+
+    /**
+     * Note that if a property entry already exists, it will be 
+     * update/overwritten.
+     */
+    def add(name: String, value: String): Unit = {
+      this.properties += (name -> value)
+    }
+
+    /**
+     * Note that if a property entry already exists, it will be 
+     * update/overwritten.
+     */
+    def add(another: Properties): Unit = {
+      this.properties ++= another.properties
+    }
+  }
+
+  class Report(runName: String, detailedReportName: String) extends TCL {
+
+    private val properties = new Properties("Report", detailedReportName)
+
+    override def getTCL(): String = {
+      var tcl = ""
+      tcl += TCLFactory.setObject(f"get_report_configs -of_objects [get_runs ${this.runName}] ${this.runName}_${this.detailedReportName}")
+      tcl += TCLFactory.ifObjectExists(this.properties.getTCL())
+      tcl += "\n"
+      return tcl
+    }
+
+  } 
+
+  object Project extends TCL {
+
+    private val properties = new Properties("Project")
+
+    override def getTCL(): String = {
+      var tcl = ""
+      tcl += f"create_project ${TCLFactory.platform.get.getName()} ./vivado/${TCLFactory.platform.get.getName()} -part ${TCLFactory.platform.get.boardPart}\n"
+      tcl +=  "set proj_dir [get_property directory [current_project]]\n"
+      tcl +=  "\n"
+      tcl +=  "set obj [current_project]\n"
+      tcl +=  this.properties.getTCL()
+      tcl +=  "\n"
+      return tcl
+    }
+
+    /**
+     * Note that if a property entry already exists, it will be 
+     * update/overwritten.
+     */
+    def add(name: String, value: String): Unit = {
+      this.properties.add(name, value)
+    }
+
+    def fill(mode: String): Unit = {
+      this.properties.fill(mode)
+    }
+
+  }
+
+  object Synthesis extends TCL {
+
+    private val properties = new Properties("Synthesis")
+
+    private val reports = Seq[Report](
+      new Report("synth_1", "synth_report_utilization_0")
+    )
+
+    def perform(): String = {
+      var tcl = ""
+      tcl += f"launch_runs synth_1 -jobs 4\n"
+      tcl += f"wait_on_run synth_1\n"
+      tcl +=  "\n"
+      return tcl
+    }
+    
+    override def getTCL(): String = {
+      var tcl = f"set obj [get_runs synth_1]\n"
+      tcl += TCLFactory.setProperty("flow", f"Vivado Synthesis ${Vivado.year}", "$obj")
+      tcl += this.properties.getTCL()
+      tcl += "\n"
+      for (report <- this.reports)
+        tcl += report.getTCL()
+      tcl += "\n"
+      tcl += "current_run -synthesis [get_runs synth_1]\n\n"
+      return tcl
+    }
+
+    def fill(mode: String): Unit = {
+      this.properties.fill(mode)
+    }
+
+  }
+  
+  object Implementation extends TCL {
+
+    private val properties = new Properties("Implementation")
+    
+    private val reports = Seq[Report](
+      new Report("impl_1", "init_report_timing_summary_0"),
+      new Report("impl_1", "opt_report_drc_0"),
+      new Report("impl_1", "opt_report_timing_summary_0"),
+      new Report("impl_1", "power_opt_report_timing_summary_0"),
+      new Report("impl_1", "place_report_io_0"),
+      new Report("impl_1", "place_report_utilization_0"),
+      new Report("impl_1", "place_report_control_sets_0"),
+      new Report("impl_1", "place_report_incremental_reuse_0"),
+      new Report("impl_1", "place_report_incremental_reuse_1"),
+      new Report("impl_1", "place_report_timing_summary_0"),
+      new Report("impl_1", "post_place_power_opt_report_timing_summary_0"),
+      new Report("impl_1", "phys_opt_report_timing_summary_0"),
+      new Report("impl_1", "route_report_drc_0"),
+      new Report("impl_1", "route_report_methodology_0"),
+      new Report("impl_1", "route_report_power_0"),
+      new Report("impl_1", "route_report_status_0"),
+      new Report("impl_1", "route_report_timing_summary_0"),
+      new Report("impl_1", "route_report_incremental_reuse_0"),
+      new Report("impl_1", "route_report_clock_utilization_0"),
+      new Report("impl_1", "route_report_bus_skew_0"),
+      new Report("impl_1", "post_route_phys_opt_report_timing_summary_0"),
+      new Report("impl_1", "post_route_phys_opt_report_bus_skew_0")
+    )
+    
+    def perform(): String = {
+      var tcl = ""
+      tcl += f"launch_runs impl_1 -to_step write_bitstream -jobs 4\n"
+      tcl += f"wait_on_run impl_1\n"
+      tcl +=  "\n"
+      return tcl
+    }
+
+    def bitstream(): String = {
+      return f"file copy -force ./vivado/${TCLFactory.platform.get.getName()}/${TCLFactory.platform.get.getName()}.runs/impl_1/design_1_wrapper.bit ./${TCLFactory.platform.get.getName()}.bit\n"
+    }
+
+    def xsa(): String = {
+      return f"write_hw_platform -fixed -include_bit -force -file ./${TCLFactory.platform.get.getName()}.xsa\n"
+    }
+
+    override def getTCL(): String = {
+      var tcl = f"set obj [get_runs impl_1]\n"
+      tcl += TCLFactory.setProperty("flow", f"Vivado Implementation ${Vivado.year}", "$obj")
+      tcl += this.properties.getTCL()
+      tcl += "\n"
+      for (report <- this.reports)
+        tcl += report.getTCL()
+      return tcl
+    }
+
+    def fill(mode: String): Unit = {
+      this.properties.fill(mode)
+    }
+
+  }
+
   def script(): String = {
     var tcl = ""
 
     // Create project
-    Vivado.Project.fill("default")
-    Vivado.Project.add("board_part_repo_paths", f"[file normalize \"~/.Xilinx/Vivado/${Vivado.version}/xhub/board_store/xilinx_board_store\"]")
-    Vivado.Project.add("board_part"           , f"xilinx.com:${this.platform.get.board}:part0:${Vivado.getBoardVersion(this.platform.get.board)}")
-    Vivado.Project.add("ip_output_repo"       , "$proj_dir/"+f"${this.platform.get.getName()}.cache/ip")
-    Vivado.Project.add("platform.board_id"    , this.platform.get.board)
-    Vivado.Project.add("sim.central_dir"      , "$proj_dir/"+f"${this.platform.get.getName()}.ip_user_files")
-    tcl += Vivado.Project.getTCL()
+    this.Project.fill("default")
+    this.Project.add("board_part_repo_paths", f"[file normalize \"~/.Xilinx/Vivado/${Vivado.version}/xhub/board_store/xilinx_board_store\"]")
+    this.Project.add("board_part"           , f"xilinx.com:${this.platform.get.board}:part0:${Vivado.getBoardVersion(this.platform.get.board)}")
+    this.Project.add("ip_output_repo"       , "$proj_dir/"+f"${this.platform.get.getName()}.cache/ip")
+    this.Project.add("platform.board_id"    , this.platform.get.board)
+    this.Project.add("sim.central_dir"      , "$proj_dir/"+f"${this.platform.get.getName()}.ip_user_files")
+    tcl += this.Project.getTCL()
 
     // Setup project
     //// Sources
@@ -359,12 +553,12 @@ object TCLFactory {
     tcl += this.disableIDRFlow()
 
     // Setup synthesis
-    Vivado.Synthesis.fill("default")
-    tcl += Vivado.Synthesis.getTCL()
+    this.Synthesis.fill("default")
+    tcl += this.Synthesis.getTCL()
 
     // Setup implementation
-    Vivado.Implementation.fill("default")
-    tcl += Vivado.Implementation.getTCL()
+    this.Implementation.fill("default")
+    tcl += this.Implementation.getTCL()
 
     // vivado setup
     tcl += this.setImplmentationStrategy("impl_1")
@@ -372,10 +566,10 @@ object TCLFactory {
 
     // Go to bitstream
     tcl += this.setTopModule("sources_1")
-    tcl += Vivado.Synthesis.perform()
-    tcl += Vivado.Implementation.perform()
-    tcl += Vivado.Implementation.bitstream()
-    tcl += Vivado.Implementation.xsa()
+    tcl += this.Synthesis.perform()
+    tcl += this.Implementation.perform()
+    tcl += this.Implementation.bitstream()
+    tcl += this.Implementation.xsa()
 
     return tcl
   }

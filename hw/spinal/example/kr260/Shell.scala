@@ -5,6 +5,7 @@ import spinal.core._
 import spinal.lib._
 
 
+import ultrascaleplus.Config
 import ultrascaleplus.clock._
 import ultrascaleplus.clock.pll._
 
