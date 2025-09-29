@@ -60,22 +60,24 @@ case class GTMapped(config: GTMappedTemplate) extends GT() with PSPLInterface wi
   )
     
   // TODO: could be changed for xilinx interface
+  // Note: two steps are required each time: (1) make net/port/intf internal 
+  // and (2) rename generated interface to remove the '_0' postfix
   override def getTCL(): String = {
     val moduleName = Util.topmodule(this).getName()
     var tcl = ""
     // TX
     tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.tx.p.getName()}]\n"
-    tcl += f"set_property NAME ${this.tx.p.getName()} [get_bd_ports /${this.tx.p.getName()}]\n"
+    tcl += f"set_property name ${this.tx.p.getName()}_0 [get_bd_ports /${this.tx.p.getName()}]\n"
     tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.tx.n.getName()}]\n"
-    tcl += f"set_property NAME ${this.tx.n.getName()} [get_bd_ports /${this.tx.n.getName()}]\n"
+    tcl += f"set_property name ${this.tx.n.getName()}_0 [get_bd_ports /${this.tx.n.getName()}]\n"
     // RX
     tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.rx.p.getName()}]\n"
-    tcl += f"set_property NAME ${this.rx.p.getName()} [get_bd_ports /${this.rx.p.getName()}]\n"
+    tcl += f"set_property name ${this.rx.p.getName()}_0 [get_bd_ports /${this.rx.p.getName()}]\n"
     tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.rx.n.getName()}]\n"
-    tcl += f"set_property NAME ${this.rx.n.getName()} [get_bd_ports /${this.rx.n.getName()}]\n"
+    tcl += f"set_property name ${this.rx.n.getName()}_0 [get_bd_ports /${this.rx.n.getName()}]\n"
     // SFP DIS
     tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.sfp.dis.getName()}]\n"
-    tcl += f"set_property NAME ${this.sfp.dis.getName()} [get_bd_ports /${this.sfp.dis.getName()}]\n"
+    tcl += f"set_property name ${this.sfp.dis.getName()}_0 [get_bd_ports /${this.sfp.dis.getName()}]\n"
     tcl += "\n"
     return tcl
   }

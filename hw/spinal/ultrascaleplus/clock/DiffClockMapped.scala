@@ -71,8 +71,8 @@ class DiffClockMapped(val frequency: HertzNumber, val pin: String) extends DiffB
   override def getXDC(): String = {
     val period = this.formatTimeTo(this.frequency.toTime.toBigDecimal, "ns")
     var constraint = ""
-    constraint += f"set_property PACKAGE_PIN ${this.pin} [get_ports ${this.p.getName()}_external_clk_p]\n"
-    constraint += f"create_clock -period ${period} -name ${this.getName()}_external [get_ports ${this.getName()}_external_clk_p]"
+    constraint += f"set_property PACKAGE_PIN ${this.pin} [get_ports ${this.p.getName()}_clk_p]\n"
+    constraint += f"create_clock -period ${period} -name ${this.getName()}_external [get_ports ${this.getName()}_clk_p]"
     constraint +=  "\n"
     return constraint
   }
