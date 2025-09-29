@@ -65,17 +65,8 @@ case class GTMapped(config: GTMappedTemplate) extends GT() with PSPLInterface wi
   override def getTCL(): String = {
     val moduleName = Util.topmodule(this).getName()
     var tcl = ""
-    // TX
-    tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.tx.p.getName()}]\n"
-    tcl += f"set_property name ${this.tx.p.getName()}_0 [get_bd_ports /${this.tx.p.getName()}]\n"
-    tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.tx.n.getName()}]\n"
-    tcl += f"set_property name ${this.tx.n.getName()}_0 [get_bd_ports /${this.tx.n.getName()}]\n"
-    // RX
-    tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.rx.p.getName()}]\n"
-    tcl += f"set_property name ${this.rx.p.getName()}_0 [get_bd_ports /${this.rx.p.getName()}]\n"
-    tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.rx.n.getName()}]\n"
-    tcl += f"set_property name ${this.rx.n.getName()}_0 [get_bd_ports /${this.rx.n.getName()}]\n"
-    // SFP DIS
+    tcl += f"make_bd_intf_pins_external [get_bd_intf_pins ${moduleName}/${this.getName()}]\n"
+    tcl += f"set_property name ${this.getName()}_0 [get_bd_ports /${this.getName()}]\n"
     tcl += f"make_bd_pins_external  [get_bd_pins ${moduleName}/${this.sfp.dis.getName()}]\n"
     tcl += f"set_property name ${this.sfp.dis.getName()}_0 [get_bd_ports /${this.sfp.dis.getName()}]\n"
     tcl += "\n"
@@ -98,11 +89,11 @@ case class GTMapped(config: GTMappedTemplate) extends GT() with PSPLInterface wi
 
   override def setAttribute(): Unit = {
     // TX
-    this.tx.p.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.tx.getPartialName()} TXP")
-    this.tx.n.addAttribute("X_INTERFACE_INFO", f"xilinx.com;interface:sgmii:1.0 ${this.tx.getPartialName()} TXN")
+    this.tx.p.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getName()} TXP")
+    this.tx.n.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getName()} TXN")
     // RX
-    this.rx.p.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.rx.getPartialName()} RXP")
-    this.rx.n.addAttribute("X_INTERFACE_INFO", f"xilinx.com;interface:sgmii:1.0 ${this.rx.getPartialName()} RXN")
+    this.rx.p.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getName()} RXP")
+    this.rx.n.addAttribute("X_INTERFACE_INFO", f"xilinx.com:interface:sgmii:1.0 ${this.getName()} RXN")
   }
 
 }

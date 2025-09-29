@@ -58,12 +58,12 @@ class DiffClockMapped(val frequency: HertzNumber, val pin: String) extends DiffB
   override def getTCL(): String = {
     val moduleName = Util.topmodule(this).getName()
     var tcl = ""
-    tcl += f"set ${this.getName()}_external [ create_bd_intf_port -mode Slave -vlnv ${this.xilinxInterfaceName} ${this.getName()}_external ]\n"
+    tcl += f"set ${this.getName()} [ create_bd_intf_port -mode Slave -vlnv ${this.xilinxInterfaceName} ${this.getName()} ]\n"
     tcl +=  "set_property -dict [ list \\\n"
     tcl += f"  CONFIG.FREQ_HZ {${this.frequency.toBigDecimal}} \\\n"
-    tcl +=  "] $"+f"${this.getName()}_external\n"
+    tcl +=  "] $"+f"${this.getName()}\n"
     tcl +=  "\n"
-    tcl += TCLFactory.interfaceConnection(f"${this.getName()}_intermediate", Seq(this.getName(), f"${this.getName()}_external"))
+    tcl += TCLFactory.interfaceConnection(Seq(f"${moduleName}/${this.getName()}", this.getName()))
     tcl +=  "\n"
     return tcl
   }
@@ -72,14 +72,14 @@ class DiffClockMapped(val frequency: HertzNumber, val pin: String) extends DiffB
     val period = this.formatTimeTo(this.frequency.toTime.toBigDecimal, "ns")
     var constraint = ""
     constraint += f"set_property PACKAGE_PIN ${this.pin} [get_ports ${this.p.getName()}_clk_p]\n"
-    constraint += f"create_clock -period ${period} -name ${this.getName()}_external [get_ports ${this.getName()}_clk_p]"
+    constraint += f"create_clock -period ${period} -name ${this.getName()} [get_ports ${this.getName()}_clk_p]"
     constraint +=  "\n"
     return constraint
   }
 
   override def setAttribute(): Unit = {
-    this.p.addAttribute("X_INTERFACE_INFO", f"${this.xilinxInterfaceName} ${this.n.getName()} CLK_P")
-    this.n.addAttribute("X_INTERFACE_INFO", f"${this.xilinxInterfaceName} ${this.p.getName()} CLK_N")
+    this.p.addAttribute("X_INTERFACE_INFO", f"${this.xilinxInterfaceName} ${this.getName()} CLK_P")
+    this.n.addAttribute("X_INTERFACE_INFO", f"${this.xilinxInterfaceName} ${this.getName()} CLK_N")
   }
 
 }
