@@ -5,7 +5,7 @@ import spinal.core._
 import spinal.lib._
 
 
-import ultrascaleplus.clock.pll.PllSource
+import ultrascaleplus.clock.pll._
 import ultrascaleplus.scripts.TCLFactory
 import ultrascaleplus.utils.{TCL, PSPLInterface, Util, Log}
 

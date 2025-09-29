@@ -8,6 +8,7 @@ import spinal.lib.bus.amba4.axilite._
 
 import ultrascaleplus.Config
 import ultrascaleplus.clock.PLClockingArea
+import ultrascaleplus.clock.pll._
 import ultrascaleplus.ip.Ethernet
 import ultrascaleplus.bus.amba.axi4.Axi4toAxiLite4
 
@@ -17,8 +18,8 @@ import kv260._
 
 case class Axi4ToAxiLite4ConfigPort() extends KV260(
   config = new KV260Config(
-    withPL_CLK0  = 250 MHz,
-    withLPD_HPM0 =    true
+    withPL_CLK0  = PLL.IO(250 MHz),
+    withLPD_HPM0 =            true
   )
 ) {
 
