@@ -278,7 +278,6 @@ object Vivado {
     }
     
     def fill(mode: String): Unit = {
-      println(f"${this.target}/${mode}.json")
       this.fill(os.pwd / "hw" / "ext" / "Vivado" / Vivado.year / f"${this.target}" / f"${mode}.json")
     }
 
