@@ -5,14 +5,14 @@ import spinal.core._
 import spinal.lib._
 
 
-import ultrascaleplus.clock.pll.PllSource
+import ultrascaleplus.clock.pll._
 import ultrascaleplus.utils.{TCL, XDC, PSPLInterface, Log, Util}
 import ultrascaleplus.scripts.{TCLFactory}
 
 
 object ClockResetMapped {
 
-  def apply(source: PllSource, target: HertzNumber): ClockResetMapped = new ClockResetMapped(source, target)
+  def apply(source: PLL): ClockResetMapped = new ClockResetMapped(source)
 
 }
 
@@ -20,16 +20,15 @@ object ClockResetMapped {
  *
  *  @constructor Creates a mappable clock source.
  *  @parameter source PLL clock source.
- *  @parameter target Target frequency desired.
  */
-class ClockResetMapped(source: PllSource, target: HertzNumber) extends ClockMapped(source: PllSource, target: HertzNumber) {
+class ClockResetMapped(source: PLL) extends ClockMapped(source) {
   
   val reset = in(Bool())
 
   override val domain = ClockDomain(
     clock     = this.clock,
     reset     = this.reset,
-    frequency = FixedFrequency(this.frequency), 
+    frequency = FixedFrequency(source.frequency), 
     config    = ClockDomainConfig(
       clockEdge        = RISING,
       resetKind        = ASYNC,

@@ -11,11 +11,12 @@ import ultrascaleplus.bus.amba.axi4._
 import ultrascaleplus.scripts._
 import ultrascaleplus.configport._
 import ultrascaleplus.clock._
+import ultrascaleplus.clock.pll._
 
 
 case class ConfigPortTest() extends KR260(
   config    = new KR260Config(
-    withPL_CLK0  = 100 MHz,
+    withPL_CLK0  = PLL.IO(100 MHz),
     withLPD_HPM0 = true
   )
 ) {

@@ -7,6 +7,7 @@ import spinal.lib._
 
 import ultrascaleplus.Config
 import ultrascaleplus.clock._
+import ultrascaleplus.clock.pll._
 
 
 import kv260._
@@ -14,10 +15,10 @@ import kv260._
 
 case class Shell() extends KV260(
   config    = new KV260Config(
-    withPL_CLK0    = 250 MHz,
-    withPL_CLK1    = 250 MHz,
-    withPL_CLK2    = 250 MHz,
-    withPL_CLK3    = 250 MHz,
+    withPL_CLK0    = PLL.IO(340 MHz),
+    withPL_CLK1    = PLL.IO(300 MHz),
+    withPL_CLK2    = PLL.IO(250 MHz),
+    withPL_CLK3    = PLL.R( 75 MHz),
     withLPD_HPM0   =    true,
     withLPD_HP0    =    true,
     withFPD_HPM0   =    true,

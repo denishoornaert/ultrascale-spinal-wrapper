@@ -2,6 +2,16 @@
 *.log
 *.bak
 
+# vivado
+vivado/
+*.log
+*.jou
+*.str
+*.zip
+*.bit
+*.bin
+*.xsa
+
 # sbt specific
 .cache/
 .history/
@@ -45,9 +55,3 @@ bin/
 simWorkspace/
 tmp/
 null
-
-vivado/
-vivado.log
-vivado.jou
-*.bit
-*.xsa
