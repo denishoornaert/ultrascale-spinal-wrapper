@@ -37,9 +37,8 @@ case class PLL(val name: String, target: HertzNumber, mapping: Map[Int, Seq[Hert
         frequency  = estimation
       }
     }
+    Log.info(f"[${name}] ${target} requested but ${frequency} selected.")
   }
-  
-  Log.info(f"[${name}] ${target} requested but ${frequency} selected.")
 
 }
 
