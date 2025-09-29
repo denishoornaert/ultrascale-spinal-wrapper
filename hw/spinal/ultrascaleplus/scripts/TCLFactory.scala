@@ -324,11 +324,11 @@ object TCLFactory {
   }
 
 
-  class Properties(val target: String, mode: String = "default") extends TCL {
+  class Properties(target: String) extends TCL {
 
     private var properties = Map[String, String]()
 
-    this.fill(mode)
+    this.fill(target)
 
     override def getTCL(): String = {
       var tcl = ""
@@ -342,8 +342,8 @@ object TCLFactory {
       this.properties = read[Map[String, String]](Source.fromURL(filepath).mkString)
     }
     
-    def fill(mode: String): Unit = {
-      this.fill(getClass.getResource(f"/Vivado/${Vivado.year}/${this.target}/${mode}.json"))
+    def fill(filepath: String): Unit = {
+      this.fill(getClass.getResource(filepath))
     }
 
     /**
@@ -365,7 +365,7 @@ object TCLFactory {
 
   class Report(runName: String, detailedReportName: String) extends TCL {
 
-    private val properties = new Properties("Report", detailedReportName)
+    private val properties = new Properties(f"/Vivado/${Vivado.year}/Report/${detailedReportName}.json")
 
     override def getTCL(): String = {
       var tcl = ""
@@ -379,7 +379,7 @@ object TCLFactory {
 
   object Project extends TCL {
 
-    private val properties = new Properties("Project")
+    private val properties = new Properties(f"/Vivado/${Vivado.year}/Project/default.json")
 
     override def getTCL(): String = {
       var tcl = ""
@@ -401,14 +401,14 @@ object TCLFactory {
     }
 
     def fill(mode: String): Unit = {
-      this.properties.fill(mode)
+      this.properties.fill(f"/Vivado/${Vivado.year}/Project/${mode}.json")
     }
 
   }
 
   object Synthesis extends TCL {
 
-    private val properties = new Properties("Synthesis")
+    private val properties = new Properties(f"/Vivado/${Vivado.year}/Synthesis/default.json")
 
     private val reports = Seq[Report](
       new Report("synth_1", "synth_report_utilization_0")
@@ -435,14 +435,14 @@ object TCLFactory {
     }
 
     def fill(mode: String): Unit = {
-      this.properties.fill(mode)
+      this.properties.fill(f"/Vivado/${Vivado.year}/Synthesis/${mode}.json")
     }
 
   }
   
   object Implementation extends TCL {
 
-    private val properties = new Properties("Implementation")
+    private val properties = new Properties(f"/Vivado/${Vivado.year}/Implementation/default.json")
     
     private val reports = Seq[Report](
       new Report("impl_1", "init_report_timing_summary_0"),
@@ -496,7 +496,7 @@ object TCLFactory {
     }
 
     def fill(mode: String): Unit = {
-      this.properties.fill(mode)
+      this.properties.fill(f"/Vivado/${Vivado.year}/Implementation/${mode}.json")
     }
 
   }
