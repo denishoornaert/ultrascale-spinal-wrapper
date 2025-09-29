@@ -11,11 +11,35 @@ import spinal.lib._
 import ultrascaleplus.utils.Log
 
 
-case class PLL(name: String, frequency: HertzNumber) {
+case class PLL(val name: String, target: HertzNumber, mapping: Map[Int, Seq[HertzNumber]]) {
+
+  private var multiplier: Int = 0
+
+  var frequency : HertzNumber = 0 MHz
 
   def enabled: Boolean = {
     return this.frequency > HertzNumber(0)
   }
+
+  private def round(target: HertzNumber, frequencies: Seq[HertzNumber]): HertzNumber = {
+    val differences = frequencies.map(x => (x-target).toDouble).map(x => if (x > 0) -1.0/0 else x)
+    val index       = differences.indexOf(differences.max)
+    return frequencies(index)
+  }
+
+  // If target is 0 MHz, then disabled
+  if (target != (0 MHz)) {
+    // For all multiplier, pick one giving best target frequency fit
+    for (frequencies <- mapping) {
+      val estimation = round(target, frequencies._2)
+      if (target-estimation < target-frequency) {
+        multiplier = frequencies._1
+        frequency  = estimation
+      }
+    }
+  }
+  
+  Log.info(f"[${name}] ${target} requested but ${frequency} selected.")
 
 }
 
@@ -30,14 +54,6 @@ object PLL {
 
   case class Ranges(m: Range, d0: Range, d1: Range) {}
 
-  private def quantize(frequency: HertzNumber, scale: Int = 6): HertzNumber = {
-    return HertzNumber(frequency.toBigDecimal.setScale(scale, BigDecimal.RoundingMode.HALF_UP))
-  }
-
-  private def clamp(value: Int, range: Range): Int = {
-    return (value max range.min) min range.max
-  }
- 
   /**
    * Branch and bound. Looking for best match.
    *
@@ -79,18 +95,27 @@ object PLL {
 
   object IO {
 
-    val frequencies = Seq(333.329987 MHz, 299.997009 MHz, 249.997498 MHz, 199.998001 MHz, 142.855713 MHz, 99.999001 MHz, 49.999500 MHz)
-
-    //val ranges = Ranges(45 to 90, 1 to 63, 1 to 63)
-    val ranges = Ranges(60 to 90 by 30, 1 to 63, 1 to 63)
+    val mapping: Map[Int, Seq[HertzNumber]] = Map(
+      60 -> Seq(333.329987 MHz, 249.997498 MHz, 199.998001 MHz, 142.855713 MHz, 99.999001 MHz, 71.427856 MHz, 49.999500 MHz),
+      90 -> Seq(299.997009 MHz,  74.999252 MHz)
+    )
 
     def apply(target: HertzNumber): PLL = {
-      val frequency = PLL.tune(33.333333 MHz, target, ranges).fout
-      Log.info(f"[IOPLL] ${target} requested but ${frequency} selected.")
-      return PLL("IOPLL", frequency)
+      return new PLL("IOPLL", target, mapping)
     }
 
   }
 
+  object R {
+
+    val mapping: Map[Int, Seq[HertzNumber]] = Map(
+      63 -> Seq(74.999252 MHz)
+    )
+
+    def apply(target: HertzNumber): PLL = {
+      return new PLL("RPLL", target, mapping)
+    }
+
+  }
 }
 
