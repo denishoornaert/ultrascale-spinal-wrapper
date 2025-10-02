@@ -324,24 +324,41 @@ object TCLFactory {
   }
 
 
-  class Properties(target: String) extends TCL {
+  class Properties(target: String, tclvar: String = "$obj") extends TCL {
 
+    /**
+     *  Set of property and value.
+     */
     private var properties = Map[String, String]()
 
     this.fill(target)
 
     override def getTCL(): String = {
       var tcl = ""
-      for (property <- this.properties) {
-        tcl += TCLFactory.setProperty(property._1, property._2, "$obj")
+      if (this.properties.nonEmpty) {
+        tcl += "set_property -dict [list \\\n"
+        for (property <- this.properties) {
+          tcl += f"  ${property._1} {${property._2}} \\\n"
+        }
+        tcl += f"] ${tclvar}\n"
       }
       return tcl
     }
 
+    /**
+     * Fill up propertities with pre-made set for a .json file.
+     *
+     * @param filepath Path to .json file
+     */
     private def fill(filepath: java.net.URL): Unit = {
       this.properties = read[Map[String, String]](Source.fromURL(filepath).mkString)
     }
     
+    /**
+     * Fill up propertities with pre-made set for a .json file.
+     *
+     * @param filepath Path to .json file
+     */
     def fill(filepath: String): Unit = {
       this.fill(getClass.getResource(filepath))
     }
