@@ -15,9 +15,9 @@ import kv260._
 
 case class Shell() extends KV260(
   config    = new KV260Config(
-    withPL_CLK0    = PLL.IO(340 MHz),
-    withPL_CLK1    = PLL.IO(300 MHz),
-    withPL_CLK2    = PLL.IO(250 MHz),
+    withPL_CLK0    = PLL.IO(250 MHz),
+    withPL_CLK1    = PLL.IO(2500 MHz),
+    withPL_CLK2    = PLL.IO(334 MHz),
     withPL_CLK3    = PLL.R( 75 MHz),
     withLPD_HPM0   =    true,
     withLPD_HP0    =    true,
