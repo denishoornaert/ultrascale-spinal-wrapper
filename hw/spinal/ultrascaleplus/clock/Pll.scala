@@ -13,7 +13,7 @@ import ultrascaleplus.utils.Log
 
 case class PLL(val name: String, target: HertzNumber, mapping: Map[Int, Seq[HertzNumber]]) {
 
-  private var multiplier: Int = 0
+  var multiplier: Int = 0
 
   var frequency : HertzNumber = 0 MHz
 
