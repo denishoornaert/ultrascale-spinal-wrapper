@@ -39,6 +39,10 @@ class TraceClockMapped() extends Bundle with PSPLInterface with TCL {
       reset  = this.feedbackClock.get.domain.reset,
       config = this.feedbackClock.get.domain.config
     ))
+    assert(
+      assertion = ((249.9 MHz) <= this.feedbackClock.get.frequency) && (this.feedbackClock.get.frequency < (250.1 MHz)),
+      message   = f"[Trace clock] Provided clock's frequency is ${this.feedbackClock.get.frequency} but ~250 MHz is expected."
+    )
     Log.info(f"[Trace clock] Trace clock operates at ${this.feedbackClock.get.frequency}.")
   }
 
