@@ -50,3 +50,4 @@ vivado/
 vivado.log
 vivado.jou
 *.bit
+.scalafmt.conf
