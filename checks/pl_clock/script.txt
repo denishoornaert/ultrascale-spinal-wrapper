@@ -1,0 +1,33 @@
+# U-Boot script: toggle_and_read
+# Usage: source <script> <delay X>
+
+if test $# -ne 1; then
+    echo "Usage: source <script> <delay X>"
+    exit 1
+fi
+
+
+# Assign arguments
+setenv count  0x80000000
+setenv reset  0x80000008
+setenv enable 0x80000009
+setenv delay  $1
+
+
+# Disable count
+mw.b ${enable} 0 1
+# Reset count
+mw.b ${reset} 1 1
+# Disable reset
+mw.b ${reset} 0 1
+
+# Enable count
+mw.b ${enable} 1 1
+# Wait for X seconds
+sleep ${delay}
+# Disbale count
+mw.b ${enable} 0 1
+
+# Print clock cycle count
+echo "Value at address C: "
+md.q ${count} 1
