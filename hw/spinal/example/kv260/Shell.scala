@@ -29,6 +29,7 @@ case class Shell() extends KV260(
     withFPD_HPC0   =    true,
     withFPD_HPC1   =    true,
     withFPD_ACP    =    true,
+    withFPD_ACE    =    true,
     withIO_PMOD0   =    true,
     withDBG_CTI0   =    true,
     withDBG_CTI1   =    true,
@@ -57,6 +58,7 @@ case class Shell() extends KV260(
   io.fpd.hpc0.associate(io.pl.clk0)
   io.fpd.hpc1.associate(io.pl.clk0)
   io.fpd.acp.associate(io.pl.clk0)
+  io.fpd.ace.associate(io.pl.clk0)
 
   val plclk0 = new PLClockingArea(io.pl.clk0) {
     // Create dummy register to force instantiation of cock and reset I/O
