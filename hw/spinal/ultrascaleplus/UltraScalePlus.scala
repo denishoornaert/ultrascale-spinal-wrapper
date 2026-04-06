@@ -21,6 +21,7 @@ import spinal.lib.bus.amba4.axi._
 import ultrascaleplus.signal.crosstrigger._
 import ultrascaleplus.signal.irq._
 import ultrascaleplus.bus.amba.axi4._
+import ultrascaleplus.bus.amba.ace._
 import ultrascaleplus.clock.{ClockResetMapped, PLClockingArea}
 import ultrascaleplus.clock.pll._
 import ultrascaleplus.scripts._
@@ -80,7 +81,7 @@ class UltraScalePlusIO(config: UltraScalePlusConfig) extends Bundle {
     val hpc0 = (config.withFPD_HPC0       ) generate (master(Axi4Mapped(FPD.HPC0)))
     val hpc1 = (config.withFPD_HPC1       ) generate (master(Axi4Mapped(FPD.HPC1)))
     val acp  = (config.withFPD_ACP        ) generate (master(Axi4Mapped(FPD.ACP )))
-//  val fpd_ace  = (withFPD_ACE    ) generate ( slave(Axi4(KriaPorts.FPD_ACE_Config )))
+    val ace  = (config.withFPD_ACE        ) generate (master( AceMapped(ACE     )))
   }
   val dbg = new Bundle {
     val cti0 = (config.withDBG_CTI0       ) generate ( slave(CrossTrigger()))
@@ -555,6 +556,7 @@ abstract class UltraScalePlus (
     tcl +=f"  CONFIG.PSU__USE__M_AXI_GP0 {${this.config.withFPD_HPM0.toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__USE__M_AXI_GP1 {${this.config.withFPD_HPM1.toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__USE__M_AXI_GP2 {${this.config.withLPD_HPM0.toInt}} \\\n"
+    tcl +=f"  CONFIG.PSU__USE__S_AXI_ACE {${this.config.withFPD_ACE.toInt }} \\\n"
     tcl +=f"  CONFIG.PSU__USE__S_AXI_ACP {${this.config.withFPD_ACP.toInt }} \\\n"
     tcl +=f"  CONFIG.PSU__USE__S_AXI_GP0 {${this.config.withFPD_HPC0.toInt}} \\\n"
     tcl +=f"  CONFIG.PSU__USE__S_AXI_GP1 {${this.config.withFPD_HPC1.toInt}} \\\n"
