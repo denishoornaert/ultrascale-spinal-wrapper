@@ -36,12 +36,11 @@ case class AceCr(config: AceConfig) extends Bundle with IMasterSlave {
 case class AceCd(config: AceConfig) extends Bundle with IMasterSlave {
 
   val data = in(Bits(config.dataWidth bits))
-  val last = in(Bool())
 
   override def clone: this.type = new AceCd(config).asInstanceOf[this.type]
 
   override def asMaster(): Unit = {
-    out(data, last)
+    out(data)
   }
 
 }
@@ -60,7 +59,6 @@ class AceAx(config: AceConfig, val userWidth: Int, readOnly: Boolean) extends Bu
   val qos     = (config.useQos)    generate in(Bits(4 bits))
   val user    = (userWidth >= 0)   generate in(Bits(userWidth bits))
   val prot    = (config.useProt)   generate in(Bits(3 bits))
-  val allStrb = (config.useAllStrb && !readOnly) generate in(Bool())
 
   val domain  = (config.useDomain) generate in(Bits(2 bits))
 	val snoop   = (config.useSnoop)  generate in(Bits(3+readOnly.toInt bits))
@@ -114,7 +112,7 @@ class AceAx(config: AceConfig, val userWidth: Int, readOnly: Boolean) extends Bu
   }
 
   override def asMaster(): Unit = {
-    out(addr, id, region, len, size, burst, lock, cache, qos, user,prot, allStrb, domain, snoop, bar)
+    out(addr, id, region, len, size, burst, lock, cache, qos, user,prot, domain, snoop, bar)
   }
 
 }

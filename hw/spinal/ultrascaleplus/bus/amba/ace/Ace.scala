@@ -25,7 +25,7 @@ class AceConfig(
   val forceAxi4Len : Boolean = false,
   val useDomain    : Boolean = true,
   val useSnoop     : Boolean = true,
-  val useUnique    : Boolean = true,
+  val useUnique    : Boolean = false,
   val useBar       : Boolean = true,
   val useAck       : Boolean = true,
   val arUserWidth  : Int = -1,
@@ -89,6 +89,11 @@ object AceConfig {
     useStrb      : Boolean = true,
     useAllStrb   : Boolean = false,
     forceAxi4Len : Boolean = false,
+    useDomain    : Boolean = true,
+    useSnoop     : Boolean = true,
+    useUnique    : Boolean = false,
+    useBar       : Boolean = true,
+    useAck       : Boolean = true,
     arUserWidth  : Int = -1,
     awUserWidth  : Int = -1,
     rUserWidth   : Int = -1,
@@ -116,6 +121,11 @@ object AceConfig {
     useStrb      = useStrb,
     useAllStrb   = useAllStrb,
     forceAxi4Len = forceAxi4Len,
+    useDomain    = useDomain,
+    useSnoop     = useSnoop,
+    useUnique    = useUnique,
+    useBar       = useBar,
+    useAck       = useAck,
     arUserWidth  = arUserWidth,
     awUserWidth  = awUserWidth,
     rUserWidth   = rUserWidth,
@@ -132,7 +142,7 @@ object AceConfig {
 case class Ace(config: AceConfig) extends Bundle with IMasterSlave {
 
   val ac = master(Stream(AceAc(config)))
-  val cr =  slave(Stream(AceAr(config)))
+  val cr =  slave(Stream(AceCr(config)))
   val cd =  slave(Stream(AceCd(config)))
   val ar =  slave(Stream(AceAr(config)))
   val r  = master(Stream(AceR(config)))
@@ -156,6 +166,44 @@ case class Ace(config: AceConfig) extends Bundle with IMasterSlave {
     that.aw >> this.aw
     that.w  >> this.w
     this.b  >> that.b
+  }
+
+  def setIdle(): Unit = {
+    if (ac.isMasterInterface)
+      ac.setIdle()
+    if (cr.isMasterInterface)
+      cr.setIdle()
+    if (cd.isMasterInterface)
+      cd.setIdle()
+    if (ar.isMasterInterface)
+      ar.setIdle()
+    if (r.isMasterInterface)
+      r.setIdle()
+    if (aw.isMasterInterface)
+      aw.setIdle()
+    if (w.isMasterInterface)
+      w.setIdle()
+    if (b.isMasterInterface)
+      b.setIdle()
+  }
+
+  def setBlocked(): Unit = {
+    if (ac.isSlaveInterface)
+      ac.setBlocked()
+    if (cr.isSlaveInterface)
+      cr.setBlocked()
+    if (cd.isSlaveInterface)
+      cd.setBlocked()
+    if (ar.isSlaveInterface)
+      ar.setBlocked()
+    if (r.isSlaveInterface)
+      r.setBlocked()
+    if (aw.isSlaveInterface)
+      aw.setBlocked()
+    if (w.isSlaveInterface)
+      w.setBlocked()
+    if (b.isSlaveInterface)
+      b.setBlocked()
   }
 
 }
